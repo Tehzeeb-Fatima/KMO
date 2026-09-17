@@ -25,12 +25,21 @@ const COLUMNS = [
       { href: "/return-policy", label: "Vendor policies" },
     ],
   },
+  {
+    heading: "Company",
+    links: [
+      { href: "/about", label: "About us" },
+      { href: "/faqs", label: "FAQs" },
+      { href: "/terms", label: "Terms & conditions" },
+      { href: "/privacy", label: "Privacy policy" },
+    ],
+  },
 ];
 
 export function SiteFooter() {
   return (
     <footer className="bg-sidebar">
-      <div className="mx-auto grid w-full max-w-[1358px] grid-cols-2 gap-8 px-4 py-12 sm:grid-cols-4 sm:px-10">
+      <div className="mx-auto grid w-full max-w-[1358px] grid-cols-2 gap-8 px-4 py-12 sm:grid-cols-3 sm:px-10 lg:grid-cols-5">
         <div className="col-span-2 flex flex-col gap-3 sm:col-span-1">
           <div className="flex items-center gap-[11px]">
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-sm font-bold text-white">

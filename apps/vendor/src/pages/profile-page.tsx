@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@kmo/shared/auth";
+import { PasswordInput } from "@kmo/shared/ui";
 import { supabase } from "../lib/supabase";
 
 export function ProfilePage() {
@@ -54,19 +55,17 @@ export function ProfilePage() {
         </Field>
 
         <p className="mt-2 text-[15px] font-bold text-ink">Change password</p>
-        <input
-          type="password"
+        <PasswordInput
           placeholder="Current password"
+          autoComplete="current-password"
           value={currentPassword}
           onChange={(e) => setCurrentPassword(e.target.value)}
-          className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
         />
-        <input
-          type="password"
+        <PasswordInput
           placeholder="New password"
+          autoComplete="new-password"
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
-          className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
         />
       </div>
 

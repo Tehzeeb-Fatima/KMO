@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Link, Navigate } from "react-router-dom";
-import { AuthLayout, Button, Input } from "@kmo/shared/ui";
+import { AuthLayout, Button, Input, PasswordInput } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "../lib/supabase";
 
@@ -117,9 +117,8 @@ export function SignupPage() {
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
         />
-        <Input
+        <PasswordInput
           label="Password"
-          type="password"
           name="password"
           autoComplete="new-password"
           required

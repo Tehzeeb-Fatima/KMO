@@ -1,5 +1,6 @@
 export * from "./button";
 export * from "./input";
+export * from "./password-input";
 export * from "./auth-layout";
 export * from "./pill-tabs";
 export * from "./status-badge";

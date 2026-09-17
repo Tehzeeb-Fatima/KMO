@@ -432,14 +432,28 @@ function ContactSection() {
             Karachi-based support team will get back to you.
           </p>
           <div className="mt-2 flex flex-col gap-2.5">
-            {["support@karachimart.pk", "021 111 KMO KMO", "Mon–Sat, 9:00 AM – 9:00 PM"].map(
-              (line) => (
-                <div key={line} className="flex items-center gap-2.5">
-                  <span className="h-[7px] w-[7px] shrink-0 rounded-full bg-accent" />
-                  <span className="text-[13.5px] text-ink-dark">{line}</span>
-                </div>
-              ),
-            )}
+            <div className="flex items-center gap-2.5">
+              <span className="h-[7px] w-[7px] shrink-0 rounded-full bg-accent" />
+              <a
+                href="mailto:support@karachimart.pk"
+                className="text-[13.5px] text-ink-dark hover:text-primary hover:underline"
+              >
+                support@karachimart.pk
+              </a>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <span className="h-[7px] w-[7px] shrink-0 rounded-full bg-accent" />
+              <a
+                href="tel:021111566566"
+                className="text-[13.5px] text-ink-dark hover:text-primary hover:underline"
+              >
+                021 111 KMO KMO
+              </a>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <span className="h-[7px] w-[7px] shrink-0 rounded-full bg-accent" />
+              <span className="text-[13.5px] text-ink-dark">Mon–Sat, 9:00 AM – 9:00 PM</span>
+            </div>
           </div>
         </div>
 

@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AuthLayout, Button, Input, PillTabs } from "@kmo/shared/ui";
+import { AuthLayout, Button, Input, PasswordInput, PillTabs } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "@/lib/supabase";
 
@@ -140,9 +140,8 @@ export default function LoginPage() {
             onChange={(e) => setEmail(e.target.value)}
           />
           <div>
-            <Input
+            <PasswordInput
               label="Password"
-              type="password"
               name="password"
               autoComplete="current-password"
               required

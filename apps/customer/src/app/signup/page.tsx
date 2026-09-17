@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AuthLayout, Button, Input } from "@kmo/shared/ui";
+import { AuthLayout, Button, Input, PasswordInput } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "@/lib/supabase";
 
@@ -114,9 +114,8 @@ export default function SignupPage() {
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
         />
-        <Input
+        <PasswordInput
           label="Password"
-          type="password"
           name="password"
           autoComplete="new-password"
           required
@@ -124,9 +123,8 @@ export default function SignupPage() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
-        <Input
+        <PasswordInput
           label="Confirm password"
-          type="password"
           name="confirm_password"
           autoComplete="new-password"
           required
