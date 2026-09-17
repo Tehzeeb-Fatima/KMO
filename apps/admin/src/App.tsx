@@ -1,6 +1,6 @@
 import { Route, Routes } from "react-router-dom";
-import { LoginPage } from "./pages/login-page";
 import { RequireAuth } from "./components/require-auth";
+import { RedirectToLogin } from "./components/redirect-to-login";
 import { DashboardLayout } from "./layouts/dashboard-layout";
 import { VendorsPage } from "./pages/vendors-page";
 import { OrdersPage } from "./pages/orders-page";
@@ -19,7 +19,7 @@ import { ContactMessagesPage } from "./pages/contact-messages-page";
 export default function App() {
   return (
     <Routes>
-      <Route path="/login" element={<LoginPage />} />
+      <Route path="/login" element={<RedirectToLogin />} />
       <Route
         path="/*"
         element={

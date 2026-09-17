@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import { Navigate, useLocation } from "react-router-dom";
 import { useAuthGuard, type UserRole } from "@kmo/shared/auth";
+import { RedirectToLogin } from "./redirect-to-login";
 
 export function RequireAuth({
   allowedRoles,
@@ -10,7 +10,6 @@ export function RequireAuth({
   children: ReactNode;
 }) {
   const status = useAuthGuard(allowedRoles);
-  const location = useLocation();
 
   if (status === "checking") {
     return (
@@ -21,7 +20,7 @@ export function RequireAuth({
   }
 
   if (status === "unauthenticated" || status === "unauthorized") {
-    return <Navigate to="/login" replace state={{ from: location }} />;
+    return <RedirectToLogin />;
   }
 
   return <>{children}</>;

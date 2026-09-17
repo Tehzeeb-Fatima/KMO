@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
-import { Navigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth, useAuthGuard, type UserRole } from "@kmo/shared/auth";
 import { getMyVendor } from "@kmo/shared/api";
 import { supabase } from "../lib/supabase";
+import { RedirectToLogin } from "./redirect-to-login";
 
 export function RequireAuth({
   allowedRoles,
@@ -14,7 +14,6 @@ export function RequireAuth({
 }) {
   const status = useAuthGuard(allowedRoles);
   const { profile, signOut } = useAuth();
-  const location = useLocation();
 
   const { data: vendor, isLoading: vendorLoading } = useQuery({
     queryKey: ["my-vendor"],
@@ -31,7 +30,7 @@ export function RequireAuth({
   }
 
   if (status === "unauthenticated" || status === "unauthorized") {
-    return <Navigate to="/login" replace state={{ from: location }} />;
+    return <RedirectToLogin />;
   }
 
   if (profile?.pending_vendor) {

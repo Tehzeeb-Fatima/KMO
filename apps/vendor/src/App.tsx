@@ -1,7 +1,7 @@
 import { Route, Routes } from "react-router-dom";
-import { LoginPage } from "./pages/login-page";
 import { SignupPage } from "./pages/signup-page";
 import { RequireAuth } from "./components/require-auth";
+import { RedirectToLogin } from "./components/redirect-to-login";
 import { DashboardLayout } from "./layouts/dashboard-layout";
 import { StoreSettingsPage } from "./pages/store-settings-page";
 import { ProductsPage } from "./pages/products-page";
@@ -19,7 +19,7 @@ import { MessagesPage } from "./pages/messages-page";
 export default function App() {
   return (
     <Routes>
-      <Route path="/login" element={<LoginPage />} />
+      <Route path="/login" element={<RedirectToLogin />} />
       <Route path="/signup" element={<SignupPage />} />
       <Route
         path="/*"
