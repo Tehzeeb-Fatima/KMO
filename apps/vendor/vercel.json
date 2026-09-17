@@ -2,5 +2,10 @@
   "buildCommand": "pnpm run build",
   "outputDirectory": "dist",
   "redirects": [{ "source": "/", "destination": "/vendor/login", "permanent": false }],
-  "rewrites": [{ "source": "/vendor/(.*)", "destination": "/vendor/index.html" }]
+  "rewrites": [
+    { "source": "/vendor/assets/(.*)", "destination": "/assets/$1" },
+    { "source": "/vendor/favicon.svg", "destination": "/favicon.svg" },
+    { "source": "/vendor", "destination": "/index.html" },
+    { "source": "/vendor/(.*)", "destination": "/index.html" }
+  ]
 }
