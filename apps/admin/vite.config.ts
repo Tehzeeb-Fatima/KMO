@@ -5,6 +5,9 @@ import { defineConfig } from "vite";
 
 // https://vite.dev/config/
 export default defineConfig({
+  // Served at <customer-domain>/admin/* via a Next.js rewrite so the whole
+  // platform lives under one URL — asset paths must be prefixed to match.
+  base: "/admin/",
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {

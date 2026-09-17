@@ -10,9 +10,16 @@ import { supabase } from "@/lib/supabase";
 type Mode = "email" | "phone";
 type PhoneStep = "enter-phone" | "enter-code";
 
+/** Everything lives under one domain — send each role to its own area after sign-in. */
+function pathForRole(role: string | undefined) {
+  if (role === "admin") return "/admin";
+  if (role === "vendor") return "/vendor";
+  return "/";
+}
+
 export default function LoginPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   const [mode, setMode] = useState<Mode>("email");
   const [submitting, setSubmitting] = useState(false);
@@ -28,21 +35,38 @@ export default function LoginPage() {
   const [otp, setOtp] = useState("");
 
   if (user) {
-    router.replace("/");
+    const target = pathForRole(profile?.role);
+    if (target === "/") {
+      router.replace("/");
+    } else {
+      window.location.href = target;
+    }
     return null;
+  }
+
+  /** Vendor/admin dashboards are proxied at /vendor and /admin — a plain
+   * navigation (not the Next.js router) is needed to actually load them. */
+  async function redirectAfterSignIn(userId: string) {
+    const { data } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
+    const target = pathForRole(data?.role);
+    if (target === "/") {
+      router.replace("/");
+    } else {
+      window.location.href = target;
+    }
   }
 
   async function handleEmailSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     setSubmitting(false);
     if (error) {
       setError(error.message);
       return;
     }
-    router.replace("/");
+    await redirectAfterSignIn(data.user.id);
   }
 
   async function handleSendCode(e: FormEvent) {
@@ -62,7 +86,7 @@ export default function LoginPage() {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
-    const { error } = await supabase.auth.verifyOtp({
+    const { data, error } = await supabase.auth.verifyOtp({
       phone,
       token: otp,
       type: "sms",
@@ -72,7 +96,8 @@ export default function LoginPage() {
       setError(error.message);
       return;
     }
-    router.replace("/");
+    if (data.user) await redirectAfterSignIn(data.user.id);
+    else router.replace("/");
   }
 
   return (
