@@ -1,4 +1,6 @@
 {
+  "buildCommand": "pnpm run build",
+  "outputDirectory": "dist",
   "redirects": [{ "source": "/", "destination": "/admin/login", "permanent": false }],
   "rewrites": [{ "source": "/admin/(.*)", "destination": "/admin/index.html" }]
 }
