@@ -1,7 +1,5 @@
 import Link from "next/link";
 
-const VENDOR_APP_URL = process.env.NEXT_PUBLIC_VENDOR_APP_URL || "http://localhost:5174";
-
 const COLUMNS = [
   {
     heading: "Shop",
@@ -22,8 +20,8 @@ const COLUMNS = [
   {
     heading: "Sell",
     links: [
-      { href: `${VENDOR_APP_URL}/signup`, label: "Become a vendor" },
-      { href: VENDOR_APP_URL, label: "Vendor dashboard" },
+      { href: "/vendor/signup", label: "Become a vendor" },
+      { href: "/vendor", label: "Vendor dashboard" },
       { href: "/return-policy", label: "Vendor policies" },
     ],
   },
