@@ -1,0 +1,83 @@
+/*
+  KMO shared design tokens — extracted from /Designs/*.html mockups.
+  See /design-reference/NOTES.md for the full audit these values come from.
+
+  Import this file BEFORE `@import "tailwindcss"` in each app's global CSS:
+    @import "@kmo/shared/theme/tokens.css";
+    @import "tailwindcss";
+
+  Tailwind v4 reads the @theme block below and generates utilities from it
+  (e.g. --color-primary becomes bg-primary / text-primary / border-primary).
+*/
+
+@theme {
+  /* Fonts */
+  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  /* Primary — plum/purple (nav, links, secondary buttons) */
+  --color-primary: #4a2266;
+  --color-primary-light: #6b2fa0;
+  --color-primary-dark: #2b1638;
+  --color-primary-active: #45305c;
+  --color-primary-tint: #f5f0fa;
+  --color-primary-tint-2: #e4d9ee;
+
+  /* Accent — terracotta (primary CTAs) */
+  --color-accent: #c4552f;
+  --color-accent-light: #e8952a;
+  --color-accent-tint: #fbefe9;
+
+  /* Semantic status colors */
+  --color-success: #2e7a4f;
+  --color-success-dark: #1f5b39;
+  --color-success-tint: #eef7f1;
+  --color-success-border: #cfe7d9;
+
+  --color-warning: #b06a0e;
+  --color-warning-tint: #fdf4e7;
+
+  --color-danger: #8f3a1e;
+  --color-danger-tint: #fbefe9;
+
+  --color-info: #4a2266;
+  --color-info-tint: #f5f0fa;
+
+  /* Ink / text */
+  --color-ink: #241b2b;
+  --color-ink-dark: #2b1638;
+  --color-ink-secondary: #3a2d48;
+  --color-muted: #6e6478;
+  --color-muted-2: #8d82a0;
+  --color-muted-table: #9c8c7e;
+
+  /* Surfaces */
+  --color-bg: #ede9f2;
+  --color-surface: #ffffff;
+  --color-surface-alt: #fbf7f5;
+  --color-surface-lavender: #f5f0fa;
+
+  /* Borders */
+  --color-border: #eadfda;
+  --color-border-strong: #e0d3cd;
+  --color-border-primary: #d5c4e2;
+
+  /* Sidebar (admin / vendor dashboards) */
+  --color-sidebar-bg: #2b1638;
+  --color-sidebar-active: #45305c;
+  --color-sidebar-icon: #5e3a7c;
+  --color-sidebar-muted: #b9a3cd;
+
+  /* Radius scale (bordered-card aesthetic, minimal shadow) */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 14px;
+  --radius-pill: 999px;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}

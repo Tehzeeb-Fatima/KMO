@@ -1,0 +1,129 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "../types";
+
+type Client = SupabaseClient<Database>;
+type VendorRow = Database["public"]["Tables"]["vendors"]["Row"];
+type VendorUpdate = Database["public"]["Tables"]["vendors"]["Update"];
+type VendorInsert = Database["public"]["Tables"]["vendors"]["Insert"];
+
+/** The signed-in vendor's own store row (owner_id = current user). */
+export async function getMyVendor(supabase: Client): Promise<VendorRow | null> {
+  const { data, error } = await supabase.from("vendors").select("*").maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+export async function createVendor(
+  supabase: Client,
+  input: VendorInsert,
+): Promise<VendorRow> {
+  const { data, error } = await supabase
+    .from("vendors")
+    .insert(input)
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateMyVendor(
+  supabase: Client,
+  vendorId: string,
+  patch: VendorUpdate,
+): Promise<VendorRow> {
+  const { data, error } = await supabase
+    .from("vendors")
+    .update(patch)
+    .eq("id", vendorId)
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+/** Public storefront lookup — RLS only allows approved, non-suspended rows through. */
+export async function getVendorBySlug(
+  supabase: Client,
+  slug: string,
+): Promise<VendorRow | null> {
+  const { data, error } = await supabase
+    .from("vendors")
+    .select("*")
+    .eq("slug", slug)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+/** Admin: every vendor, optionally filtered by status. */
+export async function listVendors(
+  supabase: Client,
+  filter?: { status?: VendorRow["verification_status"]; search?: string },
+): Promise<VendorRow[]> {
+  let query = supabase.from("vendors").select("*").order("created_at", {
+    ascending: false,
+  });
+  if (filter?.status) query = query.eq("verification_status", filter.status);
+  if (filter?.search) query = query.ilike("store_name", `%${filter.search}%`);
+  const { data, error } = await query;
+  if (error) throw error;
+  return data;
+}
+
+export async function getVendorById(
+  supabase: Client,
+  id: string,
+): Promise<VendorRow | null> {
+  const { data, error } = await supabase
+    .from("vendors")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Sets a vendor's verification status and keeps `profiles.pending_vendor` in
+ * sync (true only while awaiting the first decision) so the vendor app's
+ * "pending approval" gate from Module 1 unlocks as soon as an admin decides.
+ */
+export async function setVendorStatus(
+  supabase: Client,
+  vendorId: string,
+  status: VendorRow["verification_status"],
+): Promise<VendorRow> {
+  const { data, error } = await supabase
+    .from("vendors")
+    .update({ verification_status: status })
+    .eq("id", vendorId)
+    .select("*")
+    .single();
+  if (error) throw error;
+
+  await supabase
+    .from("profiles")
+    .update({ pending_vendor: status === "pending" })
+    .eq("id", data.owner_id);
+
+  return data;
+}
+
+/** Upload a logo/cover image to the `vendor-media` bucket and return its public URL. */
+export async function uploadVendorMedia(
+  supabase: Client,
+  vendorId: string,
+  kind: "logo" | "cover",
+  file: File,
+): Promise<string> {
+  const ext = file.name.split(".").pop() ?? "jpg";
+  const path = `${vendorId}/${kind}.${ext}`;
+
+  const { error } = await supabase.storage
+    .from("vendor-media")
+    .upload(path, file, { upsert: true });
+  if (error) throw error;
+
+  const { data } = supabase.storage.from("vendor-media").getPublicUrl(path);
+  return data.publicUrl;
+}

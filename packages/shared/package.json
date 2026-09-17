@@ -1,0 +1,41 @@
+{
+  "name": "@kmo/shared",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./types": "./src/types/index.ts",
+    "./auth": "./src/auth/index.ts",
+    "./api": "./src/api/index.ts",
+    "./supabase": "./src/supabase/index.ts",
+    "./supabase/client": "./src/supabase/client.ts",
+    "./supabase/admin": "./src/supabase/admin.ts",
+    "./ui": "./src/ui/index.ts",
+    "./ui/*": "./src/ui/*.tsx",
+    "./theme": "./src/theme/index.ts",
+    "./theme/tokens.css": "./src/theme/tokens.css",
+    "./lib": "./src/lib/index.ts",
+    "./lib/*": "./src/lib/*.ts"
+  },
+  "scripts": {
+    "lint": "eslint src",
+    "type-check": "tsc --noEmit",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.47.10",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.6.0",
+    "lucide-react": "^0.469.0"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.7.2"
+  }
+}
