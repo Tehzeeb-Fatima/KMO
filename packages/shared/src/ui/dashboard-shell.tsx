@@ -26,7 +26,8 @@ const DefaultLink = ({ to, className, children }: DashboardLinkProps) => (
  * component (e.g. react-router-dom's NavLink) as `LinkComponent`.
  */
 export function DashboardShell({
-  brand = "KM",
+  brand = "Karachi Mart",
+  logoSrc,
   navItems,
   activeKey,
   title,
@@ -37,6 +38,10 @@ export function DashboardShell({
   children,
 }: {
   brand?: string;
+  /** App-resolved logo URL/import (each bundler handles static image imports
+   *  differently, so the shared component takes the resolved string rather
+   *  than importing the asset itself). Falls back to a text badge if omitted. */
+  logoSrc?: string;
   navItems: DashboardNavItem[];
   activeKey: string;
   title: string;
@@ -57,9 +62,13 @@ export function DashboardShell({
         )}
       >
         <div className="flex items-center gap-2 px-5 py-5">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent text-sm font-bold text-white">
-            {brand}
-          </span>
+          {logoSrc ? (
+            <img src={logoSrc} alt={brand} className="h-8 w-8 shrink-0 rounded-lg object-contain" />
+          ) : (
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent text-sm font-bold text-white">
+              {brand.slice(0, 2).toUpperCase()}
+            </span>
+          )}
           {!collapsed && (
             <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-sidebar-muted">
               Karachi Mart

@@ -64,6 +64,7 @@ export default function SignupPage() {
   if (checkEmail) {
     return (
       <AuthLayout
+        logoSrc="/kmo-icon.png"
         title="Check your email"
         subtitle={`We sent a confirmation link to ${email}. Follow it to finish creating your account.`}
       >
@@ -76,6 +77,7 @@ export default function SignupPage() {
 
   return (
     <AuthLayout
+      logoSrc="/kmo-icon.png"
       title="Create your account"
       subtitle="Join Karachi Mart to shop from local vendors across the city."
       footer={

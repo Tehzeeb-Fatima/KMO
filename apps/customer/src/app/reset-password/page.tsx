@@ -69,6 +69,7 @@ export default function ResetPasswordPage() {
   if (mode === "done") {
     return (
       <AuthLayout
+        logoSrc="/kmo-icon.png"
         title="Check your email"
         subtitle={`We sent a password reset link to ${email}. Follow it to set a new password.`}
       >
@@ -81,7 +82,11 @@ export default function ResetPasswordPage() {
 
   if (mode === "set-password") {
     return (
-      <AuthLayout title="Set a new password" subtitle="Choose a password to finish activating your account.">
+      <AuthLayout
+        logoSrc="/kmo-icon.png"
+        title="Set a new password"
+        subtitle="Choose a password to finish activating your account."
+      >
         <form onSubmit={handleSetPassword} className="flex flex-col gap-4">
           <PasswordInput
             label="New password"
@@ -112,6 +117,7 @@ export default function ResetPasswordPage() {
 
   return (
     <AuthLayout
+      logoSrc="/kmo-icon.png"
       title="Reset your password"
       subtitle="Enter the email on your account and we'll send you a reset link."
       footer={

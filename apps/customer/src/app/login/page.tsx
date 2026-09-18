@@ -102,6 +102,7 @@ export default function LoginPage() {
 
   return (
     <AuthLayout
+      logoSrc="/kmo-icon.png"
       title="Welcome back"
       subtitle="Sign in to track orders, manage your wishlist, and check out faster."
       panelHeadline="Pakistan's local marketplace, online."

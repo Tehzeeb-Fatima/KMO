@@ -21,6 +21,8 @@ export interface AuthLayoutProps {
   panelHeadline?: string;
   /** Longer supporting line under panelHeadline. */
   panelBody?: string;
+  /** App-resolved logo URL/import — see DashboardShell's `logoSrc` doc. */
+  logoSrc?: string;
 }
 
 export function AuthLayout({
@@ -32,7 +34,15 @@ export function AuthLayout({
   className,
   panelHeadline = "Pakistan's local marketplace, online.",
   panelBody = "Thousands of vendors across Karachi, one storefront to manage them all.",
+  logoSrc,
 }: AuthLayoutProps) {
+  const logo = logoSrc ? (
+    <img src={logoSrc} alt="Karachi Mart" className="h-9 w-9 shrink-0 rounded-lg object-contain" />
+  ) : (
+    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent text-sm font-bold text-white">
+      KM
+    </span>
+  );
   return (
     <div className="flex min-h-screen bg-bg">
       {/* Brand panel — hidden below lg, matches the admin/vendor sidebar palette */}
@@ -47,9 +57,7 @@ export function AuthLayout({
         />
 
         <div className="relative flex items-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent text-sm font-bold text-white">
-            KM
-          </span>
+          {logo}
           <span className="font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-white/70">
             {eyebrow}
           </span>
@@ -71,9 +79,7 @@ export function AuthLayout({
       <div className="flex flex-1 items-center justify-center px-4 py-10 sm:px-6">
         <div className={cn("w-full max-w-[420px]", className)}>
           <div className="mb-8 flex flex-col items-center text-center lg:hidden">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent text-sm font-bold text-white">
-              KM
-            </span>
+            {logo}
             <p className="mt-3 font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-muted">
               {eyebrow}
             </p>

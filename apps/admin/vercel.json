@@ -4,7 +4,7 @@
   "redirects": [{ "source": "/", "destination": "/admin/login", "permanent": false }],
   "rewrites": [
     { "source": "/admin/assets/(.*)", "destination": "/assets/$1" },
-    { "source": "/admin/favicon.svg", "destination": "/favicon.svg" },
+    { "source": "/admin/(favicon\\.ico|favicon-16x16\\.png|favicon-32x32\\.png|apple-touch-icon\\.png|android-chrome-192x192\\.png|android-chrome-512x512\\.png)", "destination": "/$1" },
     { "source": "/admin", "destination": "/index.html" },
     { "source": "/admin/(.*)", "destination": "/index.html" }
   ]

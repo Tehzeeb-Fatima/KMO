@@ -3,6 +3,7 @@ import { Link, Navigate } from "react-router-dom";
 import { AuthLayout, Button, Input, PasswordInput } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "../lib/supabase";
+import kmoIcon from "../assets/kmo-icon.png";
 
 export function SignupPage() {
   const { user } = useAuth();
@@ -48,6 +49,7 @@ export function SignupPage() {
   if (submitted) {
     return (
       <AuthLayout
+        logoSrc={kmoIcon}
         eyebrow="KMO Vendor Portal"
         title="Application received"
         subtitle={`We've sent a confirmation link to ${email}. Once confirmed, our team will review your store and email you when it's approved.`}
@@ -61,6 +63,7 @@ export function SignupPage() {
 
   return (
     <AuthLayout
+      logoSrc={kmoIcon}
       eyebrow="KMO Vendor Portal"
       title="Start selling on Karachi Mart"
       subtitle="Set up your store — home-based or shopfront, we review every application before it goes live."

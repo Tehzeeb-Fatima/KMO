@@ -2,6 +2,7 @@ import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { DashboardShell } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { VENDOR_NAV_ITEMS } from "../dashboard-nav";
+import kmoIcon from "../assets/kmo-icon.png";
 
 const TITLES: Record<string, { title: string; subtitle?: string }> = {
   "/": { title: "Overview", subtitle: "Your store at a glance" },
@@ -33,6 +34,7 @@ export function DashboardLayout() {
 
   return (
     <DashboardShell
+      logoSrc={kmoIcon}
       navItems={VENDOR_NAV_ITEMS}
       activeKey={activeItem.key}
       title={meta.title}

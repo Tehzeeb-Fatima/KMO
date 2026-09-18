@@ -35,9 +35,12 @@ export function SiteHeader() {
       {/* row 1 — logo / search / deliver-to / sign in / cart */}
       <div className="flex items-center gap-4 bg-surface px-4 py-[18px] sm:gap-7 sm:px-10">
         <Link href="/" className="flex shrink-0 items-center gap-[11px]">
-          <span className="flex h-[38px] w-[38px] items-center justify-center rounded-[9px] bg-primary text-[15px] font-extrabold tracking-[-0.03em] text-white">
-            KM
-          </span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/kmo-icon.png"
+            alt="Karachi Mart"
+            className="h-[38px] w-[38px] shrink-0 rounded-[9px] object-contain"
+          />
           <span className="hidden leading-[1.05] sm:block">
             <span className="block text-[17px] font-extrabold tracking-[-0.028em] text-ink-dark">
               Karachi Mart
