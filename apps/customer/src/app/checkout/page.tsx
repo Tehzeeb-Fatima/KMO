@@ -45,6 +45,9 @@ function CheckoutContent() {
   const [addressLine, setAddressLine] = useState("");
   const [area, setArea] = useState("");
 
+  const isGuest = !!user?.is_anonymous;
+  const [email, setEmail] = useState(user?.email ?? "");
+
   const [couponInput, setCouponInput] = useState("");
   const [appliedCode, setAppliedCode] = useState<string | null>(null);
   const [couponError, setCouponError] = useState<string | null>(null);
@@ -87,8 +90,25 @@ function CheckoutContent() {
   });
 
   const placeOrderMutation = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       if (!effectiveAddressId) throw new Error("Choose a delivery address.");
+
+      if (isGuest) {
+        const trimmedEmail = email.trim();
+        if (!trimmedEmail) throw new Error("Enter your email so we can send your order and login details.");
+        const { error: linkError } = await supabase.auth.updateUser({
+          email: trimmedEmail,
+          data: { pending_order_note: "Order placed as a guest — set a password to track it anytime." },
+        });
+        if (linkError) {
+          throw new Error(
+            linkError.message.toLowerCase().includes("already")
+              ? "This email is already registered. Please sign in first, then check out."
+              : linkError.message,
+          );
+        }
+      }
+
       return placeOrder(supabase, {
         addressId: effectiveAddressId,
         paymentMethod,
@@ -134,6 +154,28 @@ function CheckoutContent() {
 
       <div className="mt-6 grid grid-cols-1 gap-[26px] lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="flex flex-col gap-5">
+          <section className="flex flex-col gap-3.5 rounded-xl border border-border bg-surface p-6">
+            <h2 className="text-base font-bold tracking-[-0.02em] text-ink">Contact email</h2>
+            {isGuest ? (
+              <>
+                <input
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
+                />
+                <p className="text-[12px] text-muted">
+                  We&rsquo;ll email your order details and a link to set a password so you can
+                  track this order anytime.
+                </p>
+              </>
+            ) : (
+              <p className="text-[13.5px] text-ink-dark">{user?.email}</p>
+            )}
+          </section>
+
           <section className="flex flex-col gap-3.5 rounded-xl border border-border bg-surface p-6">
             <h2 className="text-base font-bold tracking-[-0.02em] text-ink">Delivery address</h2>
 
@@ -313,7 +355,12 @@ function CheckoutContent() {
           {error ? <p className="text-sm text-danger">{error}</p> : null}
           <Button
             className="w-full"
-            disabled={!effectiveAddressId || !items?.length || placeOrderMutation.isPending}
+            disabled={
+              !effectiveAddressId ||
+              !items?.length ||
+              placeOrderMutation.isPending ||
+              (isGuest && !email.trim())
+            }
             onClick={() => {
               setError(null);
               placeOrderMutation.mutate();

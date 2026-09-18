@@ -19,6 +19,7 @@ import {
 import { Button, ProductCard } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "@/lib/supabase";
+import { ensureCustomerId } from "@/lib/ensure-customer-id";
 
 export default function ProductDetailClient() {
   const params = useParams<{ id: string }>();
@@ -58,22 +59,15 @@ export default function ProductDetailClient() {
   }, [product, selectedOptions]);
 
   const addMutation = useMutation({
-    mutationFn: () => {
-      if (!user || !product) throw new Error("Not ready");
-      return addToCart(supabase, user.id, product.id, selectedVariant?.id ?? null, qty);
+    mutationFn: async () => {
+      if (!product) throw new Error("Not ready");
+      const customerId = await ensureCustomerId(user);
+      return addToCart(supabase, customerId, product.id, selectedVariant?.id ?? null, qty);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cart"] });
     },
   });
-
-  function requireAuthThen(action: () => void) {
-    if (!user) {
-      router.push("/login");
-      return;
-    }
-    action();
-  }
 
   const { data: wishlisted } = useQuery({
     queryKey: ["wishlisted", product?.id, user?.id],
@@ -82,11 +76,12 @@ export default function ProductDetailClient() {
   });
 
   const wishlistMutation = useMutation({
-    mutationFn: () => {
-      if (!user || !product) throw new Error("Not ready");
+    mutationFn: async () => {
+      if (!product) throw new Error("Not ready");
+      const customerId = await ensureCustomerId(user);
       return wishlisted
-        ? removeFromWishlist(supabase, user.id, product.id)
-        : addToWishlist(supabase, user.id, product.id);
+        ? removeFromWishlist(supabase, customerId, product.id)
+        : addToWishlist(supabase, customerId, product.id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["wishlisted", product?.id, user?.id] });
@@ -343,7 +338,7 @@ export default function ProductDetailClient() {
               variant="secondary"
               className="min-w-0 flex-1 basis-[calc(50%-38px)] sm:basis-auto"
               disabled={stock <= 0 || addMutation.isPending}
-              onClick={() => requireAuthThen(() => addMutation.mutate())}
+              onClick={() => addMutation.mutate()}
             >
               {addMutation.isPending ? "Adding…" : "Add to cart"}
             </Button>
@@ -352,18 +347,16 @@ export default function ProductDetailClient() {
               className="min-w-0 flex-1 basis-[calc(50%-38px)] sm:basis-auto"
               disabled={stock <= 0}
               onClick={() =>
-                requireAuthThen(() =>
-                  addMutation.mutate(undefined, {
-                    onSuccess: () => router.push("/cart"),
-                  }),
-                )
+                addMutation.mutate(undefined, {
+                  onSuccess: () => router.push("/cart"),
+                })
               }
             >
               Buy now
             </Button>
             <button
               type="button"
-              onClick={() => requireAuthThen(() => wishlistMutation.mutate())}
+              onClick={() => wishlistMutation.mutate()}
               className="flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border text-base"
               style={{ color: "var(--color-accent)" }}
               aria-label="Toggle wishlist"

@@ -34,7 +34,7 @@ export default function LoginPage() {
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
 
-  if (user) {
+  if (user && !user.is_anonymous) {
     const target = pathForRole(profile?.role);
     if (target === "/") {
       router.replace("/");

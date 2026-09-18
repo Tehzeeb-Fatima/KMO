@@ -76,10 +76,10 @@ export function SiteHeader() {
           </div>
 
           <Link
-            href={user ? "/account" : "/login"}
+            href={user && !user.is_anonymous ? "/account" : "/login"}
             className="shrink-0 text-[13.5px] font-semibold text-primary"
           >
-            {user ? (profile?.full_name?.split(" ")[0] ?? "Account") : "Sign in"}
+            {user && !user.is_anonymous ? (profile?.full_name?.split(" ")[0] ?? "Account") : "Sign in"}
           </Link>
 
           <Link href="/cart" className="relative shrink-0 pr-1 text-[13.5px] font-bold text-primary">

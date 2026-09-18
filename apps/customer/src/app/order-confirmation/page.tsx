@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { getOrderById } from "@kmo/shared/api";
 import { Button } from "@kmo/shared/ui";
+import { useAuth } from "@kmo/shared/auth";
 import { RequireAuth } from "@/components/require-auth";
 import { supabase } from "@/lib/supabase";
 
@@ -20,6 +21,7 @@ export default function OrderConfirmationPage() {
 }
 
 function OrderConfirmationContent() {
+  const { user } = useAuth();
   const searchParams = useSearchParams();
   const orderIds = (searchParams.get("orders") ?? "").split(",").filter(Boolean);
 
@@ -79,6 +81,13 @@ function OrderConfirmationContent() {
           <span className="text-sm font-bold text-ink-dark">1–2 working days</span>
         </div>
       </div>
+
+      {user?.is_anonymous ? (
+        <p className="mt-4 max-w-[440px] rounded-lg bg-accent-tint px-4 py-3 text-[12.5px] leading-[1.6] text-ink-dark">
+          Check your email and confirm it to activate your account — you can then set a password
+          and log in anytime to track this order.
+        </p>
+      ) : null}
 
       <div className="mt-4 flex gap-3">
         <Link href="/account/orders">

@@ -20,7 +20,7 @@ export default function SignupPage() {
   const [error, setError] = useState<string | null>(null);
   const [checkEmail, setCheckEmail] = useState(false);
 
-  if (user) {
+  if (user && !user.is_anonymous) {
     router.replace("/");
     return null;
   }
