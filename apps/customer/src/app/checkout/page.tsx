@@ -96,10 +96,13 @@ function CheckoutContent() {
       if (isGuest) {
         const trimmedEmail = email.trim();
         if (!trimmedEmail) throw new Error("Enter your email so we can send your order and login details.");
-        const { error: linkError } = await supabase.auth.updateUser({
-          email: trimmedEmail,
-          data: { pending_order_note: "Order placed as a guest — set a password to track it anytime." },
-        });
+        const { error: linkError } = await supabase.auth.updateUser(
+          {
+            email: trimmedEmail,
+            data: { pending_order_note: "Order placed as a guest — set a password to track it anytime." },
+          },
+          { emailRedirectTo: `${window.location.origin}/account/orders` },
+        );
         if (linkError) {
           throw new Error(
             linkError.message.toLowerCase().includes("already")
