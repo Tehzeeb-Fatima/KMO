@@ -9,6 +9,7 @@ export interface WishlistItemWithProduct {
   created_at: string;
   products: {
     id: string;
+    slug: string;
     name: string;
     price: number;
     compare_at_price: number | null;
@@ -22,7 +23,7 @@ export async function listWishlist(supabase: Client): Promise<WishlistItemWithPr
   const { data, error } = await supabase
     .from("wishlist_items")
     .select(
-      "id, product_id, created_at, products(id, name, price, compare_at_price, vendor_id, vendors(store_name), product_images(url, sort_order))",
+      "id, product_id, created_at, products(id, slug, name, price, compare_at_price, vendor_id, vendors(store_name), product_images(url, sort_order))",
     )
     .order("created_at", { ascending: false });
   if (error) throw error;

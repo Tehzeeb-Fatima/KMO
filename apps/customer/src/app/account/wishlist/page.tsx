@@ -47,7 +47,7 @@ function WishlistContent() {
           {items.map((item) => (
             <div key={item.id} className="relative">
               <ProductCard
-                href={`/product/${item.products.id}`}
+                href={`/product/${item.products.slug}`}
                 LinkComponent={Link}
                 imageUrl={item.products.product_images[0]?.url}
                 vendorName={item.products.vendors?.store_name}

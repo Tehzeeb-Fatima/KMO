@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { createClient } from "@supabase/supabase-js";
 import ProductDetailClient from "./product-detail-client";
 
-async function fetchSeoData(id: string) {
+async function fetchSeoData(slug: string) {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
@@ -10,7 +10,7 @@ async function fetchSeoData(id: string) {
   const { data } = await supabase
     .from("products")
     .select("name, description, seo_title, seo_description")
-    .eq("id", id)
+    .eq("slug", slug)
     .maybeSingle();
   return data;
 }
@@ -18,10 +18,10 @@ async function fetchSeoData(id: string) {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const { id } = await params;
-  const product = await fetchSeoData(id);
+  const { slug } = await params;
+  const product = await fetchSeoData(slug);
 
   if (!product) {
     return { title: "Product not found — Karachi Mart Online" };
@@ -34,7 +34,7 @@ export async function generateMetadata({
   return {
     title,
     description,
-    alternates: { canonical: `/product/${id}` },
+    alternates: { canonical: `/product/${slug}` },
     openGraph: { title, description },
   };
 }

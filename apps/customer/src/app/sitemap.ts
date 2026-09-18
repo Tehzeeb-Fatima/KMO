@@ -22,7 +22,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   );
 
   const [{ data: products }, { data: vendors }] = await Promise.all([
-    supabase.from("products").select("id").eq("status", "published").limit(5000),
+    supabase.from("products").select("slug").eq("status", "published").limit(5000),
     supabase.from("vendors").select("slug").eq("verification_status", "approved").limit(5000),
   ]);
 
@@ -33,7 +33,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: path === "" ? 1 : 0.6,
     })),
     ...(products ?? []).map((p) => ({
-      url: `${BASE_URL}/product/${p.id}`,
+      url: `${BASE_URL}/product/${p.slug}`,
       changeFrequency: "daily" as const,
       priority: 0.8,
     })),

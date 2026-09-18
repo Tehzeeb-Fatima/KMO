@@ -9,6 +9,7 @@ import { PillTabs, ProductCard } from "@kmo/shared/ui";
 import { WEEK_DAYS, type BusinessHours, type VendorPolicies } from "@kmo/shared/types";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "@/lib/supabase";
+import { ensureCustomerId } from "@/lib/ensure-customer-id";
 
 type Tab = "products" | "policies" | "reviews" | "about";
 
@@ -24,15 +25,15 @@ export default function StoreClient() {
   });
 
   const chatMutation = useMutation({
-    mutationFn: () => getOrCreateConversation(supabase, user!.id, vendor!.id),
+    mutationFn: async () => {
+      if (!vendor) throw new Error("Not ready");
+      const customerId = await ensureCustomerId(user);
+      return getOrCreateConversation(supabase, customerId, vendor.id);
+    },
     onSuccess: (conversation) => router.push(`/account/messages?c=${conversation.id}`),
   });
 
   function handleChat() {
-    if (!user) {
-      router.push("/login");
-      return;
-    }
     chatMutation.mutate();
   }
 
@@ -239,7 +240,7 @@ function ProductsTab({ vendorId }: { vendorId: string }) {
           products.map((p) => (
             <ProductCard
               key={p.id}
-              href={`/product/${p.id}`}
+              href={`/product/${p.slug}`}
               LinkComponent={Link}
               imageUrl={p.product_images[0]?.url}
               vendorName={p.vendors?.store_name}

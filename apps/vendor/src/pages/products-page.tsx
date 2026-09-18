@@ -3,10 +3,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   addProductImage,
   createProduct,
+  createProductVariant,
   getMyVendor,
   listCategories,
   listMyProducts,
   removeProductImage,
+  removeProductVariant,
   updateProduct,
   uploadProductImage,
 } from "@kmo/shared/api";
@@ -219,6 +221,12 @@ function ProductForm({
   const [description, setDescription] = useState("");
   const [published, setPublished] = useState(false);
   const [images, setImages] = useState<{ id: string; url: string }[]>([]);
+  const [variants, setVariants] = useState<
+    { id: string; option_name: string; option_value: string; stock_quantity: number }[]
+  >([]);
+  const [variantOptionName, setVariantOptionName] = useState("Color");
+  const [variantOptionValue, setVariantOptionValue] = useState("");
+  const [variantStock, setVariantStock] = useState("");
   const [currentProductId, setCurrentProductId] = useState<string | null>(productId);
   const [brand, setBrand] = useState("");
   const [tagsInput, setTagsInput] = useState("");
@@ -236,6 +244,14 @@ function ProductForm({
     setDescription(product.description ?? "");
     setPublished(product.status === "published");
     setImages(product.product_images.map((img) => ({ id: img.id, url: img.url })));
+    setVariants(
+      product.product_variants.map((v) => ({
+        id: v.id,
+        option_name: v.option_name,
+        option_value: v.option_value,
+        stock_quantity: v.stock_quantity,
+      })),
+    );
     setBrand(product.brand ?? "");
     setTagsInput((product.tags ?? []).join(", "));
     setWeight(product.weight_grams ? String(product.weight_grams) : "");
@@ -288,6 +304,38 @@ function ProductForm({
     },
     onSuccess: (img) => {
       setImages((prev) => [...prev, { id: img.id, url: img.url }]);
+    },
+  });
+
+  const addVariantMutation = useMutation({
+    mutationFn: async () => {
+      if (!currentProductId) throw new Error("Save the product before adding variants.");
+      return createProductVariant(supabase, {
+        product_id: currentProductId,
+        option_name: variantOptionName.trim(),
+        option_value: variantOptionValue.trim(),
+        stock_quantity: Number(variantStock) || 0,
+      });
+    },
+    onSuccess: (v) => {
+      setVariants((prev) => [
+        ...prev,
+        {
+          id: v.id,
+          option_name: v.option_name,
+          option_value: v.option_value,
+          stock_quantity: v.stock_quantity,
+        },
+      ]);
+      setVariantOptionValue("");
+      setVariantStock("");
+    },
+  });
+
+  const removeVariantMutation = useMutation({
+    mutationFn: (id: string) => removeProductVariant(supabase, id),
+    onSuccess: (_void, id) => {
+      setVariants((prev) => prev.filter((v) => v.id !== id));
     },
   });
 
@@ -460,6 +508,79 @@ function ProductForm({
                 onChange={handleUpload}
               />
             </div>
+          </FormField>
+
+          <FormField label="Variants (e.g. Color, Size)">
+            {!currentProductId ? (
+              <p className="text-[12.5px] text-muted">Save the product first, then add variants.</p>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {variants.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {variants.map((v) => (
+                      <span
+                        key={v.id}
+                        className="flex items-center gap-2 rounded-full border border-border bg-white py-1.5 pl-3 pr-2 text-[12.5px]"
+                      >
+                        {v.option_name.toLowerCase() === "color" ? (
+                          <span
+                            className="h-3.5 w-3.5 shrink-0 rounded-full border border-border"
+                            style={{ background: v.option_value.toLowerCase() }}
+                          />
+                        ) : null}
+                        <span className="text-muted">{v.option_name}:</span>
+                        <span className="font-bold text-ink-dark">{v.option_value}</span>
+                        <span className="text-muted-table">({v.stock_quantity})</span>
+                        <button
+                          type="button"
+                          onClick={() => removeVariantMutation.mutate(v.id)}
+                          className="ml-1 flex h-4 w-4 items-center justify-center rounded-full bg-danger text-[9px] font-bold text-white"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+
+                <div className="grid grid-cols-[1fr_1fr_90px_auto] items-end gap-2">
+                  <FormField label="Option name">
+                    <input
+                      placeholder="Color"
+                      value={variantOptionName}
+                      onChange={(e) => setVariantOptionName(e.target.value)}
+                      className="rounded-lg border border-border px-[11px] py-2 text-[13px] outline-none focus:border-primary-light"
+                    />
+                  </FormField>
+                  <FormField label="Value">
+                    <input
+                      placeholder="e.g. Red"
+                      value={variantOptionValue}
+                      onChange={(e) => setVariantOptionValue(e.target.value)}
+                      className="rounded-lg border border-border px-[11px] py-2 text-[13px] outline-none focus:border-primary-light"
+                    />
+                  </FormField>
+                  <FormField label="Stock">
+                    <input
+                      placeholder="10"
+                      value={variantStock}
+                      onChange={(e) => setVariantStock(e.target.value)}
+                      className="rounded-lg border border-border px-[11px] py-2 text-[13px] outline-none focus:border-primary-light"
+                    />
+                  </FormField>
+                  <button
+                    type="button"
+                    disabled={
+                      !variantOptionName.trim() || !variantOptionValue.trim() || addVariantMutation.isPending
+                    }
+                    onClick={() => addVariantMutation.mutate()}
+                    className="h-[38px] rounded-lg bg-accent px-4 text-[12.5px] font-bold text-white disabled:opacity-60"
+                  >
+                    + Add
+                  </button>
+                </div>
+              </div>
+            )}
           </FormField>
         </div>
 

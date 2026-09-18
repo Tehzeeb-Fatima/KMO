@@ -183,7 +183,7 @@ function SearchPageContent() {
               : products?.map((p) => (
                   <ProductCard
                     key={p.id}
-                    href={`/product/${p.id}`}
+                    href={`/product/${p.slug}`}
                     LinkComponent={Link}
                     imageUrl={p.product_images[0]?.url}
                     vendorName={p.vendors?.store_name}

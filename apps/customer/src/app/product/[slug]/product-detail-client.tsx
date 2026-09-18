@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  getProductById,
+  getProductBySlug,
   addToCart,
   listProductReviews,
   createReview,
@@ -22,14 +22,14 @@ import { supabase } from "@/lib/supabase";
 import { ensureCustomerId } from "@/lib/ensure-customer-id";
 
 export default function ProductDetailClient() {
-  const params = useParams<{ id: string }>();
+  const params = useParams<{ slug: string }>();
   const router = useRouter();
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
   const { data: product, isLoading } = useQuery({
-    queryKey: ["product", params.id],
-    queryFn: () => getProductById(supabase, params.id),
+    queryKey: ["product", params.slug],
+    queryFn: () => getProductBySlug(supabase, params.slug),
   });
 
   const variantGroups = useMemo(() => {
@@ -121,9 +121,10 @@ export default function ProductDetailClient() {
 
   const [questionDraft, setQuestionDraft] = useState("");
   const questionMutation = useMutation({
-    mutationFn: () => {
-      if (!user || !product) throw new Error("Not ready");
-      return askProductQuestion(supabase, product.id, user.id, questionDraft);
+    mutationFn: async () => {
+      if (!product) throw new Error("Not ready");
+      const customerId = await ensureCustomerId(user);
+      return askProductQuestion(supabase, product.id, customerId, questionDraft);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["questions", product?.id] });
@@ -197,7 +198,7 @@ export default function ProductDetailClient() {
               priceCurrency: "PKR",
               availability:
                 stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-              url: `https://karachimart.online/product/${product.id}`,
+              url: `https://karachimart.online/product/${product.slug}`,
             },
           }),
         }}
@@ -291,6 +292,7 @@ export default function ProductDetailClient() {
               <div className="flex flex-wrap gap-2">
                 {variants.map((v) => {
                   const selected = selectedOptions[optionName] === v.option_value;
+                  const isColor = optionName.toLowerCase() === "color";
                   return (
                     <button
                       key={v.id}
@@ -298,13 +300,23 @@ export default function ProductDetailClient() {
                       onClick={() =>
                         setSelectedOptions((prev) => ({ ...prev, [optionName]: v.option_value }))
                       }
-                      className="min-w-[52px] rounded-full px-3.5 py-2.5 text-[13px] font-bold"
+                      className={
+                        isColor
+                          ? "flex items-center gap-1.5 rounded-full py-1.5 pl-1.5 pr-3.5 text-[13px] font-bold"
+                          : "min-w-[52px] rounded-full px-3.5 py-2.5 text-[13px] font-bold"
+                      }
                       style={
                         selected
                           ? { background: "var(--color-accent)", color: "#fff" }
                           : { background: "#fff", border: "1.5px solid var(--color-border)", color: "var(--color-ink-secondary)" }
                       }
                     >
+                      {isColor ? (
+                        <span
+                          className="h-4 w-4 shrink-0 rounded-full border border-white/40"
+                          style={{ background: v.option_value.toLowerCase() }}
+                        />
+                      ) : null}
                       {v.option_value}
                     </button>
                   );
@@ -357,7 +369,7 @@ export default function ProductDetailClient() {
             <button
               type="button"
               onClick={() => wishlistMutation.mutate()}
-              className="flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border text-base"
+              className="flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border text-2xl leading-none"
               style={{ color: "var(--color-accent)" }}
               aria-label="Toggle wishlist"
             >
@@ -554,28 +566,22 @@ export default function ProductDetailClient() {
             {product.vendors?.store_name ?? "The vendor"} usually replies within a few hours
             during store hours.
           </p>
-          {user ? (
-            <div className="mt-3.5 flex flex-col gap-2 sm:flex-row">
-              <input
-                placeholder="e.g. Does this come with a warranty?"
-                value={questionDraft}
-                onChange={(e) => setQuestionDraft(e.target.value)}
-                className="flex-1 rounded-full border border-border bg-white px-4 py-2.5 text-sm outline-none focus:border-primary-light"
-              />
-              <button
-                type="button"
-                disabled={!questionDraft.trim() || questionMutation.isPending}
-                onClick={() => questionMutation.mutate()}
-                className="rounded-full bg-accent px-5 py-2.5 text-sm font-bold text-white disabled:opacity-60"
-              >
-                {questionMutation.isPending ? "Sending…" : "Submit question"}
-              </button>
-            </div>
-          ) : (
-            <Link href="/login" className="mt-3 inline-block text-sm font-bold text-primary">
-              Sign in to ask a question
-            </Link>
-          )}
+          <div className="mt-3.5 flex flex-col gap-2 sm:flex-row">
+            <input
+              placeholder="e.g. Does this come with a warranty?"
+              value={questionDraft}
+              onChange={(e) => setQuestionDraft(e.target.value)}
+              className="flex-1 rounded-full border border-border bg-white px-4 py-2.5 text-sm outline-none focus:border-primary-light"
+            />
+            <button
+              type="button"
+              disabled={!questionDraft.trim() || questionMutation.isPending}
+              onClick={() => questionMutation.mutate()}
+              className="rounded-full bg-accent px-5 py-2.5 text-sm font-bold text-white disabled:opacity-60"
+            >
+              {questionMutation.isPending ? "Sending…" : "Submit question"}
+            </button>
+          </div>
         </div>
 
         <div className="mt-5">
@@ -612,7 +618,7 @@ export default function ProductDetailClient() {
               .map((p) => (
                 <ProductCard
                   key={p.id}
-                  href={`/product/${p.id}`}
+                  href={`/product/${p.slug}`}
                   LinkComponent={Link}
                   imageUrl={p.product_images[0]?.url}
                   name={p.name}
@@ -636,7 +642,7 @@ export default function ProductDetailClient() {
               .map((p) => (
                 <ProductCard
                   key={p.id}
-                  href={`/product/${p.id}`}
+                  href={`/product/${p.slug}`}
                   LinkComponent={Link}
                   imageUrl={p.product_images[0]?.url}
                   vendorName={p.vendors?.store_name}

@@ -166,7 +166,7 @@ export default function Home() {
             </h2>
             <p className="text-[13.5px] text-muted">Established Karachi shops, verified by KMO</p>
           </div>
-          <Link href="/search" className="shrink-0 text-[13px] font-bold text-accent">
+          <Link href="/vendors" className="shrink-0 text-[13px] font-bold text-accent">
             See all vendors →
           </Link>
         </div>
@@ -331,7 +331,7 @@ function FeaturedProducts({
           {products.map((p) => (
             <ProductCard
               key={p.id}
-              href={`/product/${p.id}`}
+              href={`/product/${p.slug}`}
               LinkComponent={Link}
               imageUrl={p.product_images[0]?.url}
               vendorName={p.vendors?.store_name}

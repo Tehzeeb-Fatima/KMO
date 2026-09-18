@@ -22,14 +22,17 @@ const PRODUCT_WITH_MEDIA_SELECT =
 export async function listMyProducts(
   supabase: Client,
   vendorId: string,
-): Promise<(ProductRow & { product_images: ProductImageRow[] })[]> {
+): Promise<(ProductRow & { product_images: ProductImageRow[]; product_variants: ProductVariantRow[] })[]> {
   const { data, error } = await supabase
     .from("products")
-    .select("*, product_images(*)")
+    .select("*, product_images(*), product_variants(*)")
     .eq("vendor_id", vendorId)
     .order("created_at", { ascending: false });
   if (error) throw error;
-  return data as (ProductRow & { product_images: ProductImageRow[] })[];
+  return data as (ProductRow & {
+    product_images: ProductImageRow[];
+    product_variants: ProductVariantRow[];
+  })[];
 }
 
 export async function getProductById(
@@ -40,6 +43,20 @@ export async function getProductById(
     .from("products")
     .select(PRODUCT_WITH_MEDIA_SELECT)
     .eq("id", id)
+    .maybeSingle();
+  if (error) throw error;
+  return data as unknown as ProductWithMedia | null;
+}
+
+/** Storefront product pages route on the readable slug, not the id. */
+export async function getProductBySlug(
+  supabase: Client,
+  slug: string,
+): Promise<ProductWithMedia | null> {
+  const { data, error } = await supabase
+    .from("products")
+    .select(PRODUCT_WITH_MEDIA_SELECT)
+    .eq("slug", slug)
     .maybeSingle();
   if (error) throw error;
   return data as unknown as ProductWithMedia | null;
@@ -104,6 +121,44 @@ export async function uploadProductImage(
   if (error) throw error;
   const { data } = supabase.storage.from("product-media").getPublicUrl(path);
   return data.publicUrl;
+}
+
+type ProductVariantInsert = Database["public"]["Tables"]["product_variants"]["Insert"];
+
+/** e.g. { option_name: "Color", option_value: "Red", stock_quantity: 10 } — a
+ *  vendor can add as many of these as needed (Color, Size, ...); the
+ *  storefront groups them by option_name automatically. */
+export async function createProductVariant(
+  supabase: Client,
+  input: ProductVariantInsert,
+): Promise<ProductVariantRow> {
+  const { data, error } = await supabase
+    .from("product_variants")
+    .insert(input)
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateProductVariant(
+  supabase: Client,
+  id: string,
+  patch: Partial<Pick<ProductVariantRow, "price_override" | "stock_quantity" | "sku">>,
+): Promise<ProductVariantRow> {
+  const { data, error } = await supabase
+    .from("product_variants")
+    .update(patch)
+    .eq("id", id)
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function removeProductVariant(supabase: Client, id: string): Promise<void> {
+  const { error } = await supabase.from("product_variants").delete().eq("id", id);
+  if (error) throw error;
 }
 
 /** Public catalogue browse: published products from approved vendors. */
