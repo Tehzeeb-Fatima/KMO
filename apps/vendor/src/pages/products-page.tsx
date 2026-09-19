@@ -522,7 +522,7 @@ function ProductForm({
                         key={v.id}
                         className="flex items-center gap-2 rounded-full border border-border bg-white py-1.5 pl-3 pr-2 text-[12.5px]"
                       >
-                        {v.option_name.toLowerCase() === "color" ? (
+                        {["color", "colour"].includes(v.option_name.toLowerCase()) ? (
                           <span
                             className="h-3.5 w-3.5 shrink-0 rounded-full border border-border"
                             style={{ background: v.option_value.toLowerCase() }}

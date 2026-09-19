@@ -292,7 +292,7 @@ export default function ProductDetailClient() {
               <div className="flex flex-wrap gap-2">
                 {variants.map((v) => {
                   const selected = selectedOptions[optionName] === v.option_value;
-                  const isColor = optionName.toLowerCase() === "color";
+                  const isColor = ["color", "colour"].includes(optionName.toLowerCase());
                   return (
                     <button
                       key={v.id}
