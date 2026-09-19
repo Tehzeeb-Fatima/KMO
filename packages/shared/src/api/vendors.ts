@@ -142,3 +142,59 @@ export async function uploadVendorMedia(
   const { data } = supabase.storage.from("vendor-media").getPublicUrl(path);
   return data.publicUrl;
 }
+
+type CategoryRow = Database["public"]["Tables"]["categories"]["Row"];
+
+/** Categories an admin has assigned to a vendor — the only categories that
+ *  vendor's "Add product" form may offer. */
+export async function listVendorCategories(
+  supabase: Client,
+  vendorId: string,
+): Promise<CategoryRow[]> {
+  const { data, error } = await supabase
+    .from("vendor_categories")
+    .select("categories(*)")
+    .eq("vendor_id", vendorId);
+  if (error) throw error;
+  return (data as unknown as { categories: CategoryRow }[])
+    .map((row) => row.categories)
+    .filter(Boolean);
+}
+
+/** Admin: every vendor's assigned category names in one query, for the
+ *  vendors list table's Category column. */
+export async function listVendorCategoryNames(
+  supabase: Client,
+): Promise<Record<string, string[]>> {
+  const { data, error } = await supabase
+    .from("vendor_categories")
+    .select("vendor_id, categories(name)");
+  if (error) throw error;
+  const map: Record<string, string[]> = {};
+  for (const row of data as unknown as { vendor_id: string; categories: CategoryRow | null }[]) {
+    if (!row.categories) continue;
+    (map[row.vendor_id] ??= []).push(row.categories.name);
+  }
+  return map;
+}
+
+/** Admin only (RLS): replaces a vendor's full category assignment with
+ *  exactly this set. */
+export async function setVendorCategories(
+  supabase: Client,
+  vendorId: string,
+  categoryIds: string[],
+): Promise<void> {
+  const { error: deleteError } = await supabase
+    .from("vendor_categories")
+    .delete()
+    .eq("vendor_id", vendorId);
+  if (deleteError) throw deleteError;
+
+  if (categoryIds.length === 0) return;
+
+  const { error: insertError } = await supabase
+    .from("vendor_categories")
+    .insert(categoryIds.map((category_id) => ({ vendor_id: vendorId, category_id })));
+  if (insertError) throw insertError;
+}

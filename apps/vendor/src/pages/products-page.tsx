@@ -5,8 +5,8 @@ import {
   createProduct,
   createProductVariant,
   getMyVendor,
-  listCategories,
   listMyProducts,
+  listVendorCategories,
   removeProductImage,
   removeProductVariant,
   updateProduct,
@@ -69,6 +69,7 @@ function ProductsList({
   onOpen: (id: string | "new") => void;
 }) {
   const [statusFilter, setStatusFilter] = useState<ProductStatus | "all">("all");
+  const [categoryFilter, setCategoryFilter] = useState("");
   const [search, setSearch] = useState("");
 
   const { data: products, isLoading } = useQuery({
@@ -77,14 +78,21 @@ function ProductsList({
     enabled: !!vendorId,
   });
 
+  const { data: vendorCategories } = useQuery({
+    queryKey: ["vendor-categories", vendorId],
+    queryFn: () => listVendorCategories(supabase, vendorId!),
+    enabled: !!vendorId,
+  });
+
   const filtered = useMemo(() => {
     if (!products) return [];
     return products.filter((p) => {
       if (statusFilter !== "all" && p.status !== statusFilter) return false;
+      if (categoryFilter && p.category_id !== categoryFilter) return false;
       if (search.trim() && !p.name.toLowerCase().includes(search.toLowerCase())) return false;
       return true;
     });
-  }, [products, statusFilter, search]);
+  }, [products, statusFilter, categoryFilter, search]);
 
   return (
     <div>
@@ -113,8 +121,17 @@ function ProductsList({
           onChange={(e) => setSearch(e.target.value)}
           className="max-w-[300px] flex-1 rounded-lg border border-border px-[14px] py-[10px] text-[13px] outline-none focus:border-primary-light"
         />
-        <select className="rounded-lg border border-border px-[14px] py-[10px] text-[13px] text-ink-dark">
-          <option>All categories</option>
+        <select
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value)}
+          className="rounded-lg border border-border px-[14px] py-[10px] text-[13px] text-ink-dark"
+        >
+          <option value="">All categories</option>
+          {vendorCategories?.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
         </select>
         <div className="flex-1" />
         <button
@@ -204,8 +221,8 @@ function ProductForm({
   const queryClient = useQueryClient();
 
   const { data: categories } = useQuery({
-    queryKey: ["categories"],
-    queryFn: () => listCategories(supabase),
+    queryKey: ["vendor-categories", vendorId],
+    queryFn: () => listVendorCategories(supabase, vendorId),
   });
 
   const { data: existing } = useQuery({
@@ -242,7 +259,7 @@ function ProductForm({
     setStock(String(product.stock_quantity));
     setCategoryId(product.category_id ?? "");
     setDescription(product.description ?? "");
-    setPublished(product.status === "published");
+    setPublished(product.status === "published" || product.status === "pending");
     setImages(product.product_images.map((img) => ({ id: img.id, url: img.url })));
     setVariants(
       product.product_variants.map((v) => ({
@@ -268,7 +285,16 @@ function ProductForm({
         stock_quantity: Number(stock) || 0,
         category_id: categoryId || null,
         description,
-        status: (published ? "published" : "draft") as ProductStatus,
+        // Vendors submit for review, they don't publish directly: a brand-new
+        // or previously-unpublished product that's toggled on goes to
+        // 'pending' for admin approval (see the admin Products page); only
+        // editing an already-published product keeps it live without a
+        // fresh review.
+        status: (!published
+          ? "draft"
+          : product?.status === "published"
+            ? "published"
+            : "pending") as ProductStatus,
         brand: brand || null,
         tags: tagsInput
           .split(",")
@@ -407,6 +433,12 @@ function ProductForm({
                 </option>
               ))}
             </select>
+            {categories && categories.length === 0 ? (
+              <p className="text-[11.5px] text-danger">
+                No categories are assigned to your store yet — contact an admin to get categories
+                assigned before you can list products.
+              </p>
+            ) : null}
           </FormField>
 
           <FormField label="Description">
@@ -588,7 +620,13 @@ function ProductForm({
           <div className="rounded-xl border border-border bg-surface p-5">
             <p className="text-[13px] font-bold text-ink">Visibility</p>
             <div className="mt-3 flex items-center justify-between">
-              <span className="text-[13px] text-ink-dark">Published</span>
+              <span className="text-[13px] text-ink-dark">
+                {published
+                  ? product?.status === "published"
+                    ? "Live"
+                    : "Submitted for review"
+                  : "Draft"}
+              </span>
               <button
                 type="button"
                 role="switch"
@@ -603,6 +641,11 @@ function ProductForm({
                 <span className="h-4 w-4 rounded-full bg-white" />
               </button>
             </div>
+            {published && product?.status !== "published" ? (
+              <p className="mt-2 text-[11.5px] text-muted">
+                An admin needs to approve this before it shows on the storefront.
+              </p>
+            ) : null}
           </div>
 
           <button

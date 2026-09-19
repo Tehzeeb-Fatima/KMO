@@ -169,6 +169,24 @@ export interface Database {
         };
         Relationships: [];
       };
+      vendor_categories: {
+        Row: {
+          vendor_id: string;
+          category_id: string;
+          created_at: string;
+        };
+        Insert: {
+          vendor_id: string;
+          category_id: string;
+          created_at?: string;
+        };
+        Update: {
+          vendor_id?: string;
+          category_id?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       products: {
         Row: {
           id: string;
