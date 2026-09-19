@@ -6,9 +6,24 @@ type VendorRow = Database["public"]["Tables"]["vendors"]["Row"];
 type VendorUpdate = Database["public"]["Tables"]["vendors"]["Update"];
 type VendorInsert = Database["public"]["Tables"]["vendors"]["Insert"];
 
-/** The signed-in vendor's own store row (owner_id = current user). */
+/** The signed-in vendor's own store row (owner_id = current user).
+ *
+ * Filters explicitly by owner_id rather than relying on RLS alone: the
+ * `vendors` table also has a public-select policy for approved vendors, so
+ * an unfiltered select on an approved vendor's own account returns every
+ * approved vendor row (Postgres ORs permissive RLS policies together) and
+ * `.maybeSingle()` throws "multiple rows returned" — which left the Store
+ * Settings page stuck on "Loading your store…" forever. */
 export async function getMyVendor(supabase: Client): Promise<VendorRow | null> {
-  const { data, error } = await supabase.from("vendors").select("*").maybeSingle();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+  const { data, error } = await supabase
+    .from("vendors")
+    .select("*")
+    .eq("owner_id", user.id)
+    .maybeSingle();
   if (error) throw error;
   return data;
 }
