@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getVendorById,
   listCategories,
+  listMyProducts,
   listVendorCategories,
   listVendorCategoryNames,
   listVendors,
@@ -380,6 +381,8 @@ function VendorDetail({ vendorId, onBack }: { vendorId: string; onBack: () => vo
             </div>
           </div>
 
+          <VendorProductsSection vendorId={vendorId} />
+
           <div className="rounded-lg border border-border bg-surface p-6">
             <span className="text-[15px] font-bold text-ink">Recent orders</span>
             <p className="mt-3 text-sm text-muted">
@@ -449,6 +452,39 @@ function VendorDetail({ vendorId, onBack }: { vendorId: string; onBack: () => vo
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function VendorProductsSection({ vendorId }: { vendorId: string }) {
+  const { data: products, isLoading } = useQuery({
+    queryKey: ["admin-vendor-products", vendorId],
+    queryFn: () => listMyProducts(supabase, vendorId),
+  });
+
+  return (
+    <div className="rounded-lg border border-border bg-surface p-6">
+      <span className="text-[15px] font-bold text-ink">
+        Products{products ? ` (${products.length})` : ""}
+      </span>
+      {isLoading ? (
+        <p className="mt-3 text-sm text-muted">Loading…</p>
+      ) : !products || products.length === 0 ? (
+        <p className="mt-3 text-sm text-muted">This vendor hasn&rsquo;t added any products yet.</p>
+      ) : (
+        <div className="mt-3 flex flex-col gap-2.5">
+          {products.map((p) => (
+            <div
+              key={p.id}
+              className="flex items-center justify-between gap-3 border-t border-[#F5F0EE] pt-2.5 text-[13px] first:border-t-0 first:pt-0"
+            >
+              <span className="truncate font-semibold text-ink-dark">{p.name}</span>
+              <span className="shrink-0 text-muted">Rs. {p.price.toLocaleString()}</span>
+              <span className="shrink-0 text-[11.5px] capitalize text-muted-table">{p.status}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

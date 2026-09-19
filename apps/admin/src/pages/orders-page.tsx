@@ -32,17 +32,20 @@ function OrdersList({
   onOpen: (id: string) => void;
 }) {
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all");
 
   const filtered = useMemo(() => {
     if (!orders) return [];
-    if (!search.trim()) return orders;
-    const q = search.toLowerCase();
-    return orders.filter(
-      (o) =>
+    return orders.filter((o) => {
+      if (statusFilter !== "all" && o.status !== statusFilter) return false;
+      if (!search.trim()) return true;
+      const q = search.toLowerCase();
+      return (
         o.order_number.toLowerCase().includes(q) ||
-        (o.profiles?.full_name ?? "").toLowerCase().includes(q),
-    );
-  }, [orders, search]);
+        (o.profiles?.full_name ?? "").toLowerCase().includes(q)
+      );
+    });
+  }, [orders, search, statusFilter]);
 
   return (
     <div>
@@ -53,8 +56,17 @@ function OrdersList({
           onChange={(e) => setSearch(e.target.value)}
           className="max-w-[340px] flex-1 rounded-lg border border-border px-[14px] py-[10px] text-[13px] outline-none focus:border-primary-light"
         />
-        <select className="rounded-lg border border-border px-[14px] py-[10px] text-[13px] text-ink-dark">
-          <option>All statuses</option>
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value as OrderStatus | "all")}
+          className="rounded-lg border border-border px-[14px] py-[10px] text-[13px] text-ink-dark"
+        >
+          <option value="all">All statuses</option>
+          {(Object.keys(ORDER_STATUS_META) as OrderStatus[]).map((s) => (
+            <option key={s} value={s}>
+              {ORDER_STATUS_META[s].label}
+            </option>
+          ))}
         </select>
       </div>
 

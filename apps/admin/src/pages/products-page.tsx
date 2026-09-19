@@ -1,11 +1,20 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { listAllProductsForModeration, logAdminAction, updateProduct } from "@kmo/shared/api";
+import {
+  listAllProductsForModeration,
+  listVendors,
+  logAdminAction,
+  updateProduct,
+  type ProductWithMedia,
+} from "@kmo/shared/api";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "../lib/supabase";
+import { AdminProductForm } from "./admin-product-form";
 
 export function ProductsModerationPage() {
   const [pendingOnly, setPendingOnly] = useState(false);
+  const [vendorFilter, setVendorFilter] = useState("");
+  const [editing, setEditing] = useState<ProductWithMedia | null | "new">(null);
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
@@ -13,6 +22,17 @@ export function ProductsModerationPage() {
     queryKey: ["admin-products", pendingOnly],
     queryFn: () => listAllProductsForModeration(supabase, pendingOnly),
   });
+
+  const { data: vendors } = useQuery({
+    queryKey: ["admin-vendors-for-filter"],
+    queryFn: () => listVendors(supabase),
+  });
+
+  const filtered = useMemo(() => {
+    if (!products) return [];
+    if (!vendorFilter) return products;
+    return products.filter((p) => p.vendor_id === vendorFilter);
+  }, [products, vendorFilter]);
 
   const mutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: "published" | "rejected" | "archived" }) =>
@@ -23,16 +43,47 @@ export function ProductsModerationPage() {
     },
   });
 
+  if (editing !== null) {
+    return (
+      <AdminProductForm
+        product={editing === "new" ? null : editing}
+        onBack={() => setEditing(null)}
+      />
+    );
+  }
+
   return (
     <div>
-      <label className="mb-4 flex w-fit items-center gap-2 text-[13px] text-ink-dark">
-        <input
-          type="checkbox"
-          checked={pendingOnly}
-          onChange={(e) => setPendingOnly(e.target.checked)}
-        />
-        Flagged only
-      </label>
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <label className="flex w-fit items-center gap-2 text-[13px] text-ink-dark">
+          <input
+            type="checkbox"
+            checked={pendingOnly}
+            onChange={(e) => setPendingOnly(e.target.checked)}
+          />
+          Flagged only
+        </label>
+        <select
+          value={vendorFilter}
+          onChange={(e) => setVendorFilter(e.target.value)}
+          className="rounded-lg border border-border px-[14px] py-[10px] text-[13px] text-ink-dark"
+        >
+          <option value="">All vendors</option>
+          {vendors?.map((v) => (
+            <option key={v.id} value={v.id}>
+              {v.store_name}
+            </option>
+          ))}
+        </select>
+        <div className="flex-1" />
+        <button
+          type="button"
+          onClick={() => setEditing("new")}
+          className="rounded-lg bg-accent px-[18px] py-[10px] text-[13px] font-bold text-white"
+        >
+          + Add product
+        </button>
+      </div>
 
       <div className="overflow-hidden rounded-xl border border-border bg-surface">
         <div className="grid grid-cols-[2fr_1fr_1fr_1fr_140px] bg-surface-alt px-5 py-3.5 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
@@ -44,15 +95,21 @@ export function ProductsModerationPage() {
         </div>
         {isLoading ? (
           <p className="p-5 text-sm text-muted">Loading…</p>
-        ) : !products || products.length === 0 ? (
+        ) : filtered.length === 0 ? (
           <p className="p-5 text-sm text-muted">No products to review.</p>
         ) : (
-          products.map((p) => (
+          filtered.map((p) => (
             <div
               key={p.id}
               className="grid grid-cols-[2fr_1fr_1fr_1fr_140px] items-center border-t border-[#F5F0EE] px-5 py-4 text-[13px]"
             >
-              <span className="font-bold text-ink-dark">{p.name}</span>
+              <button
+                type="button"
+                onClick={() => setEditing(p)}
+                className="truncate text-left font-bold text-ink-dark hover:text-primary"
+              >
+                {p.name}
+              </button>
               <span className="text-muted">{p.vendors?.store_name}</span>
               <span className="text-ink-dark">Rs. {p.price.toLocaleString()}</span>
               <span className="text-muted">{p.status}</span>
