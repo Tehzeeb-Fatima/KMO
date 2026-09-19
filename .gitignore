@@ -27,3 +27,6 @@ pnpm-debug.log*
 
 # vite
 *.local
+
+# supabase CLI local cache
+supabase/.temp/
