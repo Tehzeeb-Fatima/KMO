@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import { ShoppingCart, User } from "lucide-react";
 import { listCartItems, listCategories } from "@kmo/shared/api";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "@/lib/supabase";
@@ -34,13 +35,15 @@ export function SiteHeader() {
     <header>
       {/* row 1 — logo / search / deliver-to / sign in / cart */}
       <div className="flex items-center gap-4 bg-surface px-4 py-[18px] sm:gap-7 sm:px-10">
-        <Link href="/" className="flex shrink-0 items-center gap-[11px]">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/kmo-icon.png"
-            alt="Karachi Mart"
-            className="h-[38px] w-[38px] shrink-0 rounded-[9px] object-contain"
-          />
+        <Link href="/" className="flex shrink-0 items-center gap-2">
+          <span className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full bg-[#f5ece2]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/kmo-icon.png"
+              alt=""
+              className="absolute left-1/2 top-0 h-[165%] w-auto max-w-none -translate-x-1/2"
+            />
+          </span>
           <span className="hidden leading-[1.05] sm:block">
             <span className="block text-[17px] font-extrabold tracking-[-0.028em] text-ink-dark">
               Karachi Mart
@@ -80,15 +83,22 @@ export function SiteHeader() {
 
           <Link
             href={user && !user.is_anonymous ? "/account" : "/login"}
-            className="shrink-0 text-[13.5px] font-semibold text-primary"
+            className="flex shrink-0 items-center gap-1.5 text-[13.5px] font-semibold text-primary"
           >
-            {user && !user.is_anonymous ? (profile?.full_name?.split(" ")[0] ?? "Account") : "Sign in"}
+            <User className="h-[18px] w-[18px]" strokeWidth={2} />
+            <span className="hidden sm:inline">
+              {user && !user.is_anonymous ? (profile?.full_name?.split(" ")[0] ?? "Account") : "Sign in"}
+            </span>
           </Link>
 
-          <Link href="/cart" className="relative shrink-0 pr-1 text-[13.5px] font-bold text-primary">
-            Cart
+          <Link
+            href="/cart"
+            className="relative flex shrink-0 items-center gap-1.5 pr-1 text-[13.5px] font-bold text-primary"
+          >
+            <ShoppingCart className="h-[19px] w-[19px]" strokeWidth={2} />
+            <span className="hidden sm:inline">Cart</span>
             {cartCount > 0 ? (
-              <span className="absolute -right-2.5 -top-2 flex h-[17px] min-w-[17px] items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-white">
+              <span className="absolute -right-1 -top-2 flex h-[17px] min-w-[17px] items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-white">
                 {cartCount}
               </span>
             ) : null}

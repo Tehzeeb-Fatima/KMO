@@ -42,8 +42,14 @@ export function SiteFooter() {
       <div className="mx-auto grid w-full max-w-[1358px] grid-cols-2 gap-8 px-4 py-12 sm:grid-cols-3 sm:px-10 lg:grid-cols-5">
         <div className="col-span-2 flex flex-col gap-3 sm:col-span-1">
           <div className="flex items-center gap-[11px]">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/kmo-icon.png" alt="Karachi Mart" className="h-8 w-8 shrink-0 rounded-lg object-contain" />
+            <span className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-[#f5ece2]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/kmo-icon.png"
+                alt=""
+                className="absolute left-1/2 top-0 h-[165%] w-auto max-w-none -translate-x-1/2"
+              />
+            </span>
             <span className="text-base font-extrabold text-white">Karachi Mart</span>
           </div>
           <p className="max-w-[280px] text-[13px] leading-[1.6] text-[#B9A3CD]">

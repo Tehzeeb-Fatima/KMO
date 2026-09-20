@@ -37,7 +37,13 @@ export function AuthLayout({
   logoSrc,
 }: AuthLayoutProps) {
   const logo = logoSrc ? (
-    <img src={logoSrc} alt="Karachi Mart" className="h-9 w-9 shrink-0 rounded-lg object-contain" />
+    <span className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full bg-[#f5ece2]">
+      <img
+        src={logoSrc}
+        alt="Karachi Mart"
+        className="absolute left-1/2 top-0 h-[165%] w-auto max-w-none -translate-x-1/2"
+      />
+    </span>
   ) : (
     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent text-sm font-bold text-white">
       KM
