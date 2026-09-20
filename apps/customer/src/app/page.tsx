@@ -147,7 +147,10 @@ export default function Home() {
                 href={`/search?category=${c.id}`}
                 className="w-[128px] shrink-0 overflow-hidden rounded-lg border border-border bg-surface sm:w-[158px]"
               >
-                <div className="h-[74px] bg-surface-alt sm:h-[98px]" />
+                <div
+                  className="h-[74px] bg-surface-alt bg-cover bg-center sm:h-[98px]"
+                  style={c.image_url ? { backgroundImage: `url(${c.image_url})` } : undefined}
+                />
                 <div className="flex flex-col gap-0.5 p-3">
                   <span className="line-clamp-1 text-[12.5px] font-bold text-ink-dark">{c.name}</span>
                 </div>
@@ -182,10 +185,20 @@ export default function Home() {
                 href={`/store/${v.slug}`}
                 className="overflow-hidden rounded-lg border border-border bg-surface"
               >
-                <div className="h-[76px] bg-surface-alt" />
+                <div
+                  className="h-[76px] bg-surface-alt bg-cover bg-center"
+                  style={v.cover_url ? { backgroundImage: `url(${v.cover_url})` } : undefined}
+                />
                 <div className="-mt-[34px] flex flex-col gap-2.5 p-4">
-                  <span className="flex h-[50px] w-[50px] items-center justify-center rounded-[10px] bg-primary text-sm font-bold text-white ring-[3px] ring-white">
-                    {v.store_name.charAt(0)}
+                  <span
+                    className="flex h-[50px] w-[50px] items-center justify-center rounded-[10px] bg-primary text-sm font-bold text-white ring-[3px] ring-white bg-cover bg-center"
+                    style={
+                      v.logo_url
+                        ? { backgroundImage: `url(${v.logo_url})` }
+                        : undefined
+                    }
+                  >
+                    {!v.logo_url && v.store_name.charAt(0)}
                   </span>
                   <div className="flex items-center gap-2">
                     <span className="text-[15.5px] font-bold tracking-[-0.015em] text-ink-dark">

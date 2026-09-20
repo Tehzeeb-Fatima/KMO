@@ -51,10 +51,20 @@ export default function VendorsPage() {
                 href={`/store/${v.slug}`}
                 className="overflow-hidden rounded-lg border border-border bg-surface"
               >
-                <div className="h-[76px] bg-surface-alt" />
+                <div
+                  className="h-[76px] bg-surface-alt bg-cover bg-center"
+                  style={v.cover_url ? { backgroundImage: `url(${v.cover_url})` } : undefined}
+                />
                 <div className="-mt-[34px] flex flex-col gap-2.5 p-4">
-                  <span className="flex h-[50px] w-[50px] items-center justify-center rounded-[10px] bg-primary text-sm font-bold text-white ring-[3px] ring-white">
-                    {v.store_name.charAt(0)}
+                  <span
+                    className="flex h-[50px] w-[50px] items-center justify-center rounded-[10px] bg-primary text-sm font-bold text-white ring-[3px] ring-white bg-cover bg-center"
+                    style={
+                      v.logo_url
+                        ? { backgroundImage: `url(${v.logo_url})` }
+                        : undefined
+                    }
+                  >
+                    {!v.logo_url && v.store_name.charAt(0)}
                   </span>
                   <div className="flex items-center gap-2">
                     <span className="text-[15.5px] font-bold tracking-[-0.015em] text-ink-dark">

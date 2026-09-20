@@ -149,6 +149,7 @@ export interface Database {
           slug: string;
           parent_id: string | null;
           commission_rate: number | null;
+          image_url: string | null;
           created_at: string;
         };
         Insert: {
@@ -157,6 +158,7 @@ export interface Database {
           slug: string;
           parent_id?: string | null;
           commission_rate?: number | null;
+          image_url?: string | null;
           created_at?: string;
         };
         Update: {
@@ -165,6 +167,7 @@ export interface Database {
           slug?: string;
           parent_id?: string | null;
           commission_rate?: number | null;
+          image_url?: string | null;
           created_at?: string;
         };
         Relationships: [];
