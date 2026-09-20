@@ -77,44 +77,48 @@ function OrdersList({ vendorId, onOpen }: { vendorId: string; onOpen: (id: strin
         />
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-border bg-surface">
-        <div className="grid grid-cols-[1fr_1.3fr_1fr_1fr_1fr] bg-surface-alt px-5 py-3.5 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
-          <span>Order</span>
-          <span>Customer</span>
-          <span>Date</span>
-          <span>Total</span>
-          <span>Status</span>
-        </div>
+      <div className="overflow-x-auto rounded-xl border border-border bg-surface">
+        <div className="min-w-[720px]">
+          <div className="grid grid-cols-[1fr_1.3fr_1fr_1fr_1fr] items-center bg-surface-alt px-5 py-3.5 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
+            <span>Order</span>
+            <span>Customer</span>
+            <span>Date</span>
+            <span className="text-right">Total</span>
+            <span className="text-center">Status</span>
+          </div>
 
-        {isLoading ? (
-          <p className="p-5 text-sm text-muted">Loading orders…</p>
-        ) : filtered.length === 0 ? (
-          <p className="p-5 text-sm text-muted">No orders yet.</p>
-        ) : (
-          filtered.map((o) => {
-            const meta = ORDER_STATUS_META[o.status];
-            return (
-              <button
-                key={o.id}
-                type="button"
-                onClick={() => onOpen(o.id)}
-                className="grid grid-cols-[1fr_1.3fr_1fr_1fr_1fr] items-center border-t border-[#F5F0EE] px-5 py-4 text-left"
-              >
-                <span className="text-[13px] font-bold text-primary">#{o.order_number}</span>
-                <span className="text-[12.5px] text-ink-dark">
-                  {o.profiles?.full_name ?? "Customer"}
-                </span>
-                <span className="text-[12.5px] text-muted">
-                  {new Date(o.created_at).toLocaleDateString(undefined, { day: "numeric", month: "short" })}
-                </span>
-                <span className="text-[13px] font-bold text-ink-dark">Rs. {o.total.toLocaleString()}</span>
-                <span>
-                  <StatusBadge variant={meta.variant}>{meta.label}</StatusBadge>
-                </span>
-              </button>
-            );
-          })
-        )}
+          {isLoading ? (
+            <p className="p-5 text-sm text-muted">Loading orders…</p>
+          ) : filtered.length === 0 ? (
+            <p className="p-5 text-sm text-muted">No orders yet.</p>
+          ) : (
+            filtered.map((o) => {
+              const meta = ORDER_STATUS_META[o.status];
+              return (
+                <button
+                  key={o.id}
+                  type="button"
+                  onClick={() => onOpen(o.id)}
+                  className="grid w-full grid-cols-[1fr_1.3fr_1fr_1fr_1fr] items-center border-t border-[#F5F0EE] px-5 py-4 text-left"
+                >
+                  <span className="text-[13px] font-bold text-primary">#{o.order_number}</span>
+                  <span className="text-[12.5px] text-ink-dark">
+                    {o.profiles?.full_name ?? "Customer"}
+                  </span>
+                  <span className="text-[12.5px] text-muted">
+                    {new Date(o.created_at).toLocaleDateString(undefined, { day: "numeric", month: "short" })}
+                  </span>
+                  <span className="text-right text-[13px] font-bold text-ink-dark">
+                    Rs. {o.total.toLocaleString()}
+                  </span>
+                  <span className="flex justify-center">
+                    <StatusBadge variant={meta.variant}>{meta.label}</StatusBadge>
+                  </span>
+                </button>
+              );
+            })
+          )}
+        </div>
       </div>
     </div>
   );
