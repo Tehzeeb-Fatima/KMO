@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getProductBySlug,
@@ -217,13 +218,37 @@ export default function ProductDetailClient() {
         {/* gallery */}
         <div>
           <div
-            className="h-[260px] rounded-[10px] border border-border bg-surface sm:h-[470px]"
+            className="relative h-[260px] overflow-hidden rounded-[10px] border border-border bg-surface sm:h-[470px]"
             style={{
               background: images[activeImage]
                 ? `url(${images[activeImage].url}) center/cover`
                 : "repeating-linear-gradient(135deg,#F3ECE8 0 10px,#E9DFD9 10px 20px)",
             }}
-          />
+          >
+            {images.length > 1 ? (
+              <>
+                <button
+                  type="button"
+                  aria-label="Previous image"
+                  onClick={() => setActiveImage((i) => (i - 1 + images.length) % images.length)}
+                  className="absolute left-2.5 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-ink shadow hover:bg-white"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Next image"
+                  onClick={() => setActiveImage((i) => (i + 1) % images.length)}
+                  className="absolute right-2.5 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-ink shadow hover:bg-white"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+                <span className="absolute bottom-2.5 right-2.5 rounded-full bg-black/55 px-2.5 py-1 text-[11px] font-semibold text-white">
+                  {activeImage + 1} / {images.length}
+                </span>
+              </>
+            ) : null}
+          </div>
           {images.length > 1 ? (
             <div className="mt-2.5 flex gap-2 overflow-x-auto sm:gap-[10px]">
               {images.map((img, i) => (

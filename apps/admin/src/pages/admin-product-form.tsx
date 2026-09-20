@@ -48,6 +48,9 @@ export function AdminProductForm({
 
   const [name, setName] = useState(product?.name ?? "");
   const [price, setPrice] = useState(product ? String(product.price) : "");
+  const [compareAtPrice, setCompareAtPrice] = useState(
+    product?.compare_at_price ? String(product.compare_at_price) : "",
+  );
   const [stock, setStock] = useState(product ? String(product.stock_quantity) : "");
   const [categoryId, setCategoryId] = useState(product?.category_id ?? "");
   const [description, setDescription] = useState(product?.description ?? "");
@@ -83,6 +86,7 @@ export function AdminProductForm({
       const payload = {
         name,
         price: Number(price) || 0,
+        compare_at_price: compareAtPrice ? Number(compareAtPrice) : null,
         stock_quantity: Number(stock) || 0,
         category_id: categoryId || null,
         description,
@@ -199,12 +203,20 @@ export function AdminProductForm({
             />
           </FormField>
 
-          <div className="grid grid-cols-2 gap-3.5">
+          <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-3">
             <FormField label="Price">
               <input
                 placeholder="Rs. 4,999"
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
+                className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
+              />
+            </FormField>
+            <FormField label="Original price (optional)">
+              <input
+                placeholder="e.g. 6,999 — shown crossed out"
+                value={compareAtPrice}
+                onChange={(e) => setCompareAtPrice(e.target.value)}
                 className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
               />
             </FormField>

@@ -234,6 +234,7 @@ function ProductForm({
 
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
+  const [compareAtPrice, setCompareAtPrice] = useState("");
   const [stock, setStock] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [description, setDescription] = useState("");
@@ -257,6 +258,7 @@ function ProductForm({
     if (!product) return;
     setName(product.name);
     setPrice(String(product.price));
+    setCompareAtPrice(product.compare_at_price ? String(product.compare_at_price) : "");
     setStock(String(product.stock_quantity));
     setCategoryId(product.category_id ?? "");
     setDescription(product.description ?? "");
@@ -283,6 +285,7 @@ function ProductForm({
       const payload = {
         name,
         price: Number(price) || 0,
+        compare_at_price: compareAtPrice ? Number(compareAtPrice) : null,
         stock_quantity: Number(stock) || 0,
         category_id: categoryId || null,
         description,
@@ -408,12 +411,20 @@ function ProductForm({
             />
           </FormField>
 
-          <div className="grid grid-cols-2 gap-3.5">
+          <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-3">
             <FormField label="Price">
               <input
                 placeholder="Rs. 4,999"
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
+                className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
+              />
+            </FormField>
+            <FormField label="Original price (optional)">
+              <input
+                placeholder="e.g. 6,999 — shown crossed out"
+                value={compareAtPrice}
+                onChange={(e) => setCompareAtPrice(e.target.value)}
                 className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
               />
             </FormField>
@@ -426,6 +437,12 @@ function ProductForm({
               />
             </FormField>
           </div>
+          {compareAtPrice && Number(compareAtPrice) > 0 && Number(compareAtPrice) <= Number(price || 0) ? (
+            <p className="-mt-2 text-[11.5px] text-danger">
+              The discount price should be higher than the selling price — enter the original
+              price here.
+            </p>
+          ) : null}
 
           <FormField label="Category">
             <select
