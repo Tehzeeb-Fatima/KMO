@@ -6,9 +6,11 @@ import {
   createProductVariant,
   getMyVendor,
   listMyProducts,
+  listProductCategories,
   listVendorCategories,
   removeProductImage,
   removeProductVariant,
+  setProductCategories,
   updateProduct,
   uploadProductImage,
 } from "@kmo/shared/api";
@@ -232,11 +234,17 @@ function ProductForm({
   });
   const product = productId ? existing?.find((p) => p.id === productId) : null;
 
+  const { data: existingExtraCategories } = useQuery({
+    queryKey: ["product-categories", productId],
+    queryFn: () => listProductCategories(supabase, productId!),
+    enabled: !!productId,
+  });
+
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [compareAtPrice, setCompareAtPrice] = useState("");
   const [stock, setStock] = useState("");
-  const [categoryId, setCategoryId] = useState("");
+  const [categoryIds, setCategoryIds] = useState<Set<string>>(new Set());
   const [description, setDescription] = useState("");
   const [published, setPublished] = useState(false);
   const [images, setImages] = useState<{ id: string; url: string }[]>([]);
@@ -260,7 +268,7 @@ function ProductForm({
     setPrice(String(product.price));
     setCompareAtPrice(product.compare_at_price ? String(product.compare_at_price) : "");
     setStock(String(product.stock_quantity));
-    setCategoryId(product.category_id ?? "");
+    setCategoryIds(new Set(product.category_id ? [product.category_id] : []));
     setDescription(product.description ?? "");
     setPublished(product.status === "published" || product.status === "pending");
     setImages(product.product_images.map((img) => ({ id: img.id, url: img.url })));
@@ -280,14 +288,30 @@ function ProductForm({
     setSeoDescription(product.seo_description ?? "");
   }, [product]);
 
+  useEffect(() => {
+    if (!existingExtraCategories || !product) return;
+    setCategoryIds((prev) => new Set([...prev, ...existingExtraCategories]));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [existingExtraCategories]);
+
+  function toggleCategory(id: string) {
+    setCategoryIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
   const saveMutation = useMutation({
     mutationFn: async () => {
+      const categoryIdList = Array.from(categoryIds);
       const payload = {
         name,
         price: Number(price) || 0,
         compare_at_price: compareAtPrice ? Number(compareAtPrice) : null,
         stock_quantity: Number(stock) || 0,
-        category_id: categoryId || null,
+        category_id: categoryIdList[0] ?? null,
         description,
         // Vendors submit for review, they don't publish directly: a brand-new
         // or previously-unpublished product that's toggled on goes to
@@ -309,16 +333,22 @@ function ProductForm({
         seo_title: seoTitle || null,
         seo_description: seoDescription || null,
       };
+      let savedId = currentProductId;
       if (currentProductId) {
-        return updateProduct(supabase, currentProductId, payload);
+        await updateProduct(supabase, currentProductId, payload);
+      } else {
+        const created = await createProduct(supabase, {
+          vendor_id: vendorId,
+          slug: `${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${Date.now().toString(36)}`,
+          ...payload,
+        });
+        savedId = created.id;
+        setCurrentProductId(created.id);
       }
-      const created = await createProduct(supabase, {
-        vendor_id: vendorId,
-        slug: `${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${Date.now().toString(36)}`,
-        ...payload,
-      });
-      setCurrentProductId(created.id);
-      return created;
+      // Extra categories beyond the primary one (category_id already covers
+      // the first). Only the remainder needs the junction table.
+      await setProductCategories(supabase, savedId!, categoryIdList.slice(1));
+      return savedId;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["my-products", vendorId] });
@@ -444,23 +474,37 @@ function ProductForm({
             </p>
           ) : null}
 
-          <FormField label="Category">
-            <select
-              value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
-              className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] text-ink-dark outline-none"
-            >
-              <option value="">Select a category</option>
-              {categories?.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-            {categories && categories.length === 0 ? (
+          <FormField label={`Categories${categoryIds.size > 0 ? ` (${categoryIds.size} selected)` : ""}`}>
+            {categories && categories.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {categories.map((c) => {
+                  const selected = categoryIds.has(c.id);
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => toggleCategory(c.id)}
+                      className="rounded-full px-3 py-1.5 text-[12.5px] font-semibold"
+                      style={
+                        selected
+                          ? { background: "var(--color-primary)", color: "#fff" }
+                          : { background: "#fff", border: "1px solid var(--color-border)", color: "var(--color-ink-secondary)" }
+                      }
+                    >
+                      {c.name}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
               <p className="text-[11.5px] text-danger">
                 No categories are assigned to your store yet — contact an admin to get categories
                 assigned before you can list products.
+              </p>
+            )}
+            {categories && categories.length > 1 ? (
+              <p className="text-[11px] text-muted">
+                Pick as many as apply — your product will show up under all of them.
               </p>
             ) : null}
           </FormField>

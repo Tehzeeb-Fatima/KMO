@@ -187,6 +187,24 @@ export interface Database {
         };
         Relationships: [];
       };
+      product_categories: {
+        Row: {
+          product_id: string;
+          category_id: string;
+          created_at: string;
+        };
+        Insert: {
+          product_id: string;
+          category_id: string;
+          created_at?: string;
+        };
+        Update: {
+          product_id?: string;
+          category_id?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       products: {
         Row: {
           id: string;

@@ -20,7 +20,7 @@ const TITLES: Record<string, { title: string; subtitle?: string }> = {
 };
 
 export function DashboardLayout() {
-  const { profile } = useAuth();
+  const { profile, signOut } = useAuth();
   const location = useLocation();
   const activeItem =
     ADMIN_NAV_ITEMS.find((item) =>
@@ -43,6 +43,7 @@ export function DashboardLayout() {
       title={meta.title}
       subtitle={meta.subtitle}
       avatarInitials={initials || "A"}
+      onSignOut={() => void signOut()}
       LinkComponent={NavLink}
     >
       <Outlet />

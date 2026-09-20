@@ -19,7 +19,7 @@ const TITLES: Record<string, { title: string; subtitle?: string }> = {
 };
 
 export function DashboardLayout() {
-  const { profile } = useAuth();
+  const { profile, signOut } = useAuth();
   const location = useLocation();
   const activeItem =
     VENDOR_NAV_ITEMS.find((item) => item.to === location.pathname) ?? VENDOR_NAV_ITEMS[0];
@@ -40,6 +40,7 @@ export function DashboardLayout() {
       title={meta.title}
       subtitle={meta.subtitle}
       avatarInitials={initials || "V"}
+      onSignOut={() => void signOut()}
       LinkComponent={NavLink}
     >
       <Outlet />

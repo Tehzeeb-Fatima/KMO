@@ -123,6 +123,40 @@ export async function uploadProductImage(
   return data.publicUrl;
 }
 
+/** A product's extra categories, beyond its primary category_id — lets it
+ *  show up under more than one of the vendor's assigned categories. */
+export async function listProductCategories(
+  supabase: Client,
+  productId: string,
+): Promise<string[]> {
+  const { data, error } = await supabase
+    .from("product_categories")
+    .select("category_id")
+    .eq("product_id", productId);
+  if (error) throw error;
+  return data.map((row) => row.category_id);
+}
+
+/** Replaces a product's extra-category set with exactly this list. */
+export async function setProductCategories(
+  supabase: Client,
+  productId: string,
+  categoryIds: string[],
+): Promise<void> {
+  const { error: deleteError } = await supabase
+    .from("product_categories")
+    .delete()
+    .eq("product_id", productId);
+  if (deleteError) throw deleteError;
+
+  if (categoryIds.length === 0) return;
+
+  const { error: insertError } = await supabase
+    .from("product_categories")
+    .insert(categoryIds.map((category_id) => ({ product_id: productId, category_id })));
+  if (insertError) throw insertError;
+}
+
 type ProductVariantInsert = Database["public"]["Tables"]["product_variants"]["Insert"];
 
 /** e.g. { option_name: "Color", option_value: "Red", stock_quantity: 10 } — a

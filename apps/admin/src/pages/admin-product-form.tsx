@@ -4,10 +4,12 @@ import {
   addProductImage,
   createProduct,
   createProductVariant,
+  listProductCategories,
   listVendorCategories,
   listVendors,
   removeProductImage,
   removeProductVariant,
+  setProductCategories,
   updateProduct,
   uploadProductImage,
   type ProductWithMedia,
@@ -46,13 +48,21 @@ export function AdminProductForm({
     enabled: !!vendorId,
   });
 
+  const { data: existingExtraCategories } = useQuery({
+    queryKey: ["product-categories", product?.id],
+    queryFn: () => listProductCategories(supabase, product!.id),
+    enabled: !!product,
+  });
+
   const [name, setName] = useState(product?.name ?? "");
   const [price, setPrice] = useState(product ? String(product.price) : "");
   const [compareAtPrice, setCompareAtPrice] = useState(
     product?.compare_at_price ? String(product.compare_at_price) : "",
   );
   const [stock, setStock] = useState(product ? String(product.stock_quantity) : "");
-  const [categoryId, setCategoryId] = useState(product?.category_id ?? "");
+  const [categoryIds, setCategoryIds] = useState<Set<string>>(
+    new Set(product?.category_id ? [product.category_id] : []),
+  );
   const [description, setDescription] = useState(product?.description ?? "");
   const [published, setPublished] = useState(product?.status === "published");
   const [images, setImages] = useState(
@@ -71,37 +81,60 @@ export function AdminProductForm({
   const [variantStock, setVariantStock] = useState("");
   const [currentProductId, setCurrentProductId] = useState<string | null>(product?.id ?? null);
 
-  // Switching vendors mid-form invalidates whatever category was picked for
-  // the previous vendor.
+  // Switching vendors mid-form invalidates whatever categories were picked
+  // for the previous vendor.
   useEffect(() => {
-    if (categories && categoryId && !categories.some((c) => c.id === categoryId)) {
-      setCategoryId("");
-    }
+    if (!categories) return;
+    setCategoryIds((prev) => {
+      const validIds = new Set(categories.map((c) => c.id));
+      const next = new Set(Array.from(prev).filter((id) => validIds.has(id)));
+      return next.size === prev.size ? prev : next;
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categories]);
+
+  useEffect(() => {
+    if (!existingExtraCategories) return;
+    setCategoryIds((prev) => new Set([...prev, ...existingExtraCategories]));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [existingExtraCategories]);
+
+  function toggleCategory(id: string) {
+    setCategoryIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
 
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!vendorId) throw new Error("Choose a vendor first.");
+      const categoryIdList = Array.from(categoryIds);
       const payload = {
         name,
         price: Number(price) || 0,
         compare_at_price: compareAtPrice ? Number(compareAtPrice) : null,
         stock_quantity: Number(stock) || 0,
-        category_id: categoryId || null,
+        category_id: categoryIdList[0] ?? null,
         description,
         status: (published ? "published" : "draft") as ProductStatus,
       };
+      let savedId = currentProductId;
       if (currentProductId) {
-        return updateProduct(supabase, currentProductId, payload);
+        await updateProduct(supabase, currentProductId, payload);
+      } else {
+        const created = await createProduct(supabase, {
+          vendor_id: vendorId,
+          slug: `${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${Date.now().toString(36)}`,
+          ...payload,
+        });
+        savedId = created.id;
+        setCurrentProductId(created.id);
       }
-      const created = await createProduct(supabase, {
-        vendor_id: vendorId,
-        slug: `${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${Date.now().toString(36)}`,
-        ...payload,
-      });
-      setCurrentProductId(created.id);
-      return created;
+      await setProductCategories(supabase, savedId!, categoryIdList.slice(1));
+      return savedId;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-products"] });
@@ -230,26 +263,41 @@ export function AdminProductForm({
             </FormField>
           </div>
 
-          <FormField label="Category">
-            <select
-              value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
-              disabled={!vendorId}
-              className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] text-ink-dark outline-none disabled:bg-surface-alt disabled:text-muted"
-            >
-              <option value="">{vendorId ? "Select a category" : "Choose a vendor first"}</option>
-              {categories?.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-            {vendorId && categories && categories.length === 0 ? (
+          <FormField label={`Categories${categoryIds.size > 0 ? ` (${categoryIds.size} selected)` : ""}`}>
+            {!vendorId ? (
+              <p className="text-[11.5px] text-muted">Choose a vendor first.</p>
+            ) : categories && categories.length > 0 ? (
+              <>
+                <div className="flex flex-wrap gap-2">
+                  {categories.map((c) => {
+                    const selected = categoryIds.has(c.id);
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => toggleCategory(c.id)}
+                        className="rounded-full px-3 py-1.5 text-[12.5px] font-semibold"
+                        style={
+                          selected
+                            ? { background: "var(--color-primary)", color: "#fff" }
+                            : { background: "#fff", border: "1px solid var(--color-border)", color: "var(--color-ink-secondary)" }
+                        }
+                      >
+                        {c.name}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="text-[11px] text-muted">
+                  Pick as many as apply — the product will show up under all of them.
+                </p>
+              </>
+            ) : (
               <p className="text-[11.5px] text-danger">
                 This vendor has no assigned categories yet — assign one from the vendor's detail
                 page first.
               </p>
-            ) : null}
+            )}
           </FormField>
 
           <FormField label="Description">
