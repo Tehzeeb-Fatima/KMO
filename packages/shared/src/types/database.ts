@@ -172,6 +172,24 @@ export interface Database {
         };
         Relationships: [];
       };
+      vendor_follows: {
+        Row: {
+          customer_id: string;
+          vendor_id: string;
+          created_at: string;
+        };
+        Insert: {
+          customer_id: string;
+          vendor_id: string;
+          created_at?: string;
+        };
+        Update: {
+          customer_id?: string;
+          vendor_id?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       vendor_categories: {
         Row: {
           vendor_id: string;

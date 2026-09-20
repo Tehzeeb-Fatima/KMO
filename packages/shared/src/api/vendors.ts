@@ -143,6 +143,45 @@ export async function uploadVendorMedia(
   return data.publicUrl;
 }
 
+export async function isFollowingVendor(
+  supabase: Client,
+  customerId: string,
+  vendorId: string,
+): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("vendor_follows")
+    .select("vendor_id")
+    .eq("customer_id", customerId)
+    .eq("vendor_id", vendorId)
+    .maybeSingle();
+  if (error) throw error;
+  return !!data;
+}
+
+export async function followVendor(
+  supabase: Client,
+  customerId: string,
+  vendorId: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from("vendor_follows")
+    .upsert({ customer_id: customerId, vendor_id: vendorId }, { onConflict: "customer_id,vendor_id" });
+  if (error) throw error;
+}
+
+export async function unfollowVendor(
+  supabase: Client,
+  customerId: string,
+  vendorId: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from("vendor_follows")
+    .delete()
+    .eq("customer_id", customerId)
+    .eq("vendor_id", vendorId);
+  if (error) throw error;
+}
+
 type CategoryRow = Database["public"]["Tables"]["categories"]["Row"];
 
 /** Categories an admin has assigned to a vendor — the only categories that

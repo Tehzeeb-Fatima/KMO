@@ -95,20 +95,21 @@ function CheckoutContent() {
 
       if (isGuest) {
         const trimmedEmail = email.trim();
-        if (!trimmedEmail) throw new Error("Enter your email so we can send your order and login details.");
-        const { error: linkError } = await supabase.auth.updateUser(
-          {
-            email: trimmedEmail,
-            data: { pending_order_note: "Order placed as a guest — set a password to track it anytime." },
-          },
-          { emailRedirectTo: `${window.location.origin}/account/orders` },
-        );
-        if (linkError) {
-          throw new Error(
-            linkError.message.toLowerCase().includes("already")
-              ? "This email is already registered. Please sign in first, then check out."
-              : linkError.message,
+        if (trimmedEmail) {
+          const { error: linkError } = await supabase.auth.updateUser(
+            {
+              email: trimmedEmail,
+              data: { pending_order_note: "Order placed as a guest — set a password to track it anytime." },
+            },
+            { emailRedirectTo: `${window.location.origin}/account/orders` },
           );
+          if (linkError) {
+            throw new Error(
+              linkError.message.toLowerCase().includes("already")
+                ? "This email is already registered. Please sign in first, then check out."
+                : linkError.message,
+            );
+          }
         }
       }
 
@@ -158,7 +159,9 @@ function CheckoutContent() {
       <div className="mt-6 grid grid-cols-1 gap-[26px] lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="flex flex-col gap-5">
           <section className="flex flex-col gap-3.5 rounded-xl border border-border bg-surface p-6">
-            <h2 className="text-base font-bold tracking-[-0.02em] text-ink">Contact email</h2>
+            <h2 className="text-base font-bold tracking-[-0.02em] text-ink">
+              Contact email <span className="font-medium text-muted-table">(optional)</span>
+            </h2>
             {isGuest ? (
               <>
                 <input
@@ -166,12 +169,11 @@ function CheckoutContent() {
                   placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  required
                   className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
                 />
                 <p className="text-[12px] text-muted">
-                  We&rsquo;ll email your order details and a link to set a password so you can
-                  track this order anytime.
+                  Add your email if you&rsquo;d like order updates and a link to set a password
+                  so you can track this order anytime. You can check out without it.
                 </p>
               </>
             ) : (
@@ -358,12 +360,7 @@ function CheckoutContent() {
           {error ? <p className="text-sm text-danger">{error}</p> : null}
           <Button
             className="w-full"
-            disabled={
-              !effectiveAddressId ||
-              !items?.length ||
-              placeOrderMutation.isPending ||
-              (isGuest && !email.trim())
-            }
+            disabled={!effectiveAddressId || !items?.length || placeOrderMutation.isPending}
             onClick={() => {
               setError(null);
               placeOrderMutation.mutate();

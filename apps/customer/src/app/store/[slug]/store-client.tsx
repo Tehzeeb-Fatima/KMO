@@ -3,8 +3,15 @@
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { getOrCreateConversation, getVendorBySlug, listPublishedProducts } from "@kmo/shared/api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  followVendor,
+  getOrCreateConversation,
+  getVendorBySlug,
+  isFollowingVendor,
+  listPublishedProducts,
+  unfollowVendor,
+} from "@kmo/shared/api";
 import { PillTabs, ProductCard } from "@kmo/shared/ui";
 import { WEEK_DAYS, type BusinessHours, type VendorPolicies } from "@kmo/shared/types";
 import { useAuth } from "@kmo/shared/auth";
@@ -17,11 +24,32 @@ export default function StoreClient() {
   const params = useParams<{ slug: string }>();
   const router = useRouter();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [tab, setTab] = useState<Tab>("products");
 
   const { data: vendor, isLoading } = useQuery({
     queryKey: ["vendor", params.slug],
     queryFn: () => getVendorBySlug(supabase, params.slug),
+  });
+
+  const { data: isFollowing } = useQuery({
+    queryKey: ["is-following-vendor", vendor?.id, user?.id],
+    queryFn: () => isFollowingVendor(supabase, user!.id, vendor!.id),
+    enabled: !!vendor && !!user && !user.is_anonymous,
+  });
+
+  const followMutation = useMutation({
+    mutationFn: async () => {
+      if (!vendor) throw new Error("Not ready");
+      const customerId = await ensureCustomerId(user);
+      if (isFollowing) {
+        await unfollowVendor(supabase, customerId, vendor.id);
+      } else {
+        await followVendor(supabase, customerId, vendor.id);
+      }
+    },
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["is-following-vendor", vendor?.id] }),
   });
 
   const chatMutation = useMutation({
@@ -124,9 +152,16 @@ export default function StoreClient() {
             <div className="flex gap-2">
               <button
                 type="button"
-                className="flex-1 rounded-lg bg-accent px-4 py-[11px] text-sm font-bold text-white"
+                onClick={() => followMutation.mutate()}
+                disabled={followMutation.isPending}
+                className="flex-1 rounded-lg px-4 py-[11px] text-sm font-bold disabled:opacity-60"
+                style={
+                  isFollowing
+                    ? { border: "1px solid var(--color-border)", color: "var(--color-primary)", background: "#fff" }
+                    : { background: "var(--color-accent)", color: "#fff" }
+                }
               >
-                Follow store
+                {isFollowing ? "Following ✓" : "Follow store"}
               </button>
               <button
                 type="button"
