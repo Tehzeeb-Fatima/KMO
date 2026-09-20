@@ -11,6 +11,12 @@
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
 // Matches the PDP sidebar copy: "Free over Rs. 2,500, otherwise Rs. 120 flat."
 // Applied per vendor order, since checkout splits into one order per vendor.
 function deliveryFeeFor(subtotal: number): number {
@@ -18,6 +24,9 @@ function deliveryFeeFor(subtotal: number): number {
 }
 
 Deno.serve(async (req: Request) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: CORS_HEADERS });
+  }
   if (req.method !== "POST") {
     return json({ error: "Method not allowed" }, 405);
   }
@@ -257,6 +266,6 @@ async function generateOrderNumber(
 function json(body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...CORS_HEADERS },
   });
 }
