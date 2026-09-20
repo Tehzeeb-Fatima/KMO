@@ -44,11 +44,7 @@ export function SiteFooter() {
           <div className="flex items-center gap-[11px]">
             <span className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-[#f5ece2]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/kmo-icon.png"
-                alt=""
-                className="absolute left-1/2 top-0 h-[165%] w-auto max-w-none -translate-x-1/2"
-              />
+              <img src="/kmo-icon.png" alt="" className="h-full w-full object-cover" />
             </span>
             <span className="text-base font-extrabold text-white">Karachi Mart</span>
           </div>

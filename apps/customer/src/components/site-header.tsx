@@ -38,11 +38,7 @@ export function SiteHeader() {
         <Link href="/" className="flex shrink-0 items-center gap-2">
           <span className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full bg-[#f5ece2]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/kmo-icon.png"
-              alt=""
-              className="absolute left-1/2 top-0 h-[165%] w-auto max-w-none -translate-x-1/2"
-            />
+            <img src="/kmo-icon.png" alt="" className="h-full w-full object-cover" />
           </span>
           <span className="hidden leading-[1.05] sm:block">
             <span className="block text-[17px] font-extrabold tracking-[-0.028em] text-ink-dark">
