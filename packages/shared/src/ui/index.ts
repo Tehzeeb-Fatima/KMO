@@ -1,4 +1,5 @@
 export * from "./button";
+export * from "./confirm-dialog";
 export * from "./input";
 export * from "./password-input";
 export * from "./auth-layout";

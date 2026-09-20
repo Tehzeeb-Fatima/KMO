@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createAddress, deleteAddress, listAddresses } from "@kmo/shared/api";
-import { Button } from "@kmo/shared/ui";
+import { Button, ConfirmDialog } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { RequireAuth } from "@/components/require-auth";
 import { supabase } from "@/lib/supabase";
@@ -51,9 +51,13 @@ function AddressesContent() {
     },
   });
 
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteAddress(supabase, id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["addresses"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["addresses"] });
+      setPendingDeleteId(null);
+    },
   });
 
   return (
@@ -89,7 +93,7 @@ function AddressesContent() {
               </div>
               <button
                 type="button"
-                onClick={() => deleteMutation.mutate(addr.id)}
+                onClick={() => setPendingDeleteId(addr.id)}
                 className="text-xs font-bold text-danger"
               >
                 Remove
@@ -153,6 +157,15 @@ function AddressesContent() {
           </div>
         </div>
       ) : null}
+
+      <ConfirmDialog
+        open={!!pendingDeleteId}
+        title="Remove this address?"
+        confirmLabel="Remove"
+        loading={deleteMutation.isPending}
+        onConfirm={() => deleteMutation.mutate(pendingDeleteId!)}
+        onCancel={() => setPendingDeleteId(null)}
+      />
     </div>
   );
 }

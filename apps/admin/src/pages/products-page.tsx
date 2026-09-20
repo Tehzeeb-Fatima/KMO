@@ -7,6 +7,7 @@ import {
   updateProduct,
   type ProductWithMedia,
 } from "@kmo/shared/api";
+import { ConfirmDialog } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "../lib/supabase";
 import { AdminProductForm } from "./admin-product-form";
@@ -34,12 +35,14 @@ export function ProductsModerationPage() {
     return products.filter((p) => p.vendor_id === vendorFilter);
   }, [products, vendorFilter]);
 
+  const [pendingRemoveId, setPendingRemoveId] = useState<string | null>(null);
   const mutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: "published" | "rejected" | "archived" }) =>
       updateProduct(supabase, id, { status: status === "rejected" ? "archived" : status }),
     onSuccess: (_updated, { id, status }) => {
       queryClient.invalidateQueries({ queryKey: ["admin-products"] });
       if (user) void logAdminAction(supabase, user.id, `product.${status}`, "product", id);
+      setPendingRemoveId(null);
     },
   });
 
@@ -133,7 +136,7 @@ export function ProductsModerationPage() {
               ) : (
                 <button
                   type="button"
-                  onClick={() => mutation.mutate({ id: p.id, status: "archived" })}
+                  onClick={() => setPendingRemoveId(p.id)}
                   className="w-fit rounded-md border border-border bg-white px-2.5 py-1.5 text-[11px] font-bold text-danger"
                 >
                   Remove
@@ -143,6 +146,16 @@ export function ProductsModerationPage() {
           ))
         )}
       </div>
+
+      <ConfirmDialog
+        open={!!pendingRemoveId}
+        title="Remove this product from the storefront?"
+        message="It will be archived and shoppers won't see it anymore. You can restore it later from moderation."
+        confirmLabel="Remove"
+        loading={mutation.isPending}
+        onConfirm={() => mutation.mutate({ id: pendingRemoveId!, status: "archived" })}
+        onCancel={() => setPendingRemoveId(null)}
+      />
     </div>
   );
 }

@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { keepReview, listFlaggedReviews, logAdminAction, removeReview } from "@kmo/shared/api";
+import { ConfirmDialog } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "../lib/supabase";
 
@@ -18,11 +20,13 @@ export function ReviewsPage() {
       if (user) void logAdminAction(supabase, user.id, "review.keep", "review", id);
     },
   });
+  const [pendingRemoveId, setPendingRemoveId] = useState<string | null>(null);
   const removeMutation = useMutation({
     mutationFn: (id: string) => removeReview(supabase, id),
     onSuccess: (_v, id) => {
       queryClient.invalidateQueries({ queryKey: ["flagged-reviews"] });
       if (user) void logAdminAction(supabase, user.id, "review.remove", "review", id);
+      setPendingRemoveId(null);
     },
   });
 
@@ -62,7 +66,7 @@ export function ReviewsPage() {
             </button>
             <button
               type="button"
-              onClick={() => removeMutation.mutate(r.id)}
+              onClick={() => setPendingRemoveId(r.id)}
               className="rounded-[7px] bg-danger px-3.5 py-2 text-xs font-bold text-white"
             >
               Remove
@@ -70,6 +74,16 @@ export function ReviewsPage() {
           </div>
         </div>
       ))}
+
+      <ConfirmDialog
+        open={!!pendingRemoveId}
+        title="Remove this review?"
+        message="It will no longer be visible on the product page."
+        confirmLabel="Remove"
+        loading={removeMutation.isPending}
+        onConfirm={() => removeMutation.mutate(pendingRemoveId!)}
+        onCancel={() => setPendingRemoveId(null)}
+      />
     </div>
   );
 }

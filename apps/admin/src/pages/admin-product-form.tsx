@@ -13,6 +13,7 @@ import {
   type ProductWithMedia,
 } from "@kmo/shared/api";
 import type { ProductStatus } from "@kmo/shared/types";
+import { ConfirmDialog } from "@kmo/shared/ui";
 import { supabase } from "../lib/supabase";
 
 /**
@@ -115,7 +116,10 @@ export function AdminProductForm({
 
   const removeImageMutation = useMutation({
     mutationFn: (id: string) => removeProductImage(supabase, id),
-    onSuccess: (_void, id) => setImages((prev) => prev.filter((img) => img.id !== id)),
+    onSuccess: (_void, id) => {
+      setImages((prev) => prev.filter((img) => img.id !== id));
+      setPendingDelete(null);
+    },
   });
 
   const addVariantMutation = useMutation({
@@ -145,8 +149,15 @@ export function AdminProductForm({
 
   const removeVariantMutation = useMutation({
     mutationFn: (id: string) => removeProductVariant(supabase, id),
-    onSuccess: (_void, id) => setVariants((prev) => prev.filter((v) => v.id !== id)),
+    onSuccess: (_void, id) => {
+      setVariants((prev) => prev.filter((v) => v.id !== id));
+      setPendingDelete(null);
+    },
   });
+
+  const [pendingDelete, setPendingDelete] = useState<
+    { type: "image" | "variant"; id: string } | null
+  >(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   function handleUpload(e: ChangeEvent<HTMLInputElement>) {
@@ -249,7 +260,7 @@ export function AdminProductForm({
                   />
                   <button
                     type="button"
-                    onClick={() => removeImageMutation.mutate(img.id)}
+                    onClick={() => setPendingDelete({ type: "image", id: img.id })}
                     className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-danger text-[10px] font-bold text-white"
                   >
                     ×
@@ -296,7 +307,7 @@ export function AdminProductForm({
                         <span className="text-muted-table">({v.stock_quantity})</span>
                         <button
                           type="button"
-                          onClick={() => removeVariantMutation.mutate(v.id)}
+                          onClick={() => setPendingDelete({ type: "variant", id: v.id })}
                           className="ml-1 flex h-4 w-4 items-center justify-center rounded-full bg-danger text-[9px] font-bold text-white"
                         >
                           ×
@@ -393,6 +404,19 @@ export function AdminProductForm({
           </button>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={!!pendingDelete}
+        title={pendingDelete?.type === "image" ? "Remove this image?" : "Remove this variant?"}
+        confirmLabel="Remove"
+        loading={removeImageMutation.isPending || removeVariantMutation.isPending}
+        onConfirm={() => {
+          if (!pendingDelete) return;
+          if (pendingDelete.type === "image") removeImageMutation.mutate(pendingDelete.id);
+          else removeVariantMutation.mutate(pendingDelete.id);
+        }}
+        onCancel={() => setPendingDelete(null)}
+      />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createCategory, deleteCategory, listCategories } from "@kmo/shared/api";
+import { ConfirmDialog } from "@kmo/shared/ui";
 import { supabase } from "../lib/supabase";
 
 function slugify(input: string) {
@@ -28,9 +29,13 @@ export function CategoriesPage() {
     },
   });
 
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null);
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteCategory(supabase, id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["categories"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      setPendingDelete(null);
+    },
   });
 
   return (
@@ -64,7 +69,7 @@ export function CategoriesPage() {
               <span className="font-bold text-ink-dark">{c.name}</span>
               <button
                 type="button"
-                onClick={() => deleteMutation.mutate(c.id)}
+                onClick={() => setPendingDelete({ id: c.id, name: c.name })}
                 className="text-xs font-bold text-danger"
               >
                 Remove
@@ -73,6 +78,16 @@ export function CategoriesPage() {
           ))
         )}
       </div>
+
+      <ConfirmDialog
+        open={!!pendingDelete}
+        title={`Remove "${pendingDelete?.name}"?`}
+        message="Vendors assigned to this category and products in it will lose that category."
+        confirmLabel="Remove"
+        loading={deleteMutation.isPending}
+        onConfirm={() => deleteMutation.mutate(pendingDelete!.id)}
+        onCancel={() => setPendingDelete(null)}
+      />
     </div>
   );
 }

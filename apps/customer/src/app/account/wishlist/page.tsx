@@ -1,9 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { listWishlist, removeFromWishlist } from "@kmo/shared/api";
-import { ProductCard } from "@kmo/shared/ui";
+import { ConfirmDialog, ProductCard } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { RequireAuth } from "@/components/require-auth";
 import { supabase } from "@/lib/supabase";
@@ -25,9 +26,13 @@ function WishlistContent() {
     queryFn: () => listWishlist(supabase),
   });
 
+  const [pendingRemoveId, setPendingRemoveId] = useState<string | null>(null);
   const removeMutation = useMutation({
     mutationFn: (productId: string) => removeFromWishlist(supabase, user!.id, productId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["wishlist"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["wishlist"] });
+      setPendingRemoveId(null);
+    },
   });
 
   return (
@@ -57,7 +62,7 @@ function WishlistContent() {
               />
               <button
                 type="button"
-                onClick={() => removeMutation.mutate(item.product_id)}
+                onClick={() => setPendingRemoveId(item.product_id)}
                 className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-white text-sm text-danger shadow"
               >
                 ×
@@ -66,6 +71,15 @@ function WishlistContent() {
           ))}
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!pendingRemoveId}
+        title="Remove from wishlist?"
+        confirmLabel="Remove"
+        loading={removeMutation.isPending}
+        onConfirm={() => removeMutation.mutate(pendingRemoveId!)}
+        onCancel={() => setPendingRemoveId(null)}
+      />
     </div>
   );
 }

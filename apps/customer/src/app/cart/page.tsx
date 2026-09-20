@@ -1,10 +1,10 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { listCartItems, removeCartItem, updateCartItemQuantity } from "@kmo/shared/api";
-import { Button } from "@kmo/shared/ui";
+import { Button, ConfirmDialog } from "@kmo/shared/ui";
 import { RequireAuth } from "@/components/require-auth";
 import { supabase } from "@/lib/supabase";
 
@@ -29,9 +29,13 @@ function CartContent() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["cart"] }),
   });
 
+  const [pendingRemoveId, setPendingRemoveId] = useState<string | null>(null);
   const removeMutation = useMutation({
     mutationFn: (id: string) => removeCartItem(supabase, id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["cart"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cart"] });
+      setPendingRemoveId(null);
+    },
   });
 
   const groups = useMemo(() => {
@@ -125,7 +129,7 @@ function CartContent() {
                         ) : null}
                         <button
                           type="button"
-                          onClick={() => removeMutation.mutate(item.id)}
+                          onClick={() => setPendingRemoveId(item.id)}
                           className="w-fit text-xs font-bold text-accent"
                         >
                           Remove
@@ -196,6 +200,16 @@ function CartContent() {
           </Link>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={!!pendingRemoveId}
+        title="Remove this item?"
+        message="It will be taken out of your cart."
+        confirmLabel="Remove"
+        loading={removeMutation.isPending}
+        onConfirm={() => removeMutation.mutate(pendingRemoveId!)}
+        onCancel={() => setPendingRemoveId(null)}
+      />
     </div>
   );
 }
