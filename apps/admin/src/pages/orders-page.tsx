@@ -1,6 +1,12 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { listAllOrders, logAdminAction, updateOrderStatus, type AdminOrderRow } from "@kmo/shared/api";
+import {
+  listAllOrders,
+  logAdminAction,
+  notifyUser,
+  updateOrderStatus,
+  type AdminOrderRow,
+} from "@kmo/shared/api";
 import type { OrderStatus } from "@kmo/shared/types";
 import { StatusBadge } from "@kmo/shared/ui";
 import { ORDER_STATUS_META, ORDER_STATUS_FLOW } from "@kmo/shared/lib";
@@ -124,8 +130,19 @@ function OrderDetail({
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const mutation = useMutation({
-    mutationFn: (status: OrderStatus) => updateOrderStatus(supabase, order.id, status),
-    onSuccess: (_updated, status) => {
+    mutationFn: async (status: OrderStatus) => {
+      await updateOrderStatus(supabase, order.id, status);
+      if (order.vendors?.owner_id) {
+        await notifyUser(supabase, order.vendors.owner_id, {
+          type: "order_status",
+          title: `Order #${order.order_number} → ${ORDER_STATUS_META[status].label}`,
+          body: "The KMO team updated the status of one of your orders.",
+          link: "/orders",
+        });
+      }
+      return status;
+    },
+    onSuccess: (status) => {
       queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
       if (user) void logAdminAction(supabase, user.id, `order.status.${status}`, "order", order.id);
     },

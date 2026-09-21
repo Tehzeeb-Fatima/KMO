@@ -35,6 +35,7 @@ export function DashboardShell({
   avatarLabel,
   avatarInitials,
   onSignOut,
+  headerRight,
   LinkComponent = DefaultLink,
   children,
 }: {
@@ -51,6 +52,8 @@ export function DashboardShell({
   avatarInitials: string;
   /** Shows a "Sign out" option under the avatar when provided. */
   onSignOut?: () => void;
+  /** Rendered in the header, just before the avatar (e.g. a notification bell). */
+  headerRight?: React.ReactNode;
   LinkComponent?: React.ComponentType<DashboardLinkProps>;
   children: React.ReactNode;
 }) {
@@ -144,6 +147,7 @@ export function DashboardShell({
             {avatarLabel ? (
               <span className="text-sm text-muted">{avatarLabel}</span>
             ) : null}
+            {headerRight}
             <button
               type="button"
               onClick={() => setMenuOpen((v) => !v)}

@@ -7,3 +7,4 @@ export * from "./pill-tabs";
 export * from "./status-badge";
 export * from "./dashboard-shell";
 export * from "./product-card";
+export * from "./notification-bell";

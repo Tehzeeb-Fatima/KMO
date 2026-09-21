@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   addProductImage,
+  bulkArchiveProducts,
   createProduct,
   createProductVariant,
   getMyVendor,
@@ -74,6 +75,8 @@ function ProductsList({
   const [statusFilter, setStatusFilter] = useState<ProductStatus | "all">("all");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const queryClient = useQueryClient();
 
   const { data: products, isLoading } = useQuery({
     queryKey: ["my-products", vendorId],
@@ -96,6 +99,40 @@ function ProductsList({
       return true;
     });
   }, [products, statusFilter, categoryFilter, search]);
+
+  function toggleSelected(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectAll() {
+    setSelected((prev) =>
+      prev.size === filtered.length ? new Set() : new Set(filtered.map((p) => p.id)),
+    );
+  }
+
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => bulkArchiveProducts(supabase, [id]),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["my-products", vendorId] });
+      setPendingDeleteId(null);
+    },
+  });
+
+  const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
+  const bulkDeleteMutation = useMutation({
+    mutationFn: () => bulkArchiveProducts(supabase, Array.from(selected)),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["my-products", vendorId] });
+      setSelected(new Set());
+      setBulkDeleteConfirm(false);
+    },
+  });
 
   return (
     <div>
@@ -137,6 +174,15 @@ function ProductsList({
           ))}
         </select>
         <div className="flex-1" />
+        {selected.size > 0 ? (
+          <button
+            type="button"
+            onClick={() => setBulkDeleteConfirm(true)}
+            className="rounded-lg border border-border bg-white px-[16px] py-[10px] text-[13px] font-bold text-danger"
+          >
+            Delete selected ({selected.size})
+          </button>
+        ) : null}
         <button
           type="button"
           onClick={() => onOpen("new")}
@@ -147,7 +193,12 @@ function ProductsList({
       </div>
 
       <div className="overflow-hidden rounded-xl border border-border bg-surface">
-        <div className="grid grid-cols-[2fr_1fr_1fr_1fr_110px] bg-surface-alt px-5 py-3.5 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
+        <div className="grid grid-cols-[32px_2fr_1fr_1fr_1fr_150px] items-center bg-surface-alt px-5 py-3.5 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
+          <input
+            type="checkbox"
+            checked={filtered.length > 0 && selected.size === filtered.length}
+            onChange={toggleSelectAll}
+          />
           <span>Product</span>
           <span>Price</span>
           <span>Stock</span>
@@ -166,8 +217,13 @@ function ProductsList({
             return (
               <div
                 key={p.id}
-                className="grid grid-cols-[2fr_1fr_1fr_1fr_110px] items-center border-t border-[#F5F0EE] px-5 py-4"
+                className="grid grid-cols-[32px_2fr_1fr_1fr_1fr_150px] items-center border-t border-[#F5F0EE] px-5 py-4"
               >
+                <input
+                  type="checkbox"
+                  checked={selected.has(p.id)}
+                  onChange={() => toggleSelected(p.id)}
+                />
                 <div className="flex items-center gap-3">
                   <span
                     className="h-[38px] w-[38px] shrink-0 rounded-[7px] bg-cover bg-center"
@@ -196,18 +252,47 @@ function ProductsList({
                     {badge.label}
                   </span>
                 </span>
-                <button
-                  type="button"
-                  onClick={() => onOpen(p.id)}
-                  className="w-fit rounded-md border border-border bg-white px-2.5 py-1.5 text-[11px] font-bold text-primary"
-                >
-                  Edit
-                </button>
+                <div className="flex gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => onOpen(p.id)}
+                    className="w-fit rounded-md border border-border bg-white px-2.5 py-1.5 text-[11px] font-bold text-primary"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPendingDeleteId(p.id)}
+                    className="w-fit rounded-md border border-border bg-white px-2.5 py-1.5 text-[11px] font-bold text-danger"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             );
           })
         )}
       </div>
+
+      <ConfirmDialog
+        open={!!pendingDeleteId}
+        title="Remove this product?"
+        message="It will be archived and shoppers won't see it anymore."
+        confirmLabel="Delete"
+        loading={deleteMutation.isPending}
+        onConfirm={() => deleteMutation.mutate(pendingDeleteId!)}
+        onCancel={() => setPendingDeleteId(null)}
+      />
+
+      <ConfirmDialog
+        open={bulkDeleteConfirm}
+        title={`Remove ${selected.size} product${selected.size === 1 ? "" : "s"}?`}
+        message="They'll be archived and shoppers won't see them anymore."
+        confirmLabel="Delete selected"
+        loading={bulkDeleteMutation.isPending}
+        onConfirm={() => bulkDeleteMutation.mutate()}
+        onCancel={() => setBulkDeleteConfirm(false)}
+      />
     </div>
   );
 }

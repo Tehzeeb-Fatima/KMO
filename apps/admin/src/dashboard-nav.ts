@@ -8,6 +8,7 @@ export const ADMIN_NAV_ITEMS: DashboardNavItem[] = [
   { key: "customers", label: "Customers", to: "/customers" },
   { key: "payouts", label: "Payouts", to: "/payouts" },
   { key: "categories", label: "Categories", to: "/categories" },
+  { key: "couriers", label: "Couriers", to: "/couriers" },
   { key: "returns", label: "Returns", to: "/returns" },
   { key: "reviews", label: "Reviews", to: "/reviews" },
   { key: "contact", label: "Contact requests", to: "/contact-messages" },

@@ -1,9 +1,11 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  bulkArchiveProducts,
   listAllProductsForModeration,
   listVendors,
   logAdminAction,
+  notifyUser,
   updateProduct,
   type ProductWithMedia,
 } from "@kmo/shared/api";
@@ -16,6 +18,7 @@ export function ProductsModerationPage() {
   const [pendingOnly, setPendingOnly] = useState(false);
   const [vendorFilter, setVendorFilter] = useState("");
   const [editing, setEditing] = useState<ProductWithMedia | null | "new">(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
@@ -35,14 +38,63 @@ export function ProductsModerationPage() {
     return products.filter((p) => p.vendor_id === vendorFilter);
   }, [products, vendorFilter]);
 
+  function toggleSelected(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleSelectAll() {
+    setSelected((prev) =>
+      prev.size === filtered.length ? new Set() : new Set(filtered.map((p) => p.id)),
+    );
+  }
+
   const [pendingRemoveId, setPendingRemoveId] = useState<string | null>(null);
   const mutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: "published" | "rejected" | "archived" }) =>
       updateProduct(supabase, id, { status: status === "rejected" ? "archived" : status }),
-    onSuccess: (_updated, { id, status }) => {
+    onSuccess: async (_updated, { id, status }) => {
       queryClient.invalidateQueries({ queryKey: ["admin-products"] });
       if (user) void logAdminAction(supabase, user.id, `product.${status}`, "product", id);
+      const product = products?.find((p) => p.id === id);
+      if (product?.vendors?.owner_id && (status === "published" || status === "rejected")) {
+        await notifyUser(supabase, product.vendors.owner_id, {
+          type: "product_review",
+          title:
+            status === "published"
+              ? `Product approved: ${product.name}`
+              : `Product rejected: ${product.name}`,
+          body:
+            status === "published"
+              ? "Your product is now live on the storefront."
+              : "Your product was not approved — check it in your Products page.",
+          link: "/products",
+        });
+      }
       setPendingRemoveId(null);
+    },
+  });
+
+  const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
+  const bulkDeleteMutation = useMutation({
+    mutationFn: () => bulkArchiveProducts(supabase, Array.from(selected)),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+      if (user) {
+        void logAdminAction(
+          supabase,
+          user.id,
+          `product.bulk_archive.${selected.size}`,
+          "product",
+          Array.from(selected)[0] ?? "",
+        );
+      }
+      setSelected(new Set());
+      setBulkDeleteConfirm(false);
     },
   });
 
@@ -79,6 +131,15 @@ export function ProductsModerationPage() {
           ))}
         </select>
         <div className="flex-1" />
+        {selected.size > 0 ? (
+          <button
+            type="button"
+            onClick={() => setBulkDeleteConfirm(true)}
+            className="rounded-lg border border-border bg-white px-[16px] py-[10px] text-[13px] font-bold text-danger"
+          >
+            Delete selected ({selected.size})
+          </button>
+        ) : null}
         <button
           type="button"
           onClick={() => setEditing("new")}
@@ -89,7 +150,12 @@ export function ProductsModerationPage() {
       </div>
 
       <div className="overflow-hidden rounded-xl border border-border bg-surface">
-        <div className="grid grid-cols-[2fr_1fr_1fr_1fr_140px] bg-surface-alt px-5 py-3.5 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
+        <div className="grid grid-cols-[32px_2fr_1fr_1fr_1fr_140px] items-center bg-surface-alt px-5 py-3.5 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
+          <input
+            type="checkbox"
+            checked={filtered.length > 0 && selected.size === filtered.length}
+            onChange={toggleSelectAll}
+          />
           <span>Product</span>
           <span>Vendor</span>
           <span>Price</span>
@@ -104,8 +170,13 @@ export function ProductsModerationPage() {
           filtered.map((p) => (
             <div
               key={p.id}
-              className="grid grid-cols-[2fr_1fr_1fr_1fr_140px] items-center border-t border-[#F5F0EE] px-5 py-4 text-[13px]"
+              className="grid grid-cols-[32px_2fr_1fr_1fr_1fr_140px] items-center border-t border-[#F5F0EE] px-5 py-4 text-[13px]"
             >
+              <input
+                type="checkbox"
+                checked={selected.has(p.id)}
+                onChange={() => toggleSelected(p.id)}
+              />
               <button
                 type="button"
                 onClick={() => setEditing(p)}
@@ -155,6 +226,16 @@ export function ProductsModerationPage() {
         loading={mutation.isPending}
         onConfirm={() => mutation.mutate({ id: pendingRemoveId!, status: "archived" })}
         onCancel={() => setPendingRemoveId(null)}
+      />
+
+      <ConfirmDialog
+        open={bulkDeleteConfirm}
+        title={`Remove ${selected.size} product${selected.size === 1 ? "" : "s"}?`}
+        message="They'll be archived and shoppers won't see them anymore."
+        confirmLabel="Delete selected"
+        loading={bulkDeleteMutation.isPending}
+        onConfirm={() => bulkDeleteMutation.mutate()}
+        onCancel={() => setBulkDeleteConfirm(false)}
       />
     </div>
   );

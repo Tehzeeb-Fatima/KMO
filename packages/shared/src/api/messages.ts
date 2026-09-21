@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../types";
+import { notifyUser } from "./notifications";
 
 type Client = SupabaseClient<Database>;
 type ConversationRow = Database["public"]["Tables"]["conversations"]["Row"];
@@ -88,5 +89,26 @@ export async function sendMessage(
     .select("*")
     .single();
   if (error) throw error;
+
+  // Notify the vendor's dashboard bell when a customer messages them.
+  const { data: convData } = await supabase
+    .from("conversations")
+    .select("customer_id, vendors(owner_id)")
+    .eq("id", conversationId)
+    .maybeSingle();
+  const conv = convData as unknown as {
+    customer_id: string;
+    vendors: { owner_id: string } | null;
+  } | null;
+  const ownerId = conv?.vendors?.owner_id;
+  if (conv && senderId === conv.customer_id && ownerId) {
+    await notifyUser(supabase, ownerId, {
+      type: "message",
+      title: "New customer message",
+      body: body.slice(0, 120),
+      link: "/messages",
+    });
+  }
+
   return data;
 }

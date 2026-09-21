@@ -98,6 +98,7 @@ export interface Database {
           business_hours: BusinessHours;
           commission_rate: number | null;
           preferred_courier: string | null;
+          preferred_courier_id: string | null;
           created_at: string;
         };
         Insert: {
@@ -118,6 +119,7 @@ export interface Database {
           business_hours?: BusinessHours;
           commission_rate?: number | null;
           preferred_courier?: string | null;
+          preferred_courier_id?: string | null;
           created_at?: string;
         };
         Update: {
@@ -138,6 +140,64 @@ export interface Database {
           business_hours?: BusinessHours;
           commission_rate?: number | null;
           preferred_courier?: string | null;
+          preferred_courier_id?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      couriers: {
+        Row: {
+          id: string;
+          name: string;
+          is_active: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          is_active?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          is_active?: boolean;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      courier_rate_slabs: {
+        Row: {
+          id: string;
+          courier_id: string;
+          vendor_id: string | null;
+          city: string;
+          min_weight_kg: number;
+          max_weight_kg: number;
+          fee: number;
+          tax_percent: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          courier_id: string;
+          vendor_id?: string | null;
+          city: string;
+          min_weight_kg: number;
+          max_weight_kg: number;
+          fee: number;
+          tax_percent?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          courier_id?: string;
+          vendor_id?: string | null;
+          city?: string;
+          min_weight_kg?: number;
+          max_weight_kg?: number;
+          fee?: number;
+          tax_percent?: number;
           created_at?: string;
         };
         Relationships: [];
@@ -204,6 +264,42 @@ export interface Database {
         Update: {
           vendor_id?: string;
           category_id?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      notifications: {
+        Row: {
+          id: string;
+          recipient_id: string | null;
+          recipient_role: string | null;
+          type: string;
+          title: string;
+          body: string | null;
+          link: string | null;
+          read_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          recipient_id?: string | null;
+          recipient_role?: string | null;
+          type: string;
+          title: string;
+          body?: string | null;
+          link?: string | null;
+          read_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          recipient_id?: string | null;
+          recipient_role?: string | null;
+          type?: string;
+          title?: string;
+          body?: string | null;
+          link?: string | null;
+          read_at?: string | null;
           created_at?: string;
         };
         Relationships: [];

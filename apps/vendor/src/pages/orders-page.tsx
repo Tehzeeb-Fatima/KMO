@@ -1,10 +1,19 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getMyVendor, listVendorOrders, updateOrderStatus } from "@kmo/shared/api";
+import { getMyVendor, listVendorOrders, notifyAdmins, updateOrderStatus } from "@kmo/shared/api";
 import type { OrderStatus } from "@kmo/shared/types";
 import { StatusBadge } from "@kmo/shared/ui";
 import { ORDER_STATUS_META, ORDER_STATUS_FLOW } from "@kmo/shared/lib";
 import { supabase } from "../lib/supabase";
+
+const VENDOR_STATUS_OPTIONS: { value: OrderStatus; label: string }[] = [
+  { value: "confirmed", label: "Confirm order" },
+  { value: "processing", label: "Mark as processing" },
+  { value: "ready_to_ship", label: "Mark as ready to ship" },
+  { value: "shipped", label: "Mark as shipped" },
+  { value: "out_for_delivery", label: "Mark as out for delivery" },
+  { value: "delivered", label: "Mark as delivered" },
+];
 
 const FILTER_TABS: { label: string; value: OrderStatus | "all" }[] = [
   { label: "All", value: "all" },
@@ -141,14 +150,31 @@ function OrderDetail({
   const order = orders?.find((o) => o.id === orderId);
 
   const mutation = useMutation({
-    mutationFn: (status: OrderStatus) => updateOrderStatus(supabase, orderId, status),
+    mutationFn: async (status: OrderStatus) => {
+      await updateOrderStatus(supabase, orderId, status);
+      if (order) {
+        await notifyAdmins(supabase, {
+          type: "order_status",
+          title: `Order #${order.order_number} → ${ORDER_STATUS_META[status].label}`,
+          body: `${order.vendors?.store_name ?? "A vendor"} updated an order for ${order.profiles?.full_name ?? "a customer"}.`,
+          link: "/orders",
+        });
+      }
+    },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["vendor-orders", vendorId] }),
   });
+
+  const [statusChoice, setStatusChoice] = useState<OrderStatus | null>(null);
 
   if (!order) return <p className="text-sm text-muted">Loading order…</p>;
 
   const meta = ORDER_STATUS_META[order.status];
   const nextStatus = nextInFlow(order.status);
+  const currentFlowIndex = ORDER_STATUS_FLOW.indexOf(order.status);
+  const availableOptions = VENDOR_STATUS_OPTIONS.filter(
+    (opt) => ORDER_STATUS_FLOW.indexOf(opt.value) >= currentFlowIndex,
+  );
+  const selectedStatus = statusChoice ?? nextStatus ?? availableOptions[0]?.value ?? null;
 
   return (
     <div>
@@ -198,16 +224,32 @@ function OrderDetail({
           </div>
 
           {order.status !== "delivered" && order.status !== "cancelled" ? (
-            <div className="flex flex-col gap-2">
-              {nextStatus ? (
-                <button
-                  type="button"
-                  onClick={() => mutation.mutate(nextStatus)}
-                  disabled={mutation.isPending}
-                  className="rounded-[9px] bg-accent px-3 py-3 text-[13px] font-bold text-white disabled:opacity-60"
-                >
-                  Mark as {ORDER_STATUS_META[nextStatus].label.toLowerCase()}
-                </button>
+            <div className="flex flex-col gap-2.5 rounded-xl border border-border bg-surface p-5">
+              <p className="font-mono text-xs font-bold uppercase tracking-[0.06em] text-muted-table">
+                Update status
+              </p>
+              {availableOptions.length > 0 ? (
+                <>
+                  <select
+                    value={selectedStatus ?? ""}
+                    onChange={(e) => setStatusChoice(e.target.value as OrderStatus)}
+                    className="rounded-lg border border-border px-3 py-2.5 text-[13px] text-ink-dark outline-none focus:border-primary-light"
+                  >
+                    {availableOptions.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => selectedStatus && mutation.mutate(selectedStatus)}
+                    disabled={mutation.isPending || !selectedStatus}
+                    className="rounded-[9px] bg-accent px-3 py-3 text-[13px] font-bold text-white disabled:opacity-60"
+                  >
+                    {mutation.isPending ? "Updating…" : "Update status"}
+                  </button>
+                </>
               ) : null}
               <button
                 type="button"

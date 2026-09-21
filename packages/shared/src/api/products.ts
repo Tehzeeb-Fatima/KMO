@@ -12,11 +12,11 @@ type CategoryRow = Database["public"]["Tables"]["categories"]["Row"];
 export interface ProductWithMedia extends ProductRow {
   product_images: ProductImageRow[];
   product_variants: ProductVariantRow[];
-  vendors: { id: string; store_name: string; slug: string } | null;
+  vendors: { id: string; store_name: string; slug: string; owner_id: string } | null;
 }
 
 const PRODUCT_WITH_MEDIA_SELECT =
-  "*, product_images(*), product_variants(*), vendors(id, store_name, slug)";
+  "*, product_images(*), product_variants(*), vendors(id, store_name, slug, owner_id)";
 
 /** Vendor's own products (any status), for the Products list dashboard page. */
 export async function listMyProducts(
@@ -88,6 +88,12 @@ export async function updateProduct(
     .single();
   if (error) throw error;
   return data;
+}
+
+/** Bulk single/multi delete: soft-deletes by archiving, same as the single-item flow. */
+export async function bulkArchiveProducts(supabase: Client, ids: string[]): Promise<void> {
+  const { error } = await supabase.from("products").update({ status: "archived" }).in("id", ids);
+  if (error) throw error;
 }
 
 export async function addProductImage(

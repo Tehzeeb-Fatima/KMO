@@ -172,7 +172,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: vendorRow } = await admin
       .from("vendors")
-      .select("commission_rate")
+      .select("commission_rate, owner_id, store_name")
       .eq("id", vendorId)
       .maybeSingle();
     const commissionRate = vendorRow?.commission_rate ?? defaultCommissionRate;
@@ -238,6 +238,16 @@ Deno.serve(async (req: Request) => {
           .update({ stock_quantity: product.stock_quantity - item.quantity })
           .eq("id", item.product_id);
       }
+    }
+
+    if (vendorRow?.owner_id) {
+      await admin.from("notifications").insert({
+        recipient_id: vendorRow.owner_id,
+        type: "new_order",
+        title: `New order #${order.order_number}`,
+        body: `Rs. ${total.toLocaleString()} · ${items.length} item${items.length === 1 ? "" : "s"}`,
+        link: "/orders",
+      });
     }
 
     createdOrders.push(order);

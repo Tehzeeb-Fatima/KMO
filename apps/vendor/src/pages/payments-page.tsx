@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createPayout, getMyVendor, getVendorDueAmount, listVendorPayouts } from "@kmo/shared/api";
+import {
+  createPayout,
+  getMyVendor,
+  getVendorDueAmount,
+  listVendorPayouts,
+  notifyAdmins,
+} from "@kmo/shared/api";
 import { StatusBadge } from "@kmo/shared/ui";
 import { supabase } from "../lib/supabase";
 
@@ -27,9 +33,16 @@ export function PaymentsPage() {
   const [requested, setRequested] = useState(false);
 
   const requestMutation = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       const amount = Number(amountInput.replace(/[^0-9.]/g, "")) || due || 0;
-      return createPayout(supabase, { vendor_id: vendor!.id, amount });
+      const payout = await createPayout(supabase, { vendor_id: vendor!.id, amount });
+      await notifyAdmins(supabase, {
+        type: "payout_request",
+        title: `Payout request: Rs. ${amount.toLocaleString()}`,
+        body: `${vendor?.store_name ?? "A vendor"} requested a withdrawal.`,
+        link: "/payouts",
+      });
+      return payout;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["vendor-payouts", vendor?.id] });

@@ -7,6 +7,7 @@ import {
   listVendors,
   logAdminAction,
   markPayoutPaid,
+  notifyUser,
 } from "@kmo/shared/api";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "../lib/supabase";
@@ -40,9 +41,19 @@ export function PayoutsPage() {
     mutationFn: async (vendorId: string) => {
       const due = await getVendorDueAmount(supabase, vendorId);
       const created = await createPayout(supabase, { vendor_id: vendorId, amount: due });
-      return markPayoutPaid(supabase, created.id, vendorId, {
+      const paid = await markPayoutPaid(supabase, created.id, vendorId, {
         payout_date: new Date().toISOString().slice(0, 10),
       });
+      const vendorOwnerId = vendors?.find((v) => v.id === vendorId)?.owner_id;
+      if (vendorOwnerId) {
+        await notifyUser(supabase, vendorOwnerId, {
+          type: "payout_paid",
+          title: `Payout sent: Rs. ${paid.amount.toLocaleString()}`,
+          body: "The KMO team marked your payout as paid.",
+          link: "/payments",
+        });
+      }
+      return paid;
     },
     onSuccess: (paid, vendorId) => {
       queryClient.invalidateQueries({ queryKey: ["admin-payouts"] });

@@ -94,7 +94,9 @@ export async function listVendorOrders(
   return data as unknown as VendorOrderRow[];
 }
 
-export interface AdminOrderRow extends OrderWithItems {
+export interface AdminOrderRow extends OrderRow {
+  order_items: OrderItemRow[];
+  vendors: { store_name: string; owner_id: string } | null;
   profiles: { full_name: string | null } | null;
 }
 
@@ -102,7 +104,7 @@ export interface AdminOrderRow extends OrderWithItems {
 export async function listAllOrders(supabase: Client): Promise<AdminOrderRow[]> {
   const { data, error } = await supabase
     .from("orders")
-    .select("*, order_items(*), vendors(store_name), profiles(full_name)")
+    .select("*, order_items(*), vendors(store_name, owner_id), profiles(full_name)")
     .order("created_at", { ascending: false });
   if (error) throw error;
   return data as unknown as AdminOrderRow[];

@@ -1,8 +1,15 @@
-import { NavLink, Outlet, useLocation } from "react-router-dom";
-import { DashboardShell } from "@kmo/shared/ui";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { DashboardShell, NotificationBell, type NotificationItem } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
+import {
+  listMyNotifications,
+  markAllNotificationsRead,
+  markNotificationRead,
+} from "@kmo/shared/api";
 import { VENDOR_NAV_ITEMS } from "../dashboard-nav";
 import kmoIcon from "../assets/kmo-icon.png";
+import { supabase } from "../lib/supabase";
 
 const TITLES: Record<string, { title: string; subtitle?: string }> = {
   "/": { title: "Overview", subtitle: "Your store at a glance" },
@@ -17,6 +24,40 @@ const TITLES: Record<string, { title: string; subtitle?: string }> = {
   "/reviews": { title: "Reviews & Q&A", subtitle: "Customer feedback inbox" },
   "/messages": { title: "Messages", subtitle: "Chat with your customers" },
 };
+
+function HeaderNotifications() {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { data: items } = useQuery({
+    queryKey: ["notifications"],
+    queryFn: () => listMyNotifications(supabase),
+    refetchInterval: 20000,
+  });
+
+  const markReadMutation = useMutation({
+    mutationFn: (id: string) => markNotificationRead(supabase, id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notifications"] }),
+  });
+  const markAllMutation = useMutation({
+    mutationFn: () => markAllNotificationsRead(supabase),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notifications"] }),
+  });
+
+  const list: NotificationItem[] = items ?? [];
+  const unreadCount = list.filter((n) => !n.read_at).length;
+
+  return (
+    <NotificationBell
+      items={list}
+      unreadCount={unreadCount}
+      onMarkAllRead={() => markAllMutation.mutate()}
+      onItemClick={(n) => {
+        if (!n.read_at) markReadMutation.mutate(n.id);
+        if (n.link) navigate(n.link);
+      }}
+    />
+  );
+}
 
 export function DashboardLayout() {
   const { profile, signOut } = useAuth();
@@ -41,6 +82,7 @@ export function DashboardLayout() {
       subtitle={meta.subtitle}
       avatarInitials={initials || "V"}
       onSignOut={() => void signOut()}
+      headerRight={<HeaderNotifications />}
       LinkComponent={NavLink}
     >
       <Outlet />
