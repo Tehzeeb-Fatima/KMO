@@ -192,7 +192,8 @@ function ProductsList({
         </button>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-border bg-surface">
+      <div className="overflow-x-auto rounded-xl border border-border bg-surface">
+        <div className="min-w-[680px]">
         <div className="grid grid-cols-[32px_2fr_1fr_1fr_1fr_150px] items-center bg-surface-alt px-5 py-3.5 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
           <input
             type="checkbox"
@@ -272,6 +273,7 @@ function ProductsList({
             );
           })
         )}
+        </div>
       </div>
 
       <ConfirmDialog

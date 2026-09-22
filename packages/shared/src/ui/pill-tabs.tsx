@@ -19,7 +19,7 @@ export function PillTabs<T extends string>({
     <div
       role="tablist"
       className={cn(
-        "inline-flex rounded-full border border-border bg-surface p-1",
+        "inline-flex w-max rounded-full border border-border bg-surface p-1",
         className,
       )}
     >
@@ -33,7 +33,7 @@ export function PillTabs<T extends string>({
             aria-selected={active}
             onClick={() => onChange(option.value)}
             className={cn(
-              "rounded-full px-4 py-1.5 text-sm font-semibold transition-colors",
+              "shrink-0 whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-semibold transition-colors",
               active ? "bg-primary text-white" : "text-primary hover:bg-primary-tint",
             )}
           >

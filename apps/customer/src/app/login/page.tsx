@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { Suspense, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AuthLayout, Button, Input, PasswordInput, PillTabs } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "@/lib/supabase";
@@ -13,15 +13,28 @@ type PhoneStep = "enter-phone" | "enter-code";
 const VENDOR_URL = process.env.NEXT_PUBLIC_VENDOR_URL ?? "https://vendor.karachimartonline.com";
 const ADMIN_URL = process.env.NEXT_PUBLIC_ADMIN_URL ?? "https://admin.karachimartonline.com";
 
-/** Vendor/admin live on their own subdomains — send each role to its own area after sign-in. */
-function pathForRole(role: string | undefined) {
+/** Vendor/admin live on their own subdomains — send each role to its own area
+ *  after sign-in. Customers go to `next` when given (e.g. back to the store
+ *  page they were trying to follow), falling back to the homepage — only
+ *  ever a same-site path, never an absolute URL from the query string. */
+function pathForRole(role: string | undefined, next: string | null) {
   if (role === "admin") return ADMIN_URL;
   if (role === "vendor") return VENDOR_URL;
-  return "/";
+  return next && next.startsWith("/") ? next : "/";
 }
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginContent />
+    </Suspense>
+  );
+}
+
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next");
   const { user, profile } = useAuth();
 
   const [mode, setMode] = useState<Mode>("email");
@@ -38,9 +51,9 @@ export default function LoginPage() {
   const [otp, setOtp] = useState("");
 
   if (user && !user.is_anonymous) {
-    const target = pathForRole(profile?.role);
-    if (target === "/") {
-      router.replace("/");
+    const target = pathForRole(profile?.role, next);
+    if (target.startsWith("/")) {
+      router.replace(target);
     } else {
       window.location.href = target;
     }
@@ -51,9 +64,9 @@ export default function LoginPage() {
    * navigation (not the Next.js router) is needed to actually load them. */
   async function redirectAfterSignIn(userId: string) {
     const { data } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
-    const target = pathForRole(data?.role);
-    if (target === "/") {
-      router.replace("/");
+    const target = pathForRole(data?.role, next);
+    if (target.startsWith("/")) {
+      router.replace(target);
     } else {
       window.location.href = target;
     }

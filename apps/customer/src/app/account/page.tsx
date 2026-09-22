@@ -15,6 +15,7 @@ export default function AccountPage() {
 const LINKS = [
   { href: "/account/orders", label: "Your orders", sub: "Track orders and request returns" },
   { href: "/account/wishlist", label: "Wishlist", sub: "Products you've saved" },
+  { href: "/account/following", label: "Followed stores", sub: "Stores you're following" },
   { href: "/account/addresses", label: "Addresses", sub: "Manage delivery addresses" },
   { href: "/account/messages", label: "Messages", sub: "Chat with the stores you've contacted" },
 ];

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -40,17 +40,42 @@ export default function StoreClient() {
 
   const followMutation = useMutation({
     mutationFn: async () => {
-      if (!vendor) throw new Error("Not ready");
-      const customerId = await ensureCustomerId(user);
+      if (!vendor || !user) throw new Error("Not ready");
       if (isFollowing) {
-        await unfollowVendor(supabase, customerId, vendor.id);
+        await unfollowVendor(supabase, user.id, vendor.id);
       } else {
-        await followVendor(supabase, customerId, vendor.id);
+        await followVendor(supabase, user.id, vendor.id);
       }
     },
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["is-following-vendor", vendor?.id] }),
   });
+
+  const PENDING_FOLLOW_KEY = "kmo_pending_follow_vendor";
+
+  function handleFollowClick() {
+    if (!vendor) return;
+    if (!user || user.is_anonymous) {
+      sessionStorage.setItem(PENDING_FOLLOW_KEY, vendor.id);
+      router.push(`/login?next=${encodeURIComponent(`/store/${params.slug}`)}`);
+      return;
+    }
+    followMutation.mutate();
+  }
+
+  // Coming back from a login the "Follow store" button triggered — finish
+  // the follow automatically instead of making the user click it again.
+  useEffect(() => {
+    if (!vendor || !user || user.is_anonymous) return;
+    const pendingVendorId = sessionStorage.getItem(PENDING_FOLLOW_KEY);
+    if (pendingVendorId === vendor.id) {
+      sessionStorage.removeItem(PENDING_FOLLOW_KEY);
+      followVendor(supabase, user.id, vendor.id).then(() =>
+        queryClient.invalidateQueries({ queryKey: ["is-following-vendor", vendor.id] }),
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vendor?.id, user?.id, user?.is_anonymous]);
 
   const chatMutation = useMutation({
     mutationFn: async () => {
@@ -152,7 +177,7 @@ export default function StoreClient() {
             <div className="flex gap-2">
               <button
                 type="button"
-                onClick={() => followMutation.mutate()}
+                onClick={handleFollowClick}
                 disabled={followMutation.isPending}
                 className="flex-1 rounded-lg px-4 py-[11px] text-sm font-bold disabled:opacity-60"
                 style={

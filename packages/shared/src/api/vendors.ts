@@ -182,6 +182,22 @@ export async function unfollowVendor(
   if (error) throw error;
 }
 
+/** Vendors a customer follows, for their account "Followed stores" page. */
+export async function listFollowedVendors(
+  supabase: Client,
+  customerId: string,
+): Promise<VendorRow[]> {
+  const { data, error } = await supabase
+    .from("vendor_follows")
+    .select("vendors(*)")
+    .eq("customer_id", customerId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data as unknown as { vendors: VendorRow | null }[])
+    .map((row) => row.vendors)
+    .filter((v): v is VendorRow => v !== null);
+}
+
 type CategoryRow = Database["public"]["Tables"]["categories"]["Row"];
 
 /** Categories an admin has assigned to a vendor — the only categories that
