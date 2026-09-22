@@ -1,11 +1,5 @@
 {
   "buildCommand": "pnpm run build",
   "outputDirectory": "dist",
-  "redirects": [{ "source": "/", "destination": "/vendor/login", "permanent": false }],
-  "rewrites": [
-    { "source": "/vendor/assets/(.*)", "destination": "/assets/$1" },
-    { "source": "/vendor/(favicon\\.ico|favicon-16x16\\.png|favicon-32x32\\.png|apple-touch-icon\\.png|android-chrome-192x192\\.png|android-chrome-512x512\\.png)", "destination": "/$1" },
-    { "source": "/vendor", "destination": "/index.html" },
-    { "source": "/vendor/(.*)", "destination": "/index.html" }
-  ]
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }

@@ -10,10 +10,13 @@ import { supabase } from "@/lib/supabase";
 type Mode = "email" | "phone";
 type PhoneStep = "enter-phone" | "enter-code";
 
-/** Everything lives under one domain — send each role to its own area after sign-in. */
+const VENDOR_URL = process.env.NEXT_PUBLIC_VENDOR_URL ?? "https://vendor.karachimartonline.com";
+const ADMIN_URL = process.env.NEXT_PUBLIC_ADMIN_URL ?? "https://admin.karachimartonline.com";
+
+/** Vendor/admin live on their own subdomains — send each role to its own area after sign-in. */
 function pathForRole(role: string | undefined) {
-  if (role === "admin") return "/admin";
-  if (role === "vendor") return "/vendor";
+  if (role === "admin") return ADMIN_URL;
+  if (role === "vendor") return VENDOR_URL;
   return "/";
 }
 
@@ -44,7 +47,7 @@ export default function LoginPage() {
     return null;
   }
 
-  /** Vendor/admin dashboards are proxied at /vendor and /admin — a plain
+  /** Vendor/admin dashboards live on their own subdomains — a plain
    * navigation (not the Next.js router) is needed to actually load them. */
   async function redirectAfterSignIn(userId: string) {
     const { data } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();

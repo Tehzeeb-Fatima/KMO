@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+const VENDOR_URL = process.env.NEXT_PUBLIC_VENDOR_URL ?? "https://vendor.karachimartonline.com";
+
 const COLUMNS = [
   {
     heading: "Shop",
@@ -20,8 +22,8 @@ const COLUMNS = [
   {
     heading: "Sell",
     links: [
-      { href: "/vendor/signup", label: "Become a vendor" },
-      { href: "/vendor", label: "Vendor dashboard" },
+      { href: `${VENDOR_URL}/signup`, label: "Become a vendor" },
+      { href: VENDOR_URL, label: "Vendor dashboard" },
       { href: "/return-policy", label: "Vendor policies" },
     ],
   },

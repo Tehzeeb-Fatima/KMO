@@ -7,7 +7,7 @@ import { Providers } from "./providers";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <BrowserRouter basename="/vendor">
+    <BrowserRouter>
       <Providers>
         <App />
       </Providers>
