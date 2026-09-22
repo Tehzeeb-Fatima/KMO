@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getPlatformSettings, logAdminAction, updatePlatformSettings } from "@kmo/shared/api";
+import { ConfirmDialog } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "../lib/supabase";
 
@@ -47,6 +48,20 @@ export function SettingsPage() {
     },
   });
 
+  const [pendingMaintenanceToggle, setPendingMaintenanceToggle] = useState<boolean | null>(null);
+  const toggleMaintenance = useMutation({
+    mutationFn: (next: boolean) => updatePlatformSettings(supabase, { maintenance_mode: next }),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(["platform-settings"], updated);
+      if (user) {
+        void logAdminAction(supabase, user.id, "settings.maintenance_mode", "platform_settings", undefined, {
+          maintenance_mode: updated.maintenance_mode,
+        });
+      }
+      setPendingMaintenanceToggle(null);
+    },
+  });
+
   return (
     <div className="flex max-w-[640px] flex-col gap-4">
       <div className="flex flex-col gap-3.5 rounded-xl border border-border bg-surface p-[22px_24px]">
@@ -82,6 +97,49 @@ export function SettingsPage() {
         </div>
       </div>
 
+      <div
+        className="flex flex-col gap-3.5 rounded-xl border p-[22px_24px]"
+        style={
+          settings?.maintenance_mode
+            ? { borderColor: "var(--color-danger)", background: "var(--color-danger-tint)" }
+            : { borderColor: "var(--color-border)", background: "var(--color-surface)" }
+        }
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-[3px]">
+            <p className="text-[15px] font-bold text-ink">Maintenance mode</p>
+            <p className="text-xs text-muted">
+              {settings?.maintenance_mode
+                ? "Site is DOWN for everyone except you (super admin)."
+                : "Site is live. Turning this on takes the storefront offline for shoppers."}
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={!!settings?.maintenance_mode}
+            onClick={() => setPendingMaintenanceToggle(!settings?.maintenance_mode)}
+            className="flex h-[23px] w-[42px] shrink-0 items-center rounded-full p-[2px] transition-colors"
+            style={{
+              background: settings?.maintenance_mode ? "var(--color-danger)" : "var(--color-border)",
+              justifyContent: settings?.maintenance_mode ? "flex-end" : "flex-start",
+            }}
+          >
+            <span className="h-[19px] w-[19px] rounded-full bg-white" />
+          </button>
+        </div>
+        <span
+          className="w-fit rounded-full px-2.5 py-1 text-[11px] font-bold"
+          style={
+            settings?.maintenance_mode
+              ? { background: "var(--color-danger)", color: "#fff" }
+              : { background: "var(--color-success-tint)", color: "var(--color-success-dark)" }
+          }
+        >
+          {settings?.maintenance_mode ? "MAINTENANCE — ACTIVE" : "LIVE"}
+        </span>
+      </div>
+
       <div className="flex flex-col gap-3 rounded-xl border border-border bg-surface p-[22px_24px]">
         <p className="text-[15px] font-bold text-ink">Admin roles</p>
         <div className="flex items-center justify-between text-[13px]">
@@ -93,6 +151,24 @@ export function SettingsPage() {
           <span className="text-muted">0 users</span>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={pendingMaintenanceToggle !== null}
+        title={
+          pendingMaintenanceToggle
+            ? "Put the site into maintenance mode?"
+            : "Bring the site back live?"
+        }
+        message={
+          pendingMaintenanceToggle
+            ? "Shoppers will see a maintenance page and won't be able to browse, sign in, or check out. You (super admin) can still visit and use the site normally while it's on."
+            : "The storefront will be visible to everyone again."
+        }
+        confirmLabel={pendingMaintenanceToggle ? "Turn on maintenance mode" : "Bring site back live"}
+        loading={toggleMaintenance.isPending}
+        onConfirm={() => toggleMaintenance.mutate(pendingMaintenanceToggle!)}
+        onCancel={() => setPendingMaintenanceToggle(null)}
+      />
     </div>
   );
 }

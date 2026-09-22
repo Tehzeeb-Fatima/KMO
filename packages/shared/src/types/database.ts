@@ -612,18 +612,21 @@ export interface Database {
           id: boolean;
           default_commission_rate: number;
           delivery_zones: string[];
+          maintenance_mode: boolean;
           updated_at: string;
         };
         Insert: {
           id?: boolean;
           default_commission_rate?: number;
           delivery_zones?: string[];
+          maintenance_mode?: boolean;
           updated_at?: string;
         };
         Update: {
           id?: boolean;
           default_commission_rate?: number;
           delivery_zones?: string[];
+          maintenance_mode?: boolean;
           updated_at?: string;
         };
         Relationships: [];
