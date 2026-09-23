@@ -18,7 +18,7 @@ import {
   listPublishedProducts,
   MIN_360_FRAMES,
 } from "@kmo/shared/api";
-import { Button, ProductCard, Product360Viewer } from "@kmo/shared/ui";
+import { Breadcrumbs, Button, ProductCard, Product360Viewer } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "@/lib/supabase";
 import { ensureCustomerId } from "@/lib/ensure-customer-id";
@@ -243,15 +243,23 @@ export default function ProductDetailClient() {
           }),
         }}
       />
-      <nav className="mb-4 hidden text-[12.5px] text-muted sm:block">
-        Home /{" "}
-        {product.vendors ? (
-          <Link href={`/store/${product.vendors.slug}`} className="hover:text-primary">
-            {product.vendors.store_name}
-          </Link>
-        ) : null}{" "}
-        / <span className="font-semibold text-ink-dark">{product.name}</span>
-      </nav>
+      <Breadcrumbs
+        LinkComponent={Link}
+        className="mb-4 hidden sm:block"
+        items={[
+          { label: "Home", href: "/" },
+          ...(product.vendors
+            ? [
+                { label: "Vendors", href: "/vendors" },
+                {
+                  label: product.vendors.store_name,
+                  href: `/store/${product.vendors.slug}`,
+                },
+              ]
+            : []),
+          { label: product.name },
+        ]}
+      />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[500px_minmax(0,1fr)_316px] lg:items-start lg:gap-[26px]">
         {/* gallery */}

@@ -12,7 +12,7 @@ import {
   listPublishedProducts,
   unfollowVendor,
 } from "@kmo/shared/api";
-import { PillTabs, ProductCard } from "@kmo/shared/ui";
+import { Breadcrumbs, PillTabs, ProductCard } from "@kmo/shared/ui";
 import { WEEK_DAYS, type BusinessHours, type VendorPolicies } from "@kmo/shared/types";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "@/lib/supabase";
@@ -110,10 +110,14 @@ export default function StoreClient() {
 
   return (
     <div className="mx-auto w-full max-w-[1358px] px-4 py-6 sm:px-6 lg:px-10">
-      <nav className="mb-4 text-[12.5px] text-muted">
-        Home / Vendors /{" "}
-        <span className="font-bold text-ink-dark">{vendor.store_name}</span>
-      </nav>
+      <Breadcrumbs
+        LinkComponent={Link}
+        items={[
+          { label: "Home", href: "/" },
+          { label: "Vendors", href: "/vendors" },
+          { label: vendor.store_name },
+        ]}
+      />
 
       <div className="overflow-hidden rounded-[14px] border border-border bg-surface">
         {/* cover banner */}

@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { listCartItems, removeCartItem, updateCartItemQuantity } from "@kmo/shared/api";
-import { Button, ConfirmDialog } from "@kmo/shared/ui";
+import { Breadcrumbs, Button, ConfirmDialog } from "@kmo/shared/ui";
 import { RequireAuth } from "@/components/require-auth";
 import { supabase } from "@/lib/supabase";
 
@@ -75,9 +75,10 @@ function CartContent() {
 
   return (
     <div className="mx-auto w-full max-w-[1358px] px-4 py-6 sm:px-6 lg:px-10">
-      <nav className="mb-4 text-[12.5px] text-muted">
-        Home / <span className="font-semibold text-ink-dark">Your cart</span>
-      </nav>
+      <Breadcrumbs
+        LinkComponent={Link}
+        items={[{ label: "Home", href: "/" }, { label: "Your cart" }]}
+      />
       <h1 className="mb-5 text-xl font-extrabold tracking-[-0.03em] text-ink sm:text-2xl">
         Your cart · {items.length} item{items.length === 1 ? "" : "s"}
       </h1>

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { listVendors } from "@kmo/shared/api";
+import { Breadcrumbs } from "@kmo/shared/ui";
 import { supabase } from "@/lib/supabase";
 
 export default function VendorsPage() {
@@ -16,7 +17,11 @@ export default function VendorsPage() {
 
   return (
     <div className="mx-auto w-full max-w-[1358px] px-4 py-6 sm:px-6 lg:px-10">
-      <p className="font-mono text-xs uppercase tracking-[0.14em] text-muted">Karachi Mart</p>
+      <Breadcrumbs
+        LinkComponent={Link}
+        className="mb-2"
+        items={[{ label: "Home", href: "/" }, { label: "Vendors" }]}
+      />
       <h1 className="mt-2 text-2xl font-bold tracking-[-0.025em] text-ink sm:text-[26px]">
         All vendors
       </h1>
