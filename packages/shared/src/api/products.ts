@@ -19,7 +19,14 @@ export interface ProductWithMedia extends ProductRow {
 const PRODUCT_WITH_MEDIA_SELECT =
   "*, product_images(*), product_variants(*), product_360_images(id, angle_index, url), vendors(id, store_name, slug, owner_id)";
 
-/** Vendor's own products (any status), for the Products list dashboard page. */
+/** Vendor's own products (any status), for the Products list dashboard page.
+ *
+ *  Scoped two ways on purpose. `products` also carries a public-select policy
+ *  for published rows, and Postgres ORs permissive RLS policies together — so
+ *  RLS alone would happily return other vendors' live products here. The
+ *  `vendors!inner(owner_id)` join pins the result set to stores the caller
+ *  actually owns, which no caller can accidentally widen by passing someone
+ *  else's vendorId. */
 export async function listMyProducts(
   supabase: Client,
   vendorId: string,
@@ -30,10 +37,18 @@ export async function listMyProducts(
     product_360_images: { id: string; angle_index: number; url: string }[];
   })[]
 > {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
   const { data, error } = await supabase
     .from("products")
-    .select("*, product_images(*), product_variants(*), product_360_images(id, angle_index, url)")
+    .select(
+      "*, product_images(*), product_variants(*), product_360_images(id, angle_index, url), vendors!inner(owner_id)",
+    )
     .eq("vendor_id", vendorId)
+    .eq("vendors.owner_id", user.id)
     .order("created_at", { ascending: false });
   if (error) throw error;
   return data as unknown as (ProductRow & {

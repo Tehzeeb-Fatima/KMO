@@ -1,10 +1,12 @@
 -- Optional 360° product view: 8 photos taken around the product, played back
 -- as an interactive spin on the product detail page. Kept in its own table so
 -- the normal `product_images` gallery is completely untouched.
+--
+-- Written idempotently so a partially-applied run can safely be re-run.
 
-alter table public.products add column has_360_view boolean not null default false;
+alter table public.products add column if not exists has_360_view boolean not null default false;
 
-create table public.product_360_images (
+create table if not exists public.product_360_images (
   id uuid primary key default gen_random_uuid(),
   product_id uuid not null references public.products (id) on delete cascade,
   -- 1 = Front, 2 = Front Right, 3 = Right, 4 = Back Right,
@@ -15,11 +17,12 @@ create table public.product_360_images (
   unique (product_id, angle_index)
 );
 
-create index product_360_images_product_id_idx
+create index if not exists product_360_images_product_id_idx
   on public.product_360_images (product_id, angle_index);
 
 alter table public.product_360_images enable row level security;
 
+drop policy if exists "product_360_images_vendor_all" on public.product_360_images;
 create policy "product_360_images_vendor_all"
   on public.product_360_images for all
   using (
@@ -37,11 +40,13 @@ create policy "product_360_images_vendor_all"
     )
   );
 
+drop policy if exists "product_360_images_admin_all" on public.product_360_images;
 create policy "product_360_images_admin_all"
   on public.product_360_images for all
   using (exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin'))
   with check (exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin'));
 
+drop policy if exists "product_360_images_public_select" on public.product_360_images;
 create policy "product_360_images_public_select"
   on public.product_360_images for select
   using (
