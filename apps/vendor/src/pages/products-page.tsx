@@ -3,13 +3,15 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   addProductImage,
   bulkArchiveProducts,
+  clear360Set,
   createProduct,
   createProductVariant,
   getMyVendor,
   listMyProducts,
   listProductCategories,
   listVendorCategories,
-  PRODUCT_360_ANGLES,
+  MAX_360_FRAMES,
+  MIN_360_FRAMES,
   remove360Image,
   removeProductImage,
   removeProductVariant,
@@ -20,8 +22,15 @@ import {
   uploadProductImage,
 } from "@kmo/shared/api";
 import type { ProductStatus } from "@kmo/shared/types";
-import { ConfirmDialog, Product360Uploader } from "@kmo/shared/ui";
+import {
+  ConfirmDialog,
+  Product360Uploader,
+  type Product360ColourSet,
+} from "@kmo/shared/ui";
 import { supabase } from "../lib/supabase";
+
+/** One uploaded 360° frame, in the shape the form keeps in state. */
+type Product360Row = { angleIndex: number; url: string; variantId: string | null };
 
 const STATUS_TABS: { label: string; value: ProductStatus | "all" }[] = [
   { label: "All", value: "all" },
@@ -338,7 +347,9 @@ function ProductForm({
   const [categoryIds, setCategoryIds] = useState<Set<string>>(new Set());
   const [description, setDescription] = useState("");
   const [published, setPublished] = useState(false);
-  const [images, setImages] = useState<{ id: string; url: string }[]>([]);
+  const [images, setImages] = useState<{ id: string; url: string; variantId: string | null }[]>(
+    [],
+  );
   const [variants, setVariants] = useState<
     { id: string; option_name: string; option_value: string; stock_quantity: number }[]
   >([]);
@@ -353,7 +364,8 @@ function ProductForm({
   const [seoTitle, setSeoTitle] = useState("");
   const [seoDescription, setSeoDescription] = useState("");
   const [has360, setHas360] = useState(false);
-  const [images360, setImages360] = useState<Record<number, string>>({});
+  const [frames360, setFrames360] = useState<Product360Row[]>([]);
+  const [activeSet, setActiveSet] = useState<string | null>(null);
   const [error360, setError360] = useState<string | null>(null);
 
   useEffect(() => {
@@ -365,7 +377,13 @@ function ProductForm({
     setCategoryIds(new Set(product.category_id ? [product.category_id] : []));
     setDescription(product.description ?? "");
     setPublished(product.status === "published" || product.status === "pending");
-    setImages(product.product_images.map((img) => ({ id: img.id, url: img.url })));
+    setImages(
+      product.product_images.map((img) => ({
+        id: img.id,
+        url: img.url,
+        variantId: img.variant_id,
+      })),
+    );
     setVariants(
       product.product_variants.map((v) => ({
         id: v.id,
@@ -381,8 +399,12 @@ function ProductForm({
     setSeoTitle(product.seo_title ?? "");
     setSeoDescription(product.seo_description ?? "");
     setHas360(product.has_360_view);
-    setImages360(
-      Object.fromEntries((product.product_360_images ?? []).map((i) => [i.angle_index, i.url])),
+    setFrames360(
+      (product.product_360_images ?? []).map((i) => ({
+        angleIndex: i.angle_index,
+        url: i.url,
+        variantId: i.variant_id,
+      })),
     );
   }, [product]);
 
@@ -401,11 +423,40 @@ function ProductForm({
     });
   }
 
+  /* ── 360° sets, one per colour variant plus a shared fallback ─────────── */
+
+  const colourVariants = variants.filter((v) =>
+    ["color", "colour"].includes(v.option_name.toLowerCase()),
+  );
+  const sets360: Product360ColourSet[] = [
+    { variantId: null, label: "All colours" },
+    ...colourVariants.map((v) => ({ variantId: v.id, label: v.option_value })),
+  ];
+  const activeSetFrames = frames360
+    .filter((f) => f.variantId === activeSet)
+    .sort((a, b) => a.angleIndex - b.angleIndex);
+  const frameCounts360 = frames360.reduce<Record<string, number>>((acc, f) => {
+    const key = f.variantId ?? "__default__";
+    acc[key] = (acc[key] ?? 0) + 1;
+    return acc;
+  }, {});
+
   const saveMutation = useMutation({
     mutationFn: async () => {
-      // 360° is optional, but once it's switched on all 8 angles must be there.
-      if (has360 && Object.keys(images360).length < 8) {
-        throw new Error("Upload all 8 angles, or switch 360° view off to save.");
+      // 360° is optional, but a set that's switched on needs enough frames to
+      // actually spin — and every colour set that has photos must clear the bar.
+      if (has360) {
+        const populated = Object.entries(frameCounts360).filter(([, n]) => n > 0);
+        if (populated.length === 0) {
+          throw new Error(
+            `Upload at least ${MIN_360_FRAMES} photos for the 360° view, or switch it off to save.`,
+          );
+        }
+        if (populated.some(([, n]) => n < MIN_360_FRAMES)) {
+          throw new Error(
+            `Every 360° set needs at least ${MIN_360_FRAMES} photos — add more, or remove the incomplete set.`,
+          );
+        }
       }
       const categoryIdList = Array.from(categoryIds);
       const payload = {
@@ -461,56 +512,49 @@ function ProductForm({
     onError: (err: Error) => setError360(err.message),
   });
 
-  const upload360Mutation = useMutation({
-    mutationFn: async ({ angleIndex, file }: { angleIndex: number; file: File }) => {
-      if (!currentProductId) throw new Error("Save the product before adding 360° photos.");
-      const url = await upload360Image(supabase, currentProductId, angleIndex, file);
-      await set360Image(supabase, currentProductId, angleIndex, url);
-      return { angleIndex, url };
-    },
-    onSuccess: ({ angleIndex, url }) => {
-      setImages360((prev) => ({ ...prev, [angleIndex]: url }));
-      setError360(null);
-    },
-    onError: (err: Error) => setError360(err.message),
-  });
-
-  const upload360ManyMutation = useMutation({
+  const add360FramesMutation = useMutation({
     mutationFn: async (files: File[]) => {
       if (!currentProductId) throw new Error("Save the product before adding 360° photos.");
-      // Fill whichever angle slots are still empty, in rotation order.
-      const emptySlots = PRODUCT_360_ANGLES.map((a) => a.index).filter((i) => !images360[i]);
-      const done: { angleIndex: number; url: string }[] = [];
-      for (let i = 0; i < files.length && i < emptySlots.length; i += 1) {
-        const angleIndex = emptySlots[i];
-        const url = await upload360Image(supabase, currentProductId, angleIndex, files[i]);
-        await set360Image(supabase, currentProductId, angleIndex, url);
-        done.push({ angleIndex, url });
+      // Frames append to the end of the set the vendor is currently editing.
+      let nextIndex = activeSetFrames.reduce((max, f) => Math.max(max, f.angleIndex), 0) + 1;
+      const done: Product360Row[] = [];
+      for (const file of files) {
+        if (nextIndex > MAX_360_FRAMES) break;
+        const url = await upload360Image(supabase, currentProductId, nextIndex, file, activeSet);
+        await set360Image(supabase, currentProductId, nextIndex, url, activeSet);
+        done.push({ angleIndex: nextIndex, url, variantId: activeSet });
+        nextIndex += 1;
       }
       return done;
     },
     onSuccess: (done) => {
-      setImages360((prev) => ({
-        ...prev,
-        ...Object.fromEntries(done.map((d) => [d.angleIndex, d.url])),
-      }));
+      setFrames360((prev) => [...prev, ...done]);
       setError360(null);
     },
     onError: (err: Error) => setError360(err.message),
   });
 
-  const remove360Mutation = useMutation({
+  const remove360FrameMutation = useMutation({
     mutationFn: async (angleIndex: number) => {
       if (!currentProductId) throw new Error("Nothing to remove yet.");
-      await remove360Image(supabase, currentProductId, angleIndex);
+      await remove360Image(supabase, currentProductId, angleIndex, activeSet);
       return angleIndex;
     },
     onSuccess: (angleIndex) => {
-      setImages360((prev) => {
-        const next = { ...prev };
-        delete next[angleIndex];
-        return next;
-      });
+      setFrames360((prev) =>
+        prev.filter((f) => !(f.angleIndex === angleIndex && f.variantId === activeSet)),
+      );
+    },
+    onError: (err: Error) => setError360(err.message),
+  });
+
+  const clear360SetMutation = useMutation({
+    mutationFn: async () => {
+      if (!currentProductId) throw new Error("Nothing to remove yet.");
+      await clear360Set(supabase, currentProductId, activeSet);
+    },
+    onSuccess: () => {
+      setFrames360((prev) => prev.filter((f) => f.variantId !== activeSet));
     },
     onError: (err: Error) => setError360(err.message),
   });
@@ -518,12 +562,12 @@ function ProductForm({
   const uploadMutation = useMutation({
     mutationFn: async (files: File[]) => {
       if (!currentProductId) throw new Error("Save the product before adding images.");
-      const added: { id: string; url: string }[] = [];
-      let sortOrder = images.length;
+      const added: { id: string; url: string; variantId: string | null }[] = [];
+      let sortOrder = images.filter((i) => i.variantId === imageSet).length;
       for (const file of files) {
         const url = await uploadProductImage(supabase, currentProductId, file);
-        const row = await addProductImage(supabase, currentProductId, url, sortOrder);
-        added.push({ id: row.id, url: row.url });
+        const row = await addProductImage(supabase, currentProductId, url, sortOrder, imageSet);
+        added.push({ id: row.id, url: row.url, variantId: row.variant_id });
         sortOrder += 1;
       }
       return added;
@@ -582,6 +626,9 @@ function ProductForm({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [imageError, setImageError] = useState<string | null>(null);
+  /** Which colour the photos being shown/uploaded belong to (null = all colours). */
+  const [imageSet, setImageSet] = useState<string | null>(null);
+  const shownImages = images.filter((i) => i.variantId === imageSet);
 
   function handleUpload(e: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
@@ -746,8 +793,44 @@ function ProductForm({
           </FormField>
 
           <FormField label="Product images">
+            {sets360.length > 1 ? (
+              <div className="flex flex-col gap-1.5">
+                <div className="flex flex-wrap gap-1.5">
+                  {sets360.map((s) => {
+                    const active = s.variantId === imageSet;
+                    const n = images.filter((i) => i.variantId === s.variantId).length;
+                    return (
+                      <button
+                        key={s.variantId ?? "__default__"}
+                        type="button"
+                        onClick={() => setImageSet(s.variantId)}
+                        className="rounded-full px-3 py-1.5 text-[12px] font-semibold"
+                        style={
+                          active
+                            ? { background: "var(--color-primary)", color: "#fff" }
+                            : {
+                                background: "#fff",
+                                border: "1px solid var(--color-border)",
+                                color: "var(--color-primary)",
+                              }
+                        }
+                      >
+                        {s.label}
+                        <span className={active ? "ml-1.5 text-white/70" : "ml-1.5 text-muted-table"}>
+                          {n}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <span className="text-[11px] text-muted">
+                  Photos added under a colour replace the main gallery when a shopper picks that
+                  colour. &ldquo;All colours&rdquo; photos are the fallback.
+                </span>
+              </div>
+            ) : null}
             <div className="flex flex-wrap gap-2.5">
-              {images.map((img) => (
+              {shownImages.map((img) => (
                 <div key={img.id} className="group relative h-[88px] w-[88px]">
                   <div
                     className="h-full w-full rounded-[9px] bg-cover bg-center"
@@ -797,19 +880,17 @@ function ProductForm({
           </FormField>
 
           <Product360Uploader
-            images={images360}
+            frames={activeSetFrames}
+            sets={sets360}
+            activeSetId={activeSet}
+            onSelectSet={setActiveSet}
+            frameCounts={frameCounts360}
             enabled={has360}
             onToggle={setHas360}
-            onUpload={(angleIndex, file) => upload360Mutation.mutate({ angleIndex, file })}
-            onUploadMany={(files) => upload360ManyMutation.mutate(files)}
-            onRemove={(angleIndex) => remove360Mutation.mutate(angleIndex)}
-            uploadingAngle={
-              upload360Mutation.isPending
-                ? upload360Mutation.variables?.angleIndex
-                : upload360ManyMutation.isPending
-                  ? 0
-                  : null
-            }
+            onAddFrames={(files) => add360FramesMutation.mutate(files)}
+            onRemoveFrame={(angleIndex) => remove360FrameMutation.mutate(angleIndex)}
+            onClearSet={() => clear360SetMutation.mutate()}
+            uploading={add360FramesMutation.isPending || clear360SetMutation.isPending}
             disabledReason={
               currentProductId ? undefined : "Save the product first, then add 360° photos."
             }

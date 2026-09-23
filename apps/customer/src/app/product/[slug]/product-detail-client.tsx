@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
@@ -16,6 +16,7 @@ import {
   listProductQuestions,
   askProductQuestion,
   listPublishedProducts,
+  MIN_360_FRAMES,
 } from "@kmo/shared/api";
 import { Button, ProductCard, Product360Viewer } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
@@ -49,12 +50,36 @@ export default function ProductDetailClient() {
   const [activeImage, setActiveImage] = useState(0);
   const [galleryMode, setGalleryMode] = useState<"photos" | "360">("photos");
 
-  /** The 8 angle photos in rotation order — only a complete set is playable. */
+  /** The variant row for the colour the shopper picked, if any — media can be
+   *  tied to it so the product imagery changes with the colour. */
+  const selectedColourVariantId = useMemo(() => {
+    if (!product) return null;
+    const row = product.product_variants.find(
+      (v) =>
+        ["color", "colour"].includes(v.option_name.toLowerCase()) &&
+        selectedOptions[v.option_name] === v.option_value,
+    );
+    return row?.id ?? null;
+  }, [product, selectedOptions]);
+
+  /** Frames in rotation order: the selected colour's spin when it has one,
+   *  otherwise the shared spin. Only a set with enough frames is playable. */
   const angles360 = useMemo(() => {
-    const rows = product?.product_360_images ?? [];
-    if (!product?.has_360_view || rows.length < 8) return [];
-    return [...rows].sort((a, b) => a.angle_index - b.angle_index).map((r) => r.url);
-  }, [product]);
+    if (!product?.has_360_view) return [];
+    const rows = product.product_360_images ?? [];
+    const forColour = selectedColourVariantId
+      ? rows.filter((r) => r.variant_id === selectedColourVariantId)
+      : [];
+    const set =
+      forColour.length >= MIN_360_FRAMES ? forColour : rows.filter((r) => r.variant_id === null);
+    if (set.length < MIN_360_FRAMES) return [];
+    return [...set].sort((a, b) => a.angle_index - b.angle_index).map((r) => r.url);
+  }, [product, selectedColourVariantId]);
+
+  // A colour change swaps the photo set, so the old index may not exist.
+  useEffect(() => {
+    setActiveImage(0);
+  }, [selectedColourVariantId]);
 
   const selectedVariant = useMemo(() => {
     if (!product || product.product_variants.length === 0) return null;
@@ -173,7 +198,13 @@ export default function ProductDetailClient() {
     );
   }
 
-  const images = product.product_images.slice().sort((a, b) => a.sort_order - b.sort_order);
+  // Photos tied to the picked colour win; otherwise the shared photos show.
+  const allImages = product.product_images.slice().sort((a, b) => a.sort_order - b.sort_order);
+  const colourImages = selectedColourVariantId
+    ? allImages.filter((i) => i.variant_id === selectedColourVariantId)
+    : [];
+  const images =
+    colourImages.length > 0 ? colourImages : allImages.filter((i) => i.variant_id === null);
   const stock = selectedVariant ? selectedVariant.stock_quantity : product.stock_quantity;
   const price = selectedVariant?.price_override ?? product.price;
   const discountPct =

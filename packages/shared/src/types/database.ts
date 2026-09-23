@@ -392,6 +392,8 @@ export interface Database {
         Row: {
           id: string;
           product_id: string;
+          /** null = the spin shown for every colour. */
+          variant_id: string | null;
           angle_index: number;
           url: string;
           created_at: string;
@@ -399,6 +401,7 @@ export interface Database {
         Insert: {
           id?: string;
           product_id: string;
+          variant_id?: string | null;
           angle_index: number;
           url: string;
           created_at?: string;
@@ -406,6 +409,7 @@ export interface Database {
         Update: {
           id?: string;
           product_id?: string;
+          variant_id?: string | null;
           angle_index?: number;
           url?: string;
           created_at?: string;
@@ -416,6 +420,8 @@ export interface Database {
         Row: {
           id: string;
           product_id: string;
+          /** null = shown for every colour. */
+          variant_id: string | null;
           url: string;
           sort_order: number;
           created_at: string;
@@ -423,6 +429,7 @@ export interface Database {
         Insert: {
           id?: string;
           product_id: string;
+          variant_id?: string | null;
           url: string;
           sort_order?: number;
           created_at?: string;
@@ -430,6 +437,7 @@ export interface Database {
         Update: {
           id?: string;
           product_id?: string;
+          variant_id?: string | null;
           url?: string;
           sort_order?: number;
           created_at?: string;

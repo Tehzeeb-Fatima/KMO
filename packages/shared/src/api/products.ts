@@ -12,12 +12,12 @@ type CategoryRow = Database["public"]["Tables"]["categories"]["Row"];
 export interface ProductWithMedia extends ProductRow {
   product_images: ProductImageRow[];
   product_variants: ProductVariantRow[];
-  product_360_images: { id: string; angle_index: number; url: string }[];
+  product_360_images: { id: string; angle_index: number; url: string; variant_id: string | null }[];
   vendors: { id: string; store_name: string; slug: string; owner_id: string } | null;
 }
 
 const PRODUCT_WITH_MEDIA_SELECT =
-  "*, product_images(*), product_variants(*), product_360_images(id, angle_index, url), vendors(id, store_name, slug, owner_id)";
+  "*, product_images(*), product_variants(*), product_360_images(id, angle_index, url, variant_id), vendors(id, store_name, slug, owner_id)";
 
 /** Vendor's own products (any status), for the Products list dashboard page.
  *
@@ -34,7 +34,7 @@ export async function listMyProducts(
   (ProductRow & {
     product_images: ProductImageRow[];
     product_variants: ProductVariantRow[];
-    product_360_images: { id: string; angle_index: number; url: string }[];
+    product_360_images: { id: string; angle_index: number; url: string; variant_id: string | null }[];
   })[]
 > {
   const {
@@ -45,7 +45,7 @@ export async function listMyProducts(
   const { data, error } = await supabase
     .from("products")
     .select(
-      "*, product_images(*), product_variants(*), product_360_images(id, angle_index, url), vendors!inner(owner_id)",
+      "*, product_images(*), product_variants(*), product_360_images(id, angle_index, url, variant_id), vendors!inner(owner_id)",
     )
     .eq("vendor_id", vendorId)
     .eq("vendors.owner_id", user.id)
@@ -54,7 +54,7 @@ export async function listMyProducts(
   return data as unknown as (ProductRow & {
     product_images: ProductImageRow[];
     product_variants: ProductVariantRow[];
-    product_360_images: { id: string; angle_index: number; url: string }[];
+    product_360_images: { id: string; angle_index: number; url: string; variant_id: string | null }[];
   })[];
 }
 
@@ -124,10 +124,12 @@ export async function addProductImage(
   productId: string,
   url: string,
   sortOrder: number,
+  /** Tie the photo to one colour variant; omit to show it for every colour. */
+  variantId?: string | null,
 ): Promise<ProductImageRow> {
   const { data, error } = await supabase
     .from("product_images")
-    .insert({ product_id: productId, url, sort_order: sortOrder })
+    .insert({ product_id: productId, url, sort_order: sortOrder, variant_id: variantId ?? null })
     .select("*")
     .single();
   if (error) throw error;
@@ -152,11 +154,19 @@ export async function uploadProductImage(
   return data.publicUrl;
 }
 
-/* ── optional 360° view: 8 photos taken around the product ─────────────── */
+/* ── optional 360° view ─────────────────────────────────────────────────── */
 
 type Product360ImageRow = Database["public"]["Tables"]["product_360_images"]["Row"];
 
-/** The 8 angles a 360° spin is built from, in rotation order. */
+/** Fewest frames that make a usable spin. */
+export const MIN_360_FRAMES = 8;
+/** What the DB check constraint allows. */
+export const MAX_360_FRAMES = 72;
+/** Frame count where the spin starts feeling like a pro turntable. */
+export const RECOMMENDED_360_FRAMES = 24;
+
+/** Angle names for the first eight frames, used purely as shooting guidance —
+ *  more frames than this is better, they just don't get a name. */
 export const PRODUCT_360_ANGLES: { index: number; label: string }[] = [
   { index: 1, label: "Front" },
   { index: 2, label: "Front Right" },
@@ -168,6 +178,7 @@ export const PRODUCT_360_ANGLES: { index: number; label: string }[] = [
   { index: 8, label: "Front Left" },
 ];
 
+/** Every 360° frame for a product, across all colour sets. */
 export async function list360Images(
   supabase: Client,
   productId: string,
@@ -181,7 +192,7 @@ export async function list360Images(
   return data;
 }
 
-/** Uploads one angle into the existing `product-media` bucket, under a `360/`
+/** Uploads one frame into the existing `product-media` bucket, under a `360/`
  *  sub-path so it never mixes with the normal gallery images. Storage RLS
  *  keys off the first path segment (the product id), so it just works. */
 export async function upload360Image(
@@ -189,28 +200,31 @@ export async function upload360Image(
   productId: string,
   angleIndex: number,
   file: File,
+  variantId?: string | null,
 ): Promise<string> {
   const ext = file.name.split(".").pop() ?? "jpg";
-  const path = `${productId}/360/${angleIndex}-${crypto.randomUUID()}.${ext}`;
+  const setFolder = variantId ?? "default";
+  const path = `${productId}/360/${setFolder}/${angleIndex}-${crypto.randomUUID()}.${ext}`;
   const { error } = await supabase.storage.from("product-media").upload(path, file);
   if (error) throw error;
   const { data } = supabase.storage.from("product-media").getPublicUrl(path);
   return data.publicUrl;
 }
 
-/** Sets (or replaces) the image for one angle. */
+/** Sets (or replaces) one frame of one colour set. Delete-then-insert rather
+ *  than upsert, because the conflict target involves a nullable variant_id. */
 export async function set360Image(
   supabase: Client,
   productId: string,
   angleIndex: number,
   url: string,
+  variantId?: string | null,
 ): Promise<Product360ImageRow> {
+  await remove360Image(supabase, productId, angleIndex, variantId);
+
   const { data, error } = await supabase
     .from("product_360_images")
-    .upsert(
-      { product_id: productId, angle_index: angleIndex, url },
-      { onConflict: "product_id,angle_index" },
-    )
+    .insert({ product_id: productId, variant_id: variantId ?? null, angle_index: angleIndex, url })
     .select("*")
     .single();
   if (error) throw error;
@@ -221,12 +235,27 @@ export async function remove360Image(
   supabase: Client,
   productId: string,
   angleIndex: number,
+  variantId?: string | null,
 ): Promise<void> {
-  const { error } = await supabase
+  let query = supabase
     .from("product_360_images")
     .delete()
     .eq("product_id", productId)
     .eq("angle_index", angleIndex);
+  query = variantId ? query.eq("variant_id", variantId) : query.is("variant_id", null);
+  const { error } = await query;
+  if (error) throw error;
+}
+
+/** Drops every frame of one colour set (the "start over" action). */
+export async function clear360Set(
+  supabase: Client,
+  productId: string,
+  variantId?: string | null,
+): Promise<void> {
+  let query = supabase.from("product_360_images").delete().eq("product_id", productId);
+  query = variantId ? query.eq("variant_id", variantId) : query.is("variant_id", null);
+  const { error } = await query;
   if (error) throw error;
 }
 
