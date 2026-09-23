@@ -173,4 +173,3 @@ matching the source mockups.
 - `place_order` Edge Function needs `pnpm dlx supabase functions deploy place_order`
   run once per environment (uses the service-role key, auto-injected at runtime).
 - No automated test suite yet (manual QA against the mockups only).
-- Git is not initialised in this project directory.
