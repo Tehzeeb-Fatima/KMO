@@ -107,6 +107,28 @@
 }
 
 @layer base {
+  /* Tailwind v4's Preflight drops the browser's default cursor:pointer on
+     buttons. Put it back for every clickable control, in the base layer so an
+     explicit cursor-* utility still wins where one is used. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  a[href],
+  label[for],
+  summary,
+  select:not(:disabled),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled),
+  input[type="file"]:not(:disabled),
+  input[type="submit"]:not(:disabled),
+  input[type="reset"]:not(:disabled) {
+    cursor: pointer;
+  }
+  button:disabled,
+  select:disabled,
+  input:disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
   * {
     @apply border-border outline-ring/50;
   }

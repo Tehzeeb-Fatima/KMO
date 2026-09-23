@@ -9,6 +9,7 @@ import {
   listMyProducts,
   listProductCategories,
   listVendorCategories,
+  PRODUCT_360_ANGLES,
   remove360Image,
   removeProductImage,
   removeProductVariant,
@@ -474,6 +475,30 @@ function ProductForm({
     onError: (err: Error) => setError360(err.message),
   });
 
+  const upload360ManyMutation = useMutation({
+    mutationFn: async (files: File[]) => {
+      if (!currentProductId) throw new Error("Save the product before adding 360° photos.");
+      // Fill whichever angle slots are still empty, in rotation order.
+      const emptySlots = PRODUCT_360_ANGLES.map((a) => a.index).filter((i) => !images360[i]);
+      const done: { angleIndex: number; url: string }[] = [];
+      for (let i = 0; i < files.length && i < emptySlots.length; i += 1) {
+        const angleIndex = emptySlots[i];
+        const url = await upload360Image(supabase, currentProductId, angleIndex, files[i]);
+        await set360Image(supabase, currentProductId, angleIndex, url);
+        done.push({ angleIndex, url });
+      }
+      return done;
+    },
+    onSuccess: (done) => {
+      setImages360((prev) => ({
+        ...prev,
+        ...Object.fromEntries(done.map((d) => [d.angleIndex, d.url])),
+      }));
+      setError360(null);
+    },
+    onError: (err: Error) => setError360(err.message),
+  });
+
   const remove360Mutation = useMutation({
     mutationFn: async (angleIndex: number) => {
       if (!currentProductId) throw new Error("Nothing to remove yet.");
@@ -491,14 +516,23 @@ function ProductForm({
   });
 
   const uploadMutation = useMutation({
-    mutationFn: async (file: File) => {
+    mutationFn: async (files: File[]) => {
       if (!currentProductId) throw new Error("Save the product before adding images.");
-      const url = await uploadProductImage(supabase, currentProductId, file);
-      return addProductImage(supabase, currentProductId, url, images.length);
+      const added: { id: string; url: string }[] = [];
+      let sortOrder = images.length;
+      for (const file of files) {
+        const url = await uploadProductImage(supabase, currentProductId, file);
+        const row = await addProductImage(supabase, currentProductId, url, sortOrder);
+        added.push({ id: row.id, url: row.url });
+        sortOrder += 1;
+      }
+      return added;
     },
-    onSuccess: (img) => {
-      setImages((prev) => [...prev, { id: img.id, url: img.url }]);
+    onSuccess: (added) => {
+      setImages((prev) => [...prev, ...added]);
+      setImageError(null);
     },
+    onError: (err: Error) => setImageError(err.message),
   });
 
   const addVariantMutation = useMutation({
@@ -547,10 +581,11 @@ function ProductForm({
   >(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [imageError, setImageError] = useState<string | null>(null);
 
   function handleUpload(e: ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (file) uploadMutation.mutate(file);
+    const files = Array.from(e.target.files ?? []);
+    if (files.length > 0) uploadMutation.mutate(files);
     e.target.value = "";
   }
 
@@ -729,19 +764,36 @@ function ProductForm({
               ))}
               <button
                 type="button"
+                disabled={uploadMutation.isPending}
                 onClick={() => fileInputRef.current?.click()}
-                className="flex h-[88px] w-[88px] shrink-0 items-center justify-center rounded-[9px] border-[1.5px] border-dashed border-border text-[11px] text-muted-table"
+                className="flex h-[88px] w-[88px] shrink-0 flex-col items-center justify-center gap-0.5 rounded-[9px] border-[1.5px] border-dashed border-border text-[11px] text-muted-table disabled:opacity-60"
               >
-                + Upload
+                {uploadMutation.isPending ? (
+                  "Uploading…"
+                ) : (
+                  <>
+                    <span>+ Upload</span>
+                    <span className="text-[9.5px]">pick many</span>
+                  </>
+                )}
               </button>
               <input
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
+                multiple
                 className="hidden"
                 onChange={handleUpload}
               />
             </div>
+            {!currentProductId ? (
+              <p className="text-[12px] text-muted">
+                Save the product first, then add images.
+              </p>
+            ) : null}
+            {imageError ? (
+              <p className="text-[12.5px] font-semibold text-danger">{imageError}</p>
+            ) : null}
           </FormField>
 
           <Product360Uploader
@@ -749,9 +801,14 @@ function ProductForm({
             enabled={has360}
             onToggle={setHas360}
             onUpload={(angleIndex, file) => upload360Mutation.mutate({ angleIndex, file })}
+            onUploadMany={(files) => upload360ManyMutation.mutate(files)}
             onRemove={(angleIndex) => remove360Mutation.mutate(angleIndex)}
             uploadingAngle={
-              upload360Mutation.isPending ? upload360Mutation.variables?.angleIndex : null
+              upload360Mutation.isPending
+                ? upload360Mutation.variables?.angleIndex
+                : upload360ManyMutation.isPending
+                  ? 0
+                  : null
             }
             disabledReason={
               currentProductId ? undefined : "Save the product first, then add 360° photos."

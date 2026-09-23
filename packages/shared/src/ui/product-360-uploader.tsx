@@ -9,6 +9,8 @@ export interface Product360UploaderProps {
   enabled: boolean;
   onToggle: (enabled: boolean) => void;
   onUpload: (angleIndex: number, file: File) => void;
+  /** Pick several photos at once — they fill the empty slots in order. */
+  onUploadMany: (files: File[]) => void;
   onRemove: (angleIndex: number) => void;
   /** Angle currently uploading, so its slot can show a spinner. */
   uploadingAngle?: number | null;
@@ -27,12 +29,14 @@ export function Product360Uploader({
   enabled,
   onToggle,
   onUpload,
+  onUploadMany,
   onRemove,
   uploadingAngle,
   disabledReason,
   error,
 }: Product360UploaderProps) {
   const [open, setOpen] = React.useState(enabled);
+  const bulkInputRef = React.useRef<HTMLInputElement>(null);
   const uploadedCount = PRODUCT_360_ANGLES.filter((a) => images[a.index]).length;
 
   React.useEffect(() => {
@@ -91,6 +95,32 @@ export function Product360Uploader({
         <p className="text-[12.5px] text-muted">{disabledReason}</p>
       ) : (
         <>
+          <div>
+            <button
+              type="button"
+              disabled={uploadingAngle != null}
+              onClick={() => bulkInputRef.current?.click()}
+              className="w-fit rounded-lg bg-primary px-4 py-2 text-[12.5px] font-bold text-white disabled:opacity-60"
+            >
+              {uploadingAngle != null ? "Uploading…" : "Upload 8 photos at once"}
+            </button>
+            <input
+              ref={bulkInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={(e) => {
+                const files = Array.from(e.target.files ?? []);
+                if (files.length > 0) onUploadMany(files);
+                e.target.value = "";
+              }}
+            />
+            <p className="mt-1.5 text-[11px] text-muted">
+              They fill the empty slots below in order — or upload each angle one by one.
+            </p>
+          </div>
+
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
             {PRODUCT_360_ANGLES.map((angle) => (
               <AngleSlot
