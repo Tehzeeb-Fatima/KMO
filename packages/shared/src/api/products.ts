@@ -12,26 +12,34 @@ type CategoryRow = Database["public"]["Tables"]["categories"]["Row"];
 export interface ProductWithMedia extends ProductRow {
   product_images: ProductImageRow[];
   product_variants: ProductVariantRow[];
+  product_360_images: { id: string; angle_index: number; url: string }[];
   vendors: { id: string; store_name: string; slug: string; owner_id: string } | null;
 }
 
 const PRODUCT_WITH_MEDIA_SELECT =
-  "*, product_images(*), product_variants(*), vendors(id, store_name, slug, owner_id)";
+  "*, product_images(*), product_variants(*), product_360_images(id, angle_index, url), vendors(id, store_name, slug, owner_id)";
 
 /** Vendor's own products (any status), for the Products list dashboard page. */
 export async function listMyProducts(
   supabase: Client,
   vendorId: string,
-): Promise<(ProductRow & { product_images: ProductImageRow[]; product_variants: ProductVariantRow[] })[]> {
+): Promise<
+  (ProductRow & {
+    product_images: ProductImageRow[];
+    product_variants: ProductVariantRow[];
+    product_360_images: { id: string; angle_index: number; url: string }[];
+  })[]
+> {
   const { data, error } = await supabase
     .from("products")
-    .select("*, product_images(*), product_variants(*)")
+    .select("*, product_images(*), product_variants(*), product_360_images(id, angle_index, url)")
     .eq("vendor_id", vendorId)
     .order("created_at", { ascending: false });
   if (error) throw error;
-  return data as (ProductRow & {
+  return data as unknown as (ProductRow & {
     product_images: ProductImageRow[];
     product_variants: ProductVariantRow[];
+    product_360_images: { id: string; angle_index: number; url: string }[];
   })[];
 }
 
@@ -127,6 +135,84 @@ export async function uploadProductImage(
   if (error) throw error;
   const { data } = supabase.storage.from("product-media").getPublicUrl(path);
   return data.publicUrl;
+}
+
+/* ── optional 360° view: 8 photos taken around the product ─────────────── */
+
+type Product360ImageRow = Database["public"]["Tables"]["product_360_images"]["Row"];
+
+/** The 8 angles a 360° spin is built from, in rotation order. */
+export const PRODUCT_360_ANGLES: { index: number; label: string }[] = [
+  { index: 1, label: "Front" },
+  { index: 2, label: "Front Right" },
+  { index: 3, label: "Right" },
+  { index: 4, label: "Back Right" },
+  { index: 5, label: "Back" },
+  { index: 6, label: "Back Left" },
+  { index: 7, label: "Left" },
+  { index: 8, label: "Front Left" },
+];
+
+export async function list360Images(
+  supabase: Client,
+  productId: string,
+): Promise<Product360ImageRow[]> {
+  const { data, error } = await supabase
+    .from("product_360_images")
+    .select("*")
+    .eq("product_id", productId)
+    .order("angle_index");
+  if (error) throw error;
+  return data;
+}
+
+/** Uploads one angle into the existing `product-media` bucket, under a `360/`
+ *  sub-path so it never mixes with the normal gallery images. Storage RLS
+ *  keys off the first path segment (the product id), so it just works. */
+export async function upload360Image(
+  supabase: Client,
+  productId: string,
+  angleIndex: number,
+  file: File,
+): Promise<string> {
+  const ext = file.name.split(".").pop() ?? "jpg";
+  const path = `${productId}/360/${angleIndex}-${crypto.randomUUID()}.${ext}`;
+  const { error } = await supabase.storage.from("product-media").upload(path, file);
+  if (error) throw error;
+  const { data } = supabase.storage.from("product-media").getPublicUrl(path);
+  return data.publicUrl;
+}
+
+/** Sets (or replaces) the image for one angle. */
+export async function set360Image(
+  supabase: Client,
+  productId: string,
+  angleIndex: number,
+  url: string,
+): Promise<Product360ImageRow> {
+  const { data, error } = await supabase
+    .from("product_360_images")
+    .upsert(
+      { product_id: productId, angle_index: angleIndex, url },
+      { onConflict: "product_id,angle_index" },
+    )
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function remove360Image(
+  supabase: Client,
+  productId: string,
+  angleIndex: number,
+): Promise<void> {
+  const { error } = await supabase
+    .from("product_360_images")
+    .delete()
+    .eq("product_id", productId)
+    .eq("angle_index", angleIndex);
+  if (error) throw error;
 }
 
 /** A product's extra categories, beyond its primary category_id — lets it

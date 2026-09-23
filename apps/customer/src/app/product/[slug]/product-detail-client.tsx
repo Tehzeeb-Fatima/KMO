@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getProductBySlug,
@@ -17,7 +17,7 @@ import {
   askProductQuestion,
   listPublishedProducts,
 } from "@kmo/shared/api";
-import { Button, ProductCard } from "@kmo/shared/ui";
+import { Button, ProductCard, Product360Viewer } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "@/lib/supabase";
 import { ensureCustomerId } from "@/lib/ensure-customer-id";
@@ -47,6 +47,14 @@ export default function ProductDetailClient() {
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
   const [qty, setQty] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
+  const [galleryMode, setGalleryMode] = useState<"photos" | "360">("photos");
+
+  /** The 8 angle photos in rotation order — only a complete set is playable. */
+  const angles360 = useMemo(() => {
+    const rows = product?.product_360_images ?? [];
+    if (!product?.has_360_view || rows.length < 8) return [];
+    return [...rows].sort((a, b) => a.angle_index - b.angle_index).map((r) => r.url);
+  }, [product]);
 
   const selectedVariant = useMemo(() => {
     if (!product || product.product_variants.length === 0) return null;
@@ -217,6 +225,48 @@ export default function ProductDetailClient() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[500px_minmax(0,1fr)_316px] lg:items-start lg:gap-[26px]">
         {/* gallery */}
         <div>
+          {angles360.length > 0 ? (
+            <div className="mb-2.5 flex gap-2">
+              <button
+                type="button"
+                onClick={() => setGalleryMode("photos")}
+                className="rounded-full px-4 py-2 text-[12.5px] font-bold"
+                style={
+                  galleryMode === "photos"
+                    ? { background: "var(--color-primary)", color: "#fff" }
+                    : {
+                        background: "#fff",
+                        border: "1px solid var(--color-border)",
+                        color: "var(--color-primary)",
+                      }
+                }
+              >
+                Product Images
+              </button>
+              <button
+                type="button"
+                onClick={() => setGalleryMode("360")}
+                className="flex items-center gap-1.5 rounded-full px-4 py-2 text-[12.5px] font-bold"
+                style={
+                  galleryMode === "360"
+                    ? { background: "var(--color-primary)", color: "#fff" }
+                    : {
+                        background: "#fff",
+                        border: "1px solid var(--color-border)",
+                        color: "var(--color-primary)",
+                      }
+                }
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                360° View
+              </button>
+            </div>
+          ) : null}
+
+          {galleryMode === "360" && angles360.length > 0 ? (
+            <Product360Viewer images={angles360} />
+          ) : (
+          <>
           <div
             className="relative h-[260px] overflow-hidden rounded-[10px] border border-border bg-surface sm:h-[470px]"
             style={{
@@ -265,6 +315,8 @@ export default function ProductDetailClient() {
               ))}
             </div>
           ) : null}
+          </>
+          )}
         </div>
 
         {/* info */}

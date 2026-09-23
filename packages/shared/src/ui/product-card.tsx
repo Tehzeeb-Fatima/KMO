@@ -1,3 +1,4 @@
+import { RotateCcw } from "lucide-react";
 import { cn } from "../lib/utils";
 
 export interface ProductCardProps {
@@ -10,6 +11,8 @@ export interface ProductCardProps {
   rating?: number;
   soldCount?: number;
   cod?: boolean;
+  /** Shows a small "360°" badge — the viewer itself only loads on the detail page. */
+  has360?: boolean;
   LinkComponent?: React.ComponentType<{ href: string; className?: string; children: React.ReactNode }>;
   className?: string;
 }
@@ -40,6 +43,7 @@ export function ProductCard({
   rating,
   soldCount,
   cod = true,
+  has360 = false,
   LinkComponent = DefaultLink,
   className,
 }: ProductCardProps) {
@@ -80,6 +84,12 @@ export function ProductCard({
         {discountPct ? (
           <span className="rounded bg-accent px-[7px] py-1 text-[10.5px] font-bold text-white">
             -{discountPct}%
+          </span>
+        ) : null}
+        {has360 ? (
+          <span className="absolute right-2.5 top-2.5 flex items-center gap-1 rounded-full bg-black/60 px-2 py-[3px] text-[9.5px] font-bold text-white">
+            <RotateCcw className="h-2.5 w-2.5" />
+            360°
           </span>
         ) : null}
       </div>

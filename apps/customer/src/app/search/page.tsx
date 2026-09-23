@@ -190,6 +190,7 @@ function SearchPageContent() {
                     name={p.name}
                     price={p.price}
                     compareAtPrice={p.compare_at_price}
+                    has360={p.has_360_view}
                   />
                 ))}
             {!isLoading && products?.length === 0 ? (

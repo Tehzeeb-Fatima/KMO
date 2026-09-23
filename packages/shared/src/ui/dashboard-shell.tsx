@@ -1,4 +1,5 @@
 import * as React from "react";
+import { ChevronDown, LogOut } from "lucide-react";
 import { cn } from "../lib/utils";
 
 export interface DashboardNavItem {
@@ -124,17 +125,32 @@ export function DashboardShell({
           })}
         </nav>
 
+        {onSignOut ? (
+          <button
+            type="button"
+            onClick={onSignOut}
+            title="Sign out"
+            className={cn(
+              "mx-3 mt-4 flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium text-white/80 hover:bg-sidebar-primary/60",
+              collapsed && "justify-center px-0",
+            )}
+          >
+            <LogOut className="h-[18px] w-[18px] shrink-0" strokeWidth={2} />
+            {!collapsed && <span>Sign out</span>}
+          </button>
+        ) : null}
+
         <button
           type="button"
           onClick={() => setCollapsed((c) => !c)}
-          className="mx-3 mb-4 rounded-lg px-3 py-2 text-left text-xs font-medium text-sidebar-muted hover:bg-sidebar-primary/40"
+          className="mx-3 mb-4 mt-1 rounded-lg px-3 py-2 text-left text-xs font-medium text-sidebar-muted hover:bg-sidebar-primary/40"
         >
           {collapsed ? "→" : "← Collapse"}
         </button>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center justify-between border-b border-border bg-surface px-8 py-[18px]">
+        <header className="relative z-20 flex items-center justify-between border-b border-border bg-surface px-8 py-[18px]">
           <div>
             <h1 className="text-[19px] font-extrabold tracking-[-0.025em] text-ink">
               {title}
@@ -153,14 +169,18 @@ export function DashboardShell({
               onClick={() => setMenuOpen((v) => !v)}
               aria-haspopup="menu"
               aria-expanded={menuOpen}
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-bold text-white"
+              aria-label="Account menu"
+              className="flex items-center gap-1.5 rounded-full border border-border py-1 pl-1 pr-2 transition-colors hover:bg-surface-alt"
             >
-              {avatarInitials}
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">
+                {avatarInitials}
+              </span>
+              <ChevronDown className="h-3.5 w-3.5 text-muted" strokeWidth={2.5} />
             </button>
             {menuOpen && onSignOut ? (
               <div
                 role="menu"
-                className="absolute right-0 top-[calc(100%+8px)] w-40 overflow-hidden rounded-lg border border-border bg-surface shadow-lg"
+                className="absolute right-0 top-[calc(100%+8px)] z-50 w-40 overflow-hidden rounded-lg border border-border bg-surface shadow-lg"
               >
                 <button
                   type="button"

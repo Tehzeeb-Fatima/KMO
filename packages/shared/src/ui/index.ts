@@ -8,3 +8,5 @@ export * from "./status-badge";
 export * from "./dashboard-shell";
 export * from "./product-card";
 export * from "./notification-bell";
+export * from "./product-360-uploader";
+export * from "./product-360-viewer";

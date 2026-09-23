@@ -341,6 +341,7 @@ export interface Database {
           low_stock_threshold: number;
           seo_title: string | null;
           seo_description: string | null;
+          has_360_view: boolean;
           created_at: string;
         };
         Insert: {
@@ -361,6 +362,7 @@ export interface Database {
           low_stock_threshold?: number;
           seo_title?: string | null;
           seo_description?: string | null;
+          has_360_view?: boolean;
           created_at?: string;
         };
         Update: {
@@ -381,6 +383,31 @@ export interface Database {
           low_stock_threshold?: number;
           seo_title?: string | null;
           seo_description?: string | null;
+          has_360_view?: boolean;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      product_360_images: {
+        Row: {
+          id: string;
+          product_id: string;
+          angle_index: number;
+          url: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          product_id: string;
+          angle_index: number;
+          url: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          product_id?: string;
+          angle_index?: number;
+          url?: string;
           created_at?: string;
         };
         Relationships: [];

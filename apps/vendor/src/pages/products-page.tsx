@@ -9,14 +9,17 @@ import {
   listMyProducts,
   listProductCategories,
   listVendorCategories,
+  remove360Image,
   removeProductImage,
   removeProductVariant,
+  set360Image,
   setProductCategories,
   updateProduct,
+  upload360Image,
   uploadProductImage,
 } from "@kmo/shared/api";
 import type { ProductStatus } from "@kmo/shared/types";
-import { ConfirmDialog } from "@kmo/shared/ui";
+import { ConfirmDialog, Product360Uploader } from "@kmo/shared/ui";
 import { supabase } from "../lib/supabase";
 
 const STATUS_TABS: { label: string; value: ProductStatus | "all" }[] = [
@@ -348,6 +351,9 @@ function ProductForm({
   const [lowStockThreshold, setLowStockThreshold] = useState("15");
   const [seoTitle, setSeoTitle] = useState("");
   const [seoDescription, setSeoDescription] = useState("");
+  const [has360, setHas360] = useState(false);
+  const [images360, setImages360] = useState<Record<number, string>>({});
+  const [error360, setError360] = useState<string | null>(null);
 
   useEffect(() => {
     if (!product) return;
@@ -373,6 +379,10 @@ function ProductForm({
     setLowStockThreshold(String(product.low_stock_threshold ?? 15));
     setSeoTitle(product.seo_title ?? "");
     setSeoDescription(product.seo_description ?? "");
+    setHas360(product.has_360_view);
+    setImages360(
+      Object.fromEntries((product.product_360_images ?? []).map((i) => [i.angle_index, i.url])),
+    );
   }, [product]);
 
   useEffect(() => {
@@ -392,6 +402,10 @@ function ProductForm({
 
   const saveMutation = useMutation({
     mutationFn: async () => {
+      // 360° is optional, but once it's switched on all 8 angles must be there.
+      if (has360 && Object.keys(images360).length < 8) {
+        throw new Error("Upload all 8 angles, or switch 360° view off to save.");
+      }
       const categoryIdList = Array.from(categoryIds);
       const payload = {
         name,
@@ -419,6 +433,7 @@ function ProductForm({
         low_stock_threshold: Number(lowStockThreshold) || 15,
         seo_title: seoTitle || null,
         seo_description: seoDescription || null,
+        has_360_view: has360,
       };
       let savedId = currentProductId;
       if (currentProductId) {
@@ -438,9 +453,41 @@ function ProductForm({
       return savedId;
     },
     onSuccess: () => {
+      setError360(null);
       queryClient.invalidateQueries({ queryKey: ["my-products", vendorId] });
       onBack();
     },
+    onError: (err: Error) => setError360(err.message),
+  });
+
+  const upload360Mutation = useMutation({
+    mutationFn: async ({ angleIndex, file }: { angleIndex: number; file: File }) => {
+      if (!currentProductId) throw new Error("Save the product before adding 360° photos.");
+      const url = await upload360Image(supabase, currentProductId, angleIndex, file);
+      await set360Image(supabase, currentProductId, angleIndex, url);
+      return { angleIndex, url };
+    },
+    onSuccess: ({ angleIndex, url }) => {
+      setImages360((prev) => ({ ...prev, [angleIndex]: url }));
+      setError360(null);
+    },
+    onError: (err: Error) => setError360(err.message),
+  });
+
+  const remove360Mutation = useMutation({
+    mutationFn: async (angleIndex: number) => {
+      if (!currentProductId) throw new Error("Nothing to remove yet.");
+      await remove360Image(supabase, currentProductId, angleIndex);
+      return angleIndex;
+    },
+    onSuccess: (angleIndex) => {
+      setImages360((prev) => {
+        const next = { ...prev };
+        delete next[angleIndex];
+        return next;
+      });
+    },
+    onError: (err: Error) => setError360(err.message),
   });
 
   const uploadMutation = useMutation({
@@ -696,6 +743,21 @@ function ProductForm({
               />
             </div>
           </FormField>
+
+          <Product360Uploader
+            images={images360}
+            enabled={has360}
+            onToggle={setHas360}
+            onUpload={(angleIndex, file) => upload360Mutation.mutate({ angleIndex, file })}
+            onRemove={(angleIndex) => remove360Mutation.mutate(angleIndex)}
+            uploadingAngle={
+              upload360Mutation.isPending ? upload360Mutation.variables?.angleIndex : null
+            }
+            disabledReason={
+              currentProductId ? undefined : "Save the product first, then add 360° photos."
+            }
+            error={error360}
+          />
 
           <FormField label="Variants (e.g. Color, Size)">
             {!currentProductId ? (
