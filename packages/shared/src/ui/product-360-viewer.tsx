@@ -1,4 +1,5 @@
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { ChevronLeft, ChevronRight, Maximize2, Pause, Play, RotateCcw, X } from "lucide-react";
 
 /** One full drag across the viewer width = one full revolution, so the product
@@ -85,6 +86,21 @@ export function Product360Viewer({
     return () => clearInterval(id);
   }, [autoRotate, dragging, ready]);
 
+  // Full screen: lock the page behind it and let Escape close it.
+  React.useEffect(() => {
+    if (!fullscreen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setFullscreen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [fullscreen]);
+
   /** Frames moved per pixel of horizontal drag. */
   function framesPerPixel() {
     const width = boxRef.current?.clientWidth ?? 1;
@@ -107,6 +123,11 @@ export function Product360Viewer({
 
   if (count === 0) return null;
 
+  /* The controls sit inside the drag surface, so their pointerdown would
+     otherwise bubble into it — which cancelled auto-rotate and flagged a drag
+     on every button press, leaving "Stop" unable to actually stop. */
+  const stopPointer = (e: React.PointerEvent) => e.stopPropagation();
+
   const viewer = (
     <div
       ref={boxRef}
@@ -114,8 +135,8 @@ export function Product360Viewer({
       aria-label="360 degree product view"
       className={
         fullscreen
-          ? "relative h-full w-full touch-pan-y select-none overflow-hidden bg-black"
-          : "relative h-[260px] touch-pan-y select-none overflow-hidden rounded-[10px] border border-border bg-surface sm:h-[470px]"
+          ? "relative h-full w-full touch-none select-none overflow-hidden bg-black"
+          : "relative h-[260px] touch-none select-none overflow-hidden rounded-[10px] border border-border bg-surface sm:h-[470px]"
       }
       style={{ cursor: dragging ? "grabbing" : "grab" }}
       onPointerDown={(e) => {
@@ -175,6 +196,7 @@ export function Product360Viewer({
       <button
         type="button"
         aria-label="Rotate left"
+        onPointerDown={stopPointer}
         onClick={() => {
           stopInertia();
           setPosition((p) => p - 1);
@@ -186,6 +208,7 @@ export function Product360Viewer({
       <button
         type="button"
         aria-label="Rotate right"
+        onPointerDown={stopPointer}
         onClick={() => {
           stopInertia();
           setPosition((p) => p + 1);
@@ -205,6 +228,7 @@ export function Product360Viewer({
       <button
         type="button"
         aria-label={fullscreen ? "Exit full screen" : "View full screen"}
+        onPointerDown={stopPointer}
         onClick={() => setFullscreen((v) => !v)}
         className="absolute right-2.5 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-ink shadow hover:bg-white"
       >
@@ -214,6 +238,7 @@ export function Product360Viewer({
       <div className="absolute bottom-2.5 left-1/2 flex -translate-x-1/2 items-center gap-2">
         <button
           type="button"
+          onPointerDown={stopPointer}
           onClick={() => {
             stopInertia();
             setAutoRotate((v) => !v);
@@ -231,10 +256,13 @@ export function Product360Viewer({
   );
 
   if (fullscreen) {
-    return (
-      <div className="fixed inset-0 z-[100] bg-black p-2 sm:p-6">
+    /* Portalled to <body>: any ancestor with a transform/filter would otherwise
+       become the containing block for position:fixed and trap the overlay. */
+    return createPortal(
+      <div className="fixed inset-0 z-[200] bg-black p-2 sm:p-6">
         <div className="h-full w-full">{viewer}</div>
-      </div>
+      </div>,
+      document.body,
     );
   }
 

@@ -1,12 +1,16 @@
 import * as React from "react";
-import { RotateCcw } from "lucide-react";
+import { RotateCcw, Video } from "lucide-react";
 import {
   MAX_360_FRAMES,
   MIN_360_FRAMES,
   PRODUCT_360_ANGLES,
   RECOMMENDED_360_FRAMES,
 } from "../api/products";
+import { extractVideoFrames } from "../lib/extract-video-frames";
 import { cn } from "../lib/utils";
+
+/** Frames pulled from a clip — enough for a smooth spin without a huge upload. */
+const FRAMES_FROM_VIDEO = 32;
 
 export interface Product360Frame {
   angleIndex: number;
@@ -68,6 +72,9 @@ export function Product360Uploader({
 }: Product360UploaderProps) {
   const [open, setOpen] = React.useState(enabled);
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const videoInputRef = React.useRef<HTMLInputElement>(null);
+  const [videoStatus, setVideoStatus] = React.useState<string | null>(null);
+  const [videoError, setVideoError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     if (enabled) setOpen(true);
@@ -75,6 +82,23 @@ export function Product360Uploader({
 
   const count = frames.length;
   const remaining = MAX_360_FRAMES - count;
+
+  async function handleVideo(file: File) {
+    setVideoError(null);
+    setVideoStatus("Reading video…");
+    try {
+      const wanted = Math.min(FRAMES_FROM_VIDEO, remaining);
+      const extracted = await extractVideoFrames(file, {
+        frameCount: wanted,
+        onProgress: (done, total) => setVideoStatus(`Making frame ${done} of ${total}…`),
+      });
+      setVideoStatus(null);
+      onAddFrames(extracted);
+    } catch (err) {
+      setVideoStatus(null);
+      setVideoError(err instanceof Error ? err.message : "Couldn't read that video.");
+    }
+  }
 
   if (!open) {
     return (
@@ -119,10 +143,11 @@ export function Product360Uploader({
       </div>
 
       <p className="rounded-lg bg-white px-3.5 py-2.5 text-[11.5px] leading-[1.6] text-muted">
-        <span className="font-bold text-ink-dark">How many photos?</span>{" "}
-        {MIN_360_FRAMES} is the minimum, <strong>{RECOMMENDED_360_FRAMES} or more</strong> gives
-        the smooth turntable spin. Keep the product still and move around it in equal steps,
-        with the same lighting, background and distance in every shot — no special camera needed.
+        <span className="font-bold text-ink-dark">Easiest way — record a video.</span> Put the
+        product on a stool or turntable and take a steady {5}–{10} second clip all the way
+        around it. We&rsquo;ll cut the clip into {FRAMES_FROM_VIDEO} frames for you. A smooth,
+        even pan gives a far better spin than {RECOMMENDED_360_FRAMES} photos taken by hand —
+        and it&rsquo;s one upload instead of {RECOMMENDED_360_FRAMES}.
       </p>
 
       {disabledReason ? (
@@ -172,9 +197,32 @@ export function Product360Uploader({
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
-              disabled={uploading || remaining <= 0}
+              disabled={uploading || !!videoStatus || remaining <= 0}
+              onClick={() => videoInputRef.current?.click()}
+              className="flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-[12.5px] font-bold text-white disabled:opacity-60"
+            >
+              <Video className="h-3.5 w-3.5" />
+              {videoStatus ?? "Upload a video"}
+            </button>
+            <input
+              ref={videoInputRef}
+              type="file"
+              accept="video/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) void handleVideo(file);
+                e.target.value = "";
+              }}
+            />
+
+            <span className="text-[11.5px] text-muted-table">or</span>
+
+            <button
+              type="button"
+              disabled={uploading || !!videoStatus || remaining <= 0}
               onClick={() => inputRef.current?.click()}
-              className="rounded-lg bg-primary px-4 py-2 text-[12.5px] font-bold text-white disabled:opacity-60"
+              className="rounded-lg border border-border bg-white px-4 py-2 text-[12.5px] font-bold text-primary disabled:opacity-60"
             >
               {uploading
                 ? "Uploading…"
@@ -205,6 +253,16 @@ export function Product360Uploader({
               }}
             />
           </div>
+
+          {videoStatus ? (
+            <p className="text-[11.5px] text-muted">
+              Cutting your clip into frames — this happens in your browser, so nothing is
+              uploaded until it finishes.
+            </p>
+          ) : null}
+          {videoError ? (
+            <p className="text-[12px] font-semibold text-danger">{videoError}</p>
+          ) : null}
 
           {count > 0 ? (
             <div className="grid grid-cols-4 gap-2 sm:grid-cols-8">
