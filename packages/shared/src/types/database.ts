@@ -972,9 +972,70 @@ export interface Database {
         };
         Relationships: [];
       };
+      promotions: {
+        Row: {
+          id: string;
+          title: string;
+          subtitle: string | null;
+          image_url: string | null;
+          vendor_id: string | null;
+          category_id: string | null;
+          /** 'percentage' → discount_value is % off. 'fixed' → it's the sale price. */
+          discount_type: "percentage" | "fixed";
+          discount_value: number;
+          starts_at: string;
+          ends_at: string;
+          is_active: boolean;
+          sort_order: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          subtitle?: string | null;
+          image_url?: string | null;
+          vendor_id?: string | null;
+          category_id?: string | null;
+          discount_type: "percentage" | "fixed";
+          discount_value: number;
+          starts_at?: string;
+          ends_at: string;
+          is_active?: boolean;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          title?: string;
+          subtitle?: string | null;
+          image_url?: string | null;
+          vendor_id?: string | null;
+          category_id?: string | null;
+          discount_type?: "percentage" | "fixed";
+          discount_value?: number;
+          starts_at?: string;
+          ends_at?: string;
+          is_active?: boolean;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      top_categories: {
+        Args: { limit_count?: number };
+        Returns: {
+          id: string;
+          name: string;
+          slug: string;
+          image_url: string | null;
+          sold_count: number;
+          product_count: number;
+        }[];
+      };
+    };
     Enums: {
       user_role: UserRole;
       vendor_verification_status: VendorVerificationStatus;

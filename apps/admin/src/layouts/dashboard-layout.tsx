@@ -20,6 +20,7 @@ const TITLES: Record<string, { title: string; subtitle?: string }> = {
   "/payouts": { title: "Payouts", subtitle: "Vendor payouts and commission" },
   "/categories": { title: "Categories", subtitle: "Storefront category tree" },
   "/couriers": { title: "Couriers", subtitle: "Courier fee slabs by city and weight" },
+  "/promotions": { title: "Promotions", subtitle: "Homepage deals with a countdown" },
   "/returns": { title: "Returns", subtitle: "Review return requests" },
   "/reviews": { title: "Reviews", subtitle: "Review moderation" },
   "/contact-messages": { title: "Contact requests", subtitle: "Messages from the contact form" },

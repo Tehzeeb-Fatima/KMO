@@ -4,14 +4,17 @@ import { useState } from "react";
 import Link from "next/link";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
+  listActivePromotions,
   listCategories,
   listPublishedProducts,
+  listTopCategories,
   listVendors,
   listRecentReviews,
   getSiteRatingSummary,
   submitContactMessage,
+  type TopCategory,
 } from "@kmo/shared/api";
-import { ProductCard } from "@kmo/shared/ui";
+import { Countdown, ProductCard } from "@kmo/shared/ui";
 import { supabase } from "@/lib/supabase";
 
 export default function Home() {
@@ -34,6 +37,14 @@ export default function Home() {
   const { data: recentReviews } = useQuery({
     queryKey: ["recent-reviews"],
     queryFn: () => listRecentReviews(supabase, 3),
+  });
+  const { data: promotions } = useQuery({
+    queryKey: ["active-promotions"],
+    queryFn: () => listActivePromotions(supabase, 6),
+  });
+  const { data: topCategories } = useQuery({
+    queryKey: ["top-categories"],
+    queryFn: () => listTopCategories(supabase, 3),
   });
 
   const vendorOfWeek = vendors?.[0];
@@ -159,6 +170,14 @@ export default function Home() {
           </div>
         </section>
       ) : null}
+
+      {/* limited-time promotions, admin-managed */}
+      <PromotionsSection promotions={promotions} />
+
+      {/* the three busiest categories, ranked by units sold */}
+      {(topCategories ?? []).map((category) => (
+        <TopCategorySection key={category.id} category={category} />
+      ))}
 
       {/* featured vendors — 3 col */}
       <section id="featured-vendors" className="px-4 pt-8 sm:px-10">
@@ -295,6 +314,150 @@ export default function Home() {
       {/* contact form */}
       <ContactSection />
     </main>
+  );
+}
+
+function PromotionsSection({
+  promotions,
+}: {
+  promotions: Awaited<ReturnType<typeof listActivePromotions>> | undefined;
+}) {
+  // A deal whose timer runs out while the page is open drops out immediately.
+  const [expired, setExpired] = useState<Record<string, true>>({});
+  const live = (promotions ?? []).filter((p) => !expired[p.id]);
+
+  if (live.length === 0) return null;
+
+  return (
+    <section className="px-4 pt-8 sm:px-10">
+      <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+        <div>
+          <h2 className="text-xl font-bold tracking-[-0.025em] text-ink sm:text-[21px]">
+            Limited-time deals
+          </h2>
+          <p className="text-[13.5px] text-muted">Grab them before the timer runs out</p>
+        </div>
+        <Link href="/search" className="shrink-0 text-[13px] font-bold text-accent">
+          Shop all →
+        </Link>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {live.map((promo) => {
+          const href = promo.vendors
+            ? `/store/${promo.vendors.slug}`
+            : promo.category_id
+              ? `/search?category=${promo.category_id}`
+              : "/search";
+          return (
+            <Link
+              key={promo.id}
+              href={href}
+              className="group relative flex min-h-[210px] flex-col justify-between overflow-hidden rounded-xl border border-border bg-primary p-5 sm:min-h-[230px]"
+              style={
+                promo.image_url
+                  ? {
+                      backgroundImage: `linear-gradient(to top, rgba(28,10,42,0.92) 0%, rgba(28,10,42,0.55) 55%, rgba(28,10,42,0.25) 100%), url(${promo.image_url})`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                    }
+                  : undefined
+              }
+            >
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="rounded-full bg-accent px-2.5 py-1 text-[11px] font-extrabold text-white">
+                    {promo.discount_type === "percentage"
+                      ? `${Number(promo.discount_value)}% OFF`
+                      : `Rs. ${Number(promo.discount_value).toLocaleString()}`}
+                  </span>
+                  {promo.categories ? (
+                    <span className="rounded-full bg-white/15 px-2.5 py-1 font-mono text-[9.5px] uppercase tracking-[0.1em] text-white/90">
+                      {promo.categories.name}
+                    </span>
+                  ) : null}
+                </div>
+                <h3 className="text-[19px] font-extrabold leading-[1.2] tracking-[-0.02em] text-white sm:text-[21px]">
+                  {promo.title}
+                </h3>
+                {promo.subtitle ? (
+                  <p className="line-clamp-2 text-[13px] leading-[1.5] text-white/80">
+                    {promo.subtitle}
+                  </p>
+                ) : null}
+                {promo.vendors ? (
+                  <p className="text-[11.5px] font-semibold text-accent-tint">
+                    {promo.vendors.store_name}
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="mt-4 flex flex-wrap items-end justify-between gap-2">
+                <div className="flex flex-col gap-1">
+                  <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-white/60">
+                    Ends in
+                  </span>
+                  <Countdown
+                    endsAt={promo.ends_at}
+                    onExpire={() => setExpired((prev) => ({ ...prev, [promo.id]: true }))}
+                  />
+                </div>
+                <span className="text-[12.5px] font-bold text-white group-hover:underline">
+                  Shop now →
+                </span>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function TopCategorySection({ category }: { category: TopCategory }) {
+  const { data: products } = useQuery({
+    queryKey: ["top-category-products", category.id],
+    queryFn: () => listPublishedProducts(supabase, { categoryId: category.id, limit: 4 }),
+  });
+
+  if (!products || products.length === 0) return null;
+
+  return (
+    <section className="px-4 pt-8 sm:px-10">
+      <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+        <div>
+          <h2 className="text-xl font-bold tracking-[-0.025em] text-ink sm:text-[21px]">
+            Top in {category.name}
+          </h2>
+          <p className="text-[13.5px] text-muted">
+            {category.sold_count > 0
+              ? `${category.sold_count.toLocaleString()} sold by Karachi shoppers`
+              : "Popular with Karachi shoppers"}
+          </p>
+        </div>
+        <Link
+          href={`/search?category=${category.id}`}
+          className="shrink-0 text-[13px] font-bold text-accent"
+        >
+          See all →
+        </Link>
+      </div>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {products.map((p) => (
+          <ProductCard
+            key={p.id}
+            href={`/product/${p.slug}`}
+            LinkComponent={Link}
+            imageUrl={p.product_images[0]?.url}
+            vendorName={p.vendors?.store_name}
+            name={p.name}
+            price={p.price}
+            compareAtPrice={p.compare_at_price}
+            has360={p.has_360_view}
+          />
+        ))}
+      </div>
+    </section>
   );
 }
 

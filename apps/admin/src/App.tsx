@@ -10,6 +10,7 @@ import { SettingsPage } from "./pages/settings-page";
 import { ReturnsPage } from "./pages/returns-page";
 import { CategoriesPage } from "./pages/categories-page";
 import { CouriersPage } from "./pages/couriers-page";
+import { PromotionsPage } from "./pages/promotions-page";
 import { OverviewPage } from "./pages/overview-page";
 import { CustomersPage } from "./pages/customers-page";
 import { ProductsModerationPage } from "./pages/products-page";
@@ -37,6 +38,7 @@ export default function App() {
         <Route path="payouts" element={<PayoutsPage />} />
         <Route path="categories" element={<CategoriesPage />} />
         <Route path="couriers" element={<CouriersPage />} />
+        <Route path="promotions" element={<PromotionsPage />} />
         <Route path="returns" element={<ReturnsPage />} />
         <Route path="reviews" element={<ReviewsPage />} />
         <Route path="contact-messages" element={<ContactMessagesPage />} />
