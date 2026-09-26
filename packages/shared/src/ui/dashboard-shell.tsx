@@ -37,6 +37,7 @@ export function DashboardShell({
   avatarInitials,
   onSignOut,
   headerRight,
+  homeUrl,
   LinkComponent = DefaultLink,
   children,
 }: {
@@ -55,6 +56,8 @@ export function DashboardShell({
   onSignOut?: () => void;
   /** Rendered in the header, just before the avatar (e.g. a notification bell). */
   headerRight?: React.ReactNode;
+  /** Where the sidebar logo/brand goes when clicked — the main storefront. */
+  homeUrl?: string;
   LinkComponent?: React.ComponentType<DashboardLinkProps>;
   children: React.ReactNode;
 }) {
@@ -81,7 +84,11 @@ export function DashboardShell({
           collapsed ? "w-[68px]" : "w-[232px]",
         )}
       >
-        <div className="flex items-center gap-2 px-5 py-5">
+        <a
+          href={homeUrl ?? "/"}
+          title="Go to the storefront"
+          className="flex items-center gap-2 px-5 py-5 hover:opacity-85"
+        >
           {logoSrc ? (
             <span className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-[#f5ece2]">
               <img src={logoSrc} alt={brand} className="h-full w-full object-cover" />
@@ -96,7 +103,7 @@ export function DashboardShell({
               Karachi Mart
             </span>
           )}
-        </div>
+        </a>
 
         <nav className="flex flex-1 flex-col gap-1 px-3">
           {navItems.map((item) => {

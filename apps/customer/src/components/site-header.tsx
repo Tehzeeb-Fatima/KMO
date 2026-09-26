@@ -9,6 +9,9 @@ import { listCartItems, listCategories } from "@kmo/shared/api";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "@/lib/supabase";
 
+const VENDOR_URL = process.env.NEXT_PUBLIC_VENDOR_URL ?? "https://vendor.karachimartonline.com";
+const ADMIN_URL = process.env.NEXT_PUBLIC_ADMIN_URL ?? "https://admin.karachimartonline.com";
+
 export function SiteHeader() {
   const router = useRouter();
   const { user, profile } = useAuth();
@@ -25,6 +28,22 @@ export function SiteHeader() {
   });
 
   const cartCount = cartItems?.reduce((sum, i) => sum + i.quantity, 0) ?? 0;
+
+  const loggedIn = !!user && !user.is_anonymous;
+  const accountHref = !loggedIn
+    ? "/login"
+    : profile?.role === "admin"
+      ? ADMIN_URL
+      : profile?.role === "vendor"
+        ? VENDOR_URL
+        : "/account";
+  const accountLabel = !loggedIn
+    ? "Sign in"
+    : profile?.role === "admin"
+      ? "Admin dashboard"
+      : profile?.role === "vendor"
+        ? "Vendor dashboard"
+        : (profile?.full_name?.split(" ")[0] ?? "Account");
 
   function handleSearch(e: FormEvent) {
     e.preventDefault();
@@ -78,13 +97,11 @@ export function SiteHeader() {
           </div>
 
           <Link
-            href={user && !user.is_anonymous ? "/account" : "/login"}
+            href={accountHref}
             className="flex shrink-0 items-center gap-1.5 text-[13.5px] font-semibold text-primary"
           >
             <User className="h-[18px] w-[18px]" strokeWidth={2} />
-            <span className="hidden sm:inline">
-              {user && !user.is_anonymous ? (profile?.full_name?.split(" ")[0] ?? "Account") : "Sign in"}
-            </span>
+            <span className="hidden sm:inline">{accountLabel}</span>
           </Link>
 
           <Link

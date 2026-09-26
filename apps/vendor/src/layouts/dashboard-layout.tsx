@@ -11,6 +11,8 @@ import { VENDOR_NAV_ITEMS } from "../dashboard-nav";
 import kmoIcon from "../assets/kmo-icon.png";
 import { supabase } from "../lib/supabase";
 
+const CUSTOMER_URL = import.meta.env.VITE_CUSTOMER_URL ?? "https://karachimartonline.com";
+
 const TITLES: Record<string, { title: string; subtitle?: string }> = {
   "/": { title: "Overview", subtitle: "Your store at a glance" },
   "/profile": { title: "My profile", subtitle: "Your account details" },
@@ -83,6 +85,7 @@ export function DashboardLayout() {
       avatarInitials={initials || "V"}
       onSignOut={() => void signOut()}
       headerRight={<HeaderNotifications />}
+      homeUrl={CUSTOMER_URL}
       LinkComponent={NavLink}
     >
       <Outlet />
