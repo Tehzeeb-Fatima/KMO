@@ -11,6 +11,7 @@ export interface CartItemWithProduct extends CartItemRow {
     price: number;
     stock_quantity: number;
     vendor_id: string;
+    category_id: string | null;
     vendors: { id: string; store_name: string } | null;
     product_images: { url: string; sort_order: number }[];
   };
@@ -24,7 +25,7 @@ export interface CartItemWithProduct extends CartItemRow {
 }
 
 const CART_SELECT =
-  "*, products(id, name, price, stock_quantity, vendor_id, vendors(id, store_name), product_images(url, sort_order)), product_variants(id, option_name, option_value, price_override, stock_quantity)";
+  "*, products(id, name, price, stock_quantity, vendor_id, category_id, vendors(id, store_name), product_images(url, sort_order)), product_variants(id, option_name, option_value, price_override, stock_quantity)";
 
 export async function listCartItems(supabase: Client): Promise<CartItemWithProduct[]> {
   const { data, error } = await supabase

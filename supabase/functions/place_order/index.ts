@@ -71,7 +71,7 @@ Deno.serve(async (req: Request) => {
   const { data: cartItems, error: cartError } = await admin
     .from("cart_items")
     .select(
-      "id, quantity, product_id, variant_id, products(id, name, price, stock_quantity, vendor_id, status), product_variants(id, option_name, option_value, price_override, stock_quantity)",
+      "id, quantity, product_id, variant_id, products(id, name, price, stock_quantity, vendor_id, category_id, status), product_variants(id, option_name, option_value, price_override, stock_quantity)",
     )
     .eq("customer_id", user.id);
 
@@ -88,6 +88,7 @@ Deno.serve(async (req: Request) => {
       price: number;
       stock_quantity: number;
       vendor_id: string;
+      category_id: string | null;
       status: string;
     } | null;
     if (!product || product.status !== "published") {
@@ -144,6 +145,27 @@ Deno.serve(async (req: Request) => {
     }
   }
 
+  // Admin-managed promotions ("20% off Electronics" etc) apply automatically —
+  // no code needed. Fetched once and matched per vendor group below.
+  const nowIso = new Date().toISOString();
+  const { data: activePromotions } = await admin
+    .from("promotions")
+    .select(
+      "id, vendor_id, category_id, discount_type, discount_value, funded_by, vendor_funded_percent, max_discount_amount, min_order_amount",
+    )
+    .eq("is_active", true)
+    .lte("starts_at", nowIso)
+    .gt("ends_at", nowIso);
+
+  function promotionUnitDiscount(
+    promo: { discount_type: string; discount_value: number },
+    unitPrice: number,
+  ): number {
+    if (promo.discount_type === "percentage") return unitPrice * (promo.discount_value / 100);
+    // 'fixed' → discount_value is the sale price, not an amount to subtract.
+    return Math.max(0, unitPrice - promo.discount_value);
+  }
+
   const checkoutGroup = crypto.randomUUID();
   const createdOrders: { id: string; order_number: string; vendor_id: string; total: number }[] =
     [];
@@ -158,7 +180,51 @@ Deno.serve(async (req: Request) => {
       return sum + unitPrice * item.quantity;
     }, 0);
     const deliveryFee = deliveryFeeFor(subtotal);
-    const appliesHere = coupon && coupon.vendor_id === vendorId;
+
+    // Pick the best-matching promotion for this vendor's items, if any. A
+    // promo can be scoped to a vendor and/or a category — both null means
+    // "sitewide". When several match, the one giving the bigger discount wins.
+    let bestPromo: {
+      id: string;
+      vendor_id: string | null;
+      category_id: string | null;
+      discount_type: string;
+      discount_value: number;
+      funded_by: string;
+      vendor_funded_percent: number;
+      max_discount_amount: number | null;
+      min_order_amount: number | null;
+    } | null = null;
+    let bestPromoDiscount = 0;
+    for (const promo of activePromotions ?? []) {
+      if (promo.vendor_id && promo.vendor_id !== vendorId) continue;
+      if (promo.min_order_amount && subtotal < promo.min_order_amount) continue;
+      let raw = 0;
+      for (const item of items) {
+        const product = item.products as unknown as { price: number; category_id: string | null };
+        if (promo.category_id && promo.category_id !== product.category_id) continue;
+        const variant = item.product_variants as unknown as { price_override: number | null } | null;
+        const unitPrice = variant?.price_override ?? product.price;
+        raw += promotionUnitDiscount(promo, unitPrice) * item.quantity;
+      }
+      if (raw <= 0) continue;
+      const capped = promo.max_discount_amount ? Math.min(raw, promo.max_discount_amount) : raw;
+      if (capped > bestPromoDiscount) {
+        bestPromoDiscount = capped;
+        bestPromo = promo;
+      }
+    }
+    const promotionDiscountAmount = Math.round(bestPromoDiscount * 100) / 100;
+    const vendorFundedPercent = bestPromo?.vendor_funded_percent ?? 0;
+    const promotionVendorFundedAmount =
+      Math.round(promotionDiscountAmount * (vendorFundedPercent / 100) * 100) / 100;
+    const promotionKmoFundedAmount =
+      Math.round((promotionDiscountAmount - promotionVendorFundedAmount) * 100) / 100;
+
+    // A promotion and a manually-entered coupon don't stack for the same
+    // vendor — whichever the customer already qualifies for via the
+    // promotion takes priority, so a coupon code can't silently double-discount.
+    const appliesHere = coupon && coupon.vendor_id === vendorId && !bestPromo;
     const discountAmount = appliesHere
       ? Math.min(
           subtotal,
@@ -167,7 +233,7 @@ Deno.serve(async (req: Request) => {
             : coupon!.amount,
         )
       : 0;
-    const total = subtotal + deliveryFee - discountAmount;
+    const total = subtotal + deliveryFee - discountAmount - promotionDiscountAmount;
     const orderNumber = await generateOrderNumber(admin);
 
     const { data: vendorRow } = await admin
@@ -176,8 +242,11 @@ Deno.serve(async (req: Request) => {
       .eq("id", vendorId)
       .maybeSingle();
     const commissionRate = vendorRow?.commission_rate ?? defaultCommissionRate;
+    // Commission is always on the pre-discount price — on every promotion
+    // model. A vendor's commission never moves because of a promotion, only
+    // their net payout does (via promotionVendorFundedAmount below).
     const commissionAmount = Math.round(subtotal * (commissionRate / 100) * 100) / 100;
-    const netAmount = subtotal - commissionAmount;
+    const netAmount = subtotal - commissionAmount - promotionVendorFundedAmount;
 
     const { data: order, error: orderError } = await admin
       .from("orders")
@@ -196,6 +265,10 @@ Deno.serve(async (req: Request) => {
         net_amount: netAmount,
         coupon_code: appliesHere ? coupon!.code : null,
         discount_amount: discountAmount,
+        promotion_id: bestPromo?.id ?? null,
+        promotion_discount_amount: promotionDiscountAmount,
+        promotion_kmo_funded_amount: promotionKmoFundedAmount,
+        promotion_vendor_funded_amount: promotionVendorFundedAmount,
       })
       .select("id, order_number, vendor_id, total")
       .single();

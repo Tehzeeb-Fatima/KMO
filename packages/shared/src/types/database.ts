@@ -562,6 +562,10 @@ export interface Database {
           payout_id: string | null;
           coupon_code: string | null;
           discount_amount: number;
+          promotion_id: string | null;
+          promotion_discount_amount: number;
+          promotion_kmo_funded_amount: number;
+          promotion_vendor_funded_amount: number;
           created_at: string;
         };
         Insert: {
@@ -582,6 +586,10 @@ export interface Database {
           payout_id?: string | null;
           coupon_code?: string | null;
           discount_amount?: number;
+          promotion_id?: string | null;
+          promotion_discount_amount?: number;
+          promotion_kmo_funded_amount?: number;
+          promotion_vendor_funded_amount?: number;
           created_at?: string;
         };
         Update: {
@@ -602,6 +610,10 @@ export interface Database {
           payout_id?: string | null;
           coupon_code?: string | null;
           discount_amount?: number;
+          promotion_id?: string | null;
+          promotion_discount_amount?: number;
+          promotion_kmo_funded_amount?: number;
+          promotion_vendor_funded_amount?: number;
           created_at?: string;
         };
         Relationships: [];
@@ -987,6 +999,15 @@ export interface Database {
           ends_at: string;
           is_active: boolean;
           sort_order: number;
+          /** Who absorbs the discount at checkout. */
+          funded_by: "kmo" | "vendor" | "shared";
+          /** The vendor's share of the discount, 0-100. Always 0 for 'kmo',
+           *  always 100 for 'vendor'; only meaningful to set for 'shared'. */
+          vendor_funded_percent: number;
+          /** Caps KMO/vendor exposure per order — e.g. "20% off, up to Rs. 300". */
+          max_discount_amount: number | null;
+          /** Order must reach this pre-discount subtotal to qualify. */
+          min_order_amount: number | null;
           created_at: string;
         };
         Insert: {
@@ -1002,6 +1023,10 @@ export interface Database {
           ends_at: string;
           is_active?: boolean;
           sort_order?: number;
+          funded_by?: "kmo" | "vendor" | "shared";
+          vendor_funded_percent?: number;
+          max_discount_amount?: number | null;
+          min_order_amount?: number | null;
           created_at?: string;
         };
         Update: {
@@ -1017,6 +1042,10 @@ export interface Database {
           ends_at?: string;
           is_active?: boolean;
           sort_order?: number;
+          funded_by?: "kmo" | "vendor" | "shared";
+          vendor_funded_percent?: number;
+          max_discount_amount?: number | null;
+          min_order_amount?: number | null;
           created_at?: string;
         };
         Relationships: [];

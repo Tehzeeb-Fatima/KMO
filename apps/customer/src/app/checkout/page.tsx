@@ -3,8 +3,16 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createAddress, listAddresses, listCartItems, placeOrder, previewCoupon } from "@kmo/shared/api";
+import {
+  createAddress,
+  listActivePromotions,
+  listAddresses,
+  listCartItems,
+  placeOrder,
+  previewCoupon,
+} from "@kmo/shared/api";
 import type { PaymentMethod } from "@kmo/shared/types";
+import { bestPromotionForVendor } from "@kmo/shared/lib";
 import { Button } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { RequireAuth } from "@/components/require-auth";
@@ -33,6 +41,10 @@ function CheckoutContent() {
   const { data: addresses } = useQuery({
     queryKey: ["addresses"],
     queryFn: () => listAddresses(supabase),
+  });
+  const { data: activePromotions } = useQuery({
+    queryKey: ["active-promotions-checkout"],
+    queryFn: () => listActivePromotions(supabase, 50),
   });
 
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
@@ -135,13 +147,51 @@ function CheckoutContent() {
   const vendorCount = new Set(items?.map((i) => i.products.vendor_id)).size;
   const deliveryFee = (subtotal >= 2500 ? 0 : 120) * Math.max(vendorCount, 1);
 
+  // Mirrors place_order's matching exactly, so this total is what gets charged
+  // — not an estimate that then changes once the order is actually created.
+  const promotionsByVendor = new Map<string, ReturnType<typeof bestPromotionForVendor>>();
+  if (items && activePromotions) {
+    const byVendor = new Map<string, typeof items>();
+    for (const item of items) {
+      const list = byVendor.get(item.products.vendor_id) ?? [];
+      list.push(item);
+      byVendor.set(item.products.vendor_id, list);
+    }
+    for (const [vendorId, vendorItems] of byVendor) {
+      const vendorSubtotal = vendorItems.reduce(
+        (sum, i) => sum + (i.product_variants?.price_override ?? i.products.price) * i.quantity,
+        0,
+      );
+      const result = bestPromotionForVendor(
+        vendorId,
+        vendorItems.map((i) => ({
+          vendorId,
+          categoryId: i.products.category_id,
+          unitPrice: i.product_variants?.price_override ?? i.products.price,
+          quantity: i.quantity,
+        })),
+        vendorSubtotal,
+        activePromotions,
+      );
+      if (result.promotion) promotionsByVendor.set(vendorId, result);
+    }
+  }
+  const promotionDiscount = Array.from(promotionsByVendor.values()).reduce(
+    (sum, r) => sum + r.discountAmount,
+    0,
+  );
+
+  // A promotion takes priority over a manually-entered coupon for the same
+  // vendor, same rule as checkout — so this preview can't show a total the
+  // server then overrides.
+  const couponAppliesHere = coupon && items && !promotionsByVendor.has(coupon.vendor_id);
   const couponVendorSubtotal =
-    coupon && items
+    couponAppliesHere && items
       ? items
           .filter((i) => i.products.vendor_id === coupon.vendor_id)
           .reduce((sum, item) => sum + (item.product_variants?.price_override ?? item.products.price) * item.quantity, 0)
       : 0;
-  const discount = coupon
+  const discount = couponAppliesHere
     ? Math.min(
         couponVendorSubtotal,
         coupon.discount_type === "percentage"
@@ -150,7 +200,7 @@ function CheckoutContent() {
       )
     : 0;
 
-  const total = subtotal + deliveryFee - discount;
+  const total = subtotal + deliveryFee - discount - promotionDiscount;
 
   return (
     <div className="mx-auto w-full max-w-[1100px] px-4 py-6 sm:px-6 lg:px-10">
@@ -327,7 +377,23 @@ function CheckoutContent() {
             </span>
           </div>
 
-          {coupon ? (
+          {promotionDiscount > 0 ? (
+            <div className="flex justify-between text-[13.5px]">
+              <span className="text-muted">Promotion</span>
+              <span className="font-semibold text-accent">
+                − Rs. {promotionDiscount.toLocaleString()}
+              </span>
+            </div>
+          ) : null}
+
+          {coupon && !couponAppliesHere ? (
+            <p className="text-xs text-muted">
+              A promotion already applies to that vendor's items, so coupon{" "}
+              <span className="font-mono font-bold">{coupon.code}</span> isn&rsquo;t needed.
+            </p>
+          ) : null}
+
+          {couponAppliesHere ? (
             <div className="flex justify-between text-[13.5px]">
               <span className="text-muted">
                 Coupon <span className="font-mono font-bold text-primary">{coupon.code}</span>

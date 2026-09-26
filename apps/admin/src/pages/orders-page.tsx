@@ -204,6 +204,30 @@ function OrderDetail({
             </p>
           </div>
 
+          {order.promotion_discount_amount > 0 ? (
+            <div className="rounded-xl border border-border bg-surface p-5">
+              <p className="mb-2 font-mono text-xs font-bold uppercase tracking-[0.06em] text-muted-table">
+                Promotion applied
+              </p>
+              <p className="text-[13px] text-ink-dark">
+                Rs. {order.promotion_discount_amount.toLocaleString()} discount ·{" "}
+                {order.commission_amount.toLocaleString()} commission unaffected
+              </p>
+              <div className="mt-1.5 flex justify-between text-[12px] text-muted">
+                <span>KMO covers</span>
+                <span className="font-semibold text-ink-dark">
+                  Rs. {order.promotion_kmo_funded_amount.toLocaleString()}
+                </span>
+              </div>
+              <div className="flex justify-between text-[12px] text-muted">
+                <span>Vendor covers</span>
+                <span className="font-semibold text-ink-dark">
+                  Rs. {order.promotion_vendor_funded_amount.toLocaleString()}
+                </span>
+              </div>
+            </div>
+          ) : null}
+
           {nextStatus && order.status !== "cancelled" ? (
             <button
               type="button"

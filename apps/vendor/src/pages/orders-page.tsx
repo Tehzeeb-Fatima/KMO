@@ -223,6 +223,28 @@ function OrderDetail({
             </p>
           </div>
 
+          {order.promotion_discount_amount > 0 ? (
+            <div className="rounded-xl border border-border bg-surface p-5">
+              <p className="mb-2 font-mono text-xs font-bold uppercase tracking-[0.06em] text-muted-table">
+                Promotion applied
+              </p>
+              <p className="text-[13px] text-ink-dark">
+                Rs. {order.promotion_discount_amount.toLocaleString()} off this order
+              </p>
+              {order.promotion_vendor_funded_amount > 0 ? (
+                <p className="mt-1 text-[12.5px] text-danger">
+                  You cover Rs. {order.promotion_vendor_funded_amount.toLocaleString()} of it —
+                  your payout for this order is reduced by that amount. Commission is still
+                  calculated on the full price.
+                </p>
+              ) : (
+                <p className="mt-1 text-[12.5px] text-success">
+                  Fully covered by KMO — your payout for this order isn&rsquo;t affected.
+                </p>
+              )}
+            </div>
+          ) : null}
+
           {order.status !== "delivered" && order.status !== "cancelled" ? (
             <div className="flex flex-col gap-2.5 rounded-xl border border-border bg-surface p-5">
               <p className="font-mono text-xs font-bold uppercase tracking-[0.06em] text-muted-table">

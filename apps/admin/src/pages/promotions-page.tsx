@@ -131,6 +131,13 @@ export function PromotionsPage() {
                     {promo.discount_type === "percentage"
                       ? `${Number(promo.discount_value)}% off`
                       : `Rs. ${Number(promo.discount_value).toLocaleString()}`}
+                    <span className="block text-[10.5px] font-normal text-muted-table">
+                      {promo.funded_by === "kmo"
+                        ? "KMO-funded"
+                        : promo.funded_by === "vendor"
+                          ? "Vendor-funded"
+                          : `Shared ${promo.vendor_funded_percent}% vendor`}
+                    </span>
                   </span>
                   <span className="text-muted">
                     {ended ? (
@@ -224,6 +231,18 @@ function PromotionForm({
     promotion ? toLocalInput(promotion.ends_at) : defaultEnd(),
   );
   const [isActive, setIsActive] = useState(promotion?.is_active ?? true);
+  const [fundedBy, setFundedBy] = useState<"kmo" | "vendor" | "shared">(
+    promotion?.funded_by ?? "kmo",
+  );
+  const [vendorFundedPercent, setVendorFundedPercent] = useState(
+    String(promotion?.vendor_funded_percent ?? 50),
+  );
+  const [maxDiscountAmount, setMaxDiscountAmount] = useState(
+    promotion?.max_discount_amount ? String(promotion.max_discount_amount) : "",
+  );
+  const [minOrderAmount, setMinOrderAmount] = useState(
+    promotion?.min_order_amount ? String(promotion.min_order_amount) : "",
+  );
   const [error, setError] = useState<string | null>(null);
 
   const fileRef = useRef<HTMLInputElement>(null);
@@ -261,6 +280,12 @@ function PromotionForm({
       if (!(end.getTime() > start.getTime())) {
         throw new Error("The end time has to be after the start time.");
       }
+      if (fundedBy === "shared") {
+        const pct = Number(vendorFundedPercent);
+        if (!(pct > 0 && pct < 100)) {
+          throw new Error("For a shared split, the vendor's share must be between 1 and 99%.");
+        }
+      }
 
       const payload = {
         title: title.trim(),
@@ -273,6 +298,11 @@ function PromotionForm({
         starts_at: start.toISOString(),
         ends_at: end.toISOString(),
         is_active: isActive,
+        funded_by: fundedBy,
+        vendor_funded_percent:
+          fundedBy === "kmo" ? 0 : fundedBy === "vendor" ? 100 : Number(vendorFundedPercent),
+        max_discount_amount: maxDiscountAmount ? Number(maxDiscountAmount) : null,
+        min_order_amount: minOrderAmount ? Number(minOrderAmount) : null,
       };
 
       return promotion
@@ -375,6 +405,83 @@ function PromotionForm({
                 className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
               />
             </Field>
+          </div>
+
+          <div className="rounded-lg border border-border bg-surface-alt p-4">
+            <Field label="Who funds this discount?">
+              <div className="flex flex-wrap gap-2">
+                {(
+                  [
+                    { value: "kmo", label: "KMO", hint: "Vendor payout unaffected" },
+                    { value: "vendor", label: "Vendor", hint: "Vendor payout reduced" },
+                    { value: "shared", label: "Shared", hint: "Split by %" },
+                  ] as const
+                ).map((opt) => {
+                  const active = fundedBy === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setFundedBy(opt.value)}
+                      className="rounded-lg px-3.5 py-2.5 text-left text-[12.5px]"
+                      style={
+                        active
+                          ? { border: "1.5px solid var(--color-accent)", background: "var(--color-accent-tint)" }
+                          : { border: "1.5px solid var(--color-border)", background: "#fff" }
+                      }
+                    >
+                      <span className="block font-bold text-ink-dark">{opt.label}</span>
+                      <span className="block text-[11px] text-muted">{opt.hint}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </Field>
+
+            {fundedBy === "shared" ? (
+              <div className="mt-3">
+                <Field label={`Vendor's share of the discount: ${vendorFundedPercent}%`}>
+                  <input
+                    type="range"
+                    min="1"
+                    max="99"
+                    value={vendorFundedPercent}
+                    onChange={(e) => setVendorFundedPercent(e.target.value)}
+                    className="w-full"
+                  />
+                  <span className="text-[11.5px] text-muted">
+                    KMO covers the remaining {100 - Number(vendorFundedPercent || 0)}%.
+                  </span>
+                </Field>
+              </div>
+            ) : null}
+
+            <div className="mt-3 grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+              <Field label="Max discount per order (optional)">
+                <input
+                  type="number"
+                  min="1"
+                  placeholder="e.g. 300 — caps exposure"
+                  value={maxDiscountAmount}
+                  onChange={(e) => setMaxDiscountAmount(e.target.value)}
+                  className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
+                />
+              </Field>
+              <Field label="Minimum order to qualify (optional)">
+                <input
+                  type="number"
+                  min="1"
+                  placeholder="e.g. 1500"
+                  value={minOrderAmount}
+                  onChange={(e) => setMinOrderAmount(e.target.value)}
+                  className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
+                />
+              </Field>
+            </div>
+            <p className="mt-2 text-[11px] text-muted">
+              Commission is always calculated on the full price, before this discount — a
+              promotion never changes a vendor's commission, only who covers the discount.
+            </p>
           </div>
 
           <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
