@@ -90,18 +90,18 @@ export default function Home() {
             <div className="flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-accent-tint" />
               <span className="font-mono text-[10px] tracking-[0.16em] text-[#F8E4DA]">
-                PAYMENT
+                {t.home.paymentBadge}
               </span>
             </div>
             <h2 className="text-2xl font-extrabold leading-[1.15] tracking-[-0.03em] text-white">
-              Cash on delivery, citywide
+              {t.home.codTitle}
             </h2>
             <p className="text-[13px] leading-[1.55] text-[#F8E4DA]">
-              Pay the rider, not a form. All 18 Karachi towns, up to Rs. 50,000 per order.
+              {t.home.codDesc}
             </p>
           </div>
           <Link href="/faqs" className="text-[13px] font-bold text-white">
-            How COD works →
+            {t.home.howCodWorks}
           </Link>
         </div>
 
@@ -109,7 +109,7 @@ export default function Home() {
         <div className="flex flex-col justify-between gap-3 rounded-lg border-[1.5px] border-primary p-[26px]">
           <div className="flex flex-col gap-3">
             <p className="font-mono text-[10px] tracking-[0.16em] text-muted-table">
-              VENDOR OF THE WEEK
+              {t.home.vendorOfWeek}
             </p>
             {vendorOfWeek ? (
               <>
@@ -123,20 +123,20 @@ export default function Home() {
                     </p>
                     <p className="text-[11.5px] text-muted">
                       {typeof vendorOfWeekProductCount === "number"
-                        ? `${vendorOfWeekProductCount} products`
-                        : "New to KMO"}
+                        ? `${vendorOfWeekProductCount} ${t.home.productsSuffix}`
+                        : t.home.newToKmo}
                     </p>
                   </div>
                 </div>
                 <div className="h-[82px] rounded-md bg-surface-alt" />
               </>
             ) : (
-              <p className="text-sm text-muted">New vendors join every week.</p>
+              <p className="text-sm text-muted">{t.home.newVendorsWeekly}</p>
             )}
           </div>
           {vendorOfWeek ? (
             <Link href={`/store/${vendorOfWeek.slug}`} className="text-[13px] font-bold text-accent">
-              Visit store →
+              {t.home.visitStore}
             </Link>
           ) : null}
         </div>
@@ -147,10 +147,10 @@ export default function Home() {
         <section className="px-4 pt-8 sm:px-10">
           <div className="mb-4 flex items-baseline justify-between">
             <h2 className="text-xl font-bold tracking-[-0.025em] text-ink sm:text-[21px]">
-              Browse categories
+              {t.home.browseCategories}
             </h2>
             <Link href="/search" className="text-[13px] font-bold text-accent">
-              All categories →
+              {t.home.allCategories}
             </Link>
           </div>
           <div className="flex gap-3 overflow-x-auto pb-2">
@@ -186,17 +186,17 @@ export default function Home() {
         <div className="mb-4 flex items-baseline justify-between">
           <div>
             <h2 className="text-xl font-bold tracking-[-0.025em] text-ink sm:text-[21px]">
-              Featured vendors
+              {t.home.featuredVendors}
             </h2>
-            <p className="text-[13.5px] text-muted">Established Karachi shops, verified by KMO</p>
+            <p className="text-[13.5px] text-muted">{t.home.featuredVendorsSub}</p>
           </div>
           <Link href="/vendors" className="shrink-0 text-[13px] font-bold text-accent">
-            See all vendors →
+            {t.home.seeAllVendors}
           </Link>
         </div>
         {!vendors || vendors.length === 0 ? (
           <div className="rounded-lg border border-dashed border-border p-10 text-center text-sm text-muted">
-            No vendors have been approved yet.
+            {t.home.noVendorsYet}
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -226,7 +226,7 @@ export default function Home() {
                       {v.store_name}
                     </span>
                     <span className="rounded bg-danger-tint px-[5px] py-[3px] font-mono text-[9px] tracking-[0.05em] text-danger">
-                      VERIFIED
+                      {t.home.verified}
                     </span>
                   </div>
                   {v.description ? (
@@ -235,8 +235,8 @@ export default function Home() {
                     </p>
                   ) : null}
                   <div className="flex items-center justify-between border-t border-[#F1EAE6] pt-[11px] text-[12.5px]">
-                    <span className="text-muted">{v.area || "Karachi"}</span>
-                    <span className="font-bold text-primary">Visit →</span>
+                    <span className="text-muted">{v.area || t.header.city}</span>
+                    <span className="font-bold text-primary">{t.home.visit}</span>
                   </div>
                 </div>
               </Link>
@@ -253,10 +253,10 @@ export default function Home() {
         <section className="px-4 pt-8 sm:px-10">
           <div className="mb-4 flex items-baseline justify-between">
             <h2 className="text-xl font-bold tracking-[-0.025em] text-ink sm:text-[21px]">
-              Ratings &amp; reviews
+              {t.home.ratingsReviews}
             </h2>
             <Link href="/search" className="text-[13px] font-bold text-accent">
-              See all reviews →
+              {t.home.seeAllReviews}
             </Link>
           </div>
           <div className="grid gap-[26px] lg:grid-cols-[260px_minmax(0,1fr)]">
@@ -266,7 +266,7 @@ export default function Home() {
               </p>
               <p className="tracking-[0.1em] text-accent">{"★".repeat(Math.round(ratingSummary.average))}</p>
               <p className="mt-1 text-[12.5px] text-muted">
-                {ratingSummary.count.toLocaleString()} ratings across all vendors
+                {ratingSummary.count.toLocaleString()} {t.home.ratingsAcrossVendors}
               </p>
               <div className="mt-4 flex flex-col gap-1.5">
                 {ratingSummary.bars.map((b) => (
@@ -324,6 +324,7 @@ function PromotionsSection({
 }: {
   promotions: Awaited<ReturnType<typeof listActivePromotions>> | undefined;
 }) {
+  const { t } = useLanguage();
   // A deal whose timer runs out while the page is open drops out immediately.
   const [expired, setExpired] = useState<Record<string, true>>({});
   const live = (promotions ?? []).filter((p) => !expired[p.id]);
@@ -335,12 +336,12 @@ function PromotionsSection({
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
         <div>
           <h2 className="text-xl font-bold tracking-[-0.025em] text-ink sm:text-[21px]">
-            Limited-time deals
+            {t.home.limitedTimeDeals}
           </h2>
-          <p className="text-[13.5px] text-muted">Grab them before the timer runs out</p>
+          <p className="text-[13.5px] text-muted">{t.home.grabDeals}</p>
         </div>
         <Link href="/search" className="shrink-0 text-[13px] font-bold text-accent">
-          Shop all →
+          {t.home.shopAll}
         </Link>
       </div>
 
@@ -370,7 +371,7 @@ function PromotionsSection({
                 <div className="flex flex-wrap items-center gap-1.5">
                   <span className="rounded-full bg-accent px-2.5 py-1 text-[11px] font-extrabold text-white">
                     {promo.discount_type === "percentage"
-                      ? `${Number(promo.discount_value)}% OFF`
+                      ? `${Number(promo.discount_value)}${t.home.percentOff}`
                       : `Rs. ${Number(promo.discount_value).toLocaleString()}`}
                   </span>
                   {promo.categories ? (
@@ -397,7 +398,7 @@ function PromotionsSection({
               <div className="mt-4 flex flex-wrap items-end justify-between gap-2">
                 <div className="flex flex-col gap-1">
                   <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-white/60">
-                    Ends in
+                    {t.home.endsIn}
                   </span>
                   <Countdown
                     endsAt={promo.ends_at}
@@ -405,7 +406,7 @@ function PromotionsSection({
                   />
                 </div>
                 <span className="text-[12.5px] font-bold text-white group-hover:underline">
-                  Shop now →
+                  {t.home.shopNow}
                 </span>
               </div>
             </Link>
@@ -417,6 +418,7 @@ function PromotionsSection({
 }
 
 function TopCategorySection({ category }: { category: TopCategory }) {
+  const { t } = useLanguage();
   const { data: products } = useQuery({
     queryKey: ["top-category-products", category.id],
     queryFn: () => listPublishedProducts(supabase, { categoryId: category.id, limit: 4 }),
@@ -429,19 +431,19 @@ function TopCategorySection({ category }: { category: TopCategory }) {
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
         <div>
           <h2 className="text-xl font-bold tracking-[-0.025em] text-ink sm:text-[21px]">
-            Top in {category.name}
+            {t.home.topIn} {category.name}
           </h2>
           <p className="text-[13.5px] text-muted">
             {category.sold_count > 0
-              ? `${category.sold_count.toLocaleString()} sold by Karachi shoppers`
-              : "Popular with Karachi shoppers"}
+              ? `${category.sold_count.toLocaleString()} ${t.home.soldByShoppers}`
+              : t.home.popularWithShoppers}
           </p>
         </div>
         <Link
           href={`/search?category=${category.id}`}
           className="shrink-0 text-[13px] font-bold text-accent"
         >
-          See all →
+          {t.home.seeAll}
         </Link>
       </div>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -468,22 +470,23 @@ function FeaturedProducts({
 }: {
   products: Awaited<ReturnType<typeof listPublishedProducts>> | undefined;
 }) {
+  const { t } = useLanguage();
   const [filter, setFilter] = useState<"popular" | "new" | "cod">("popular");
+
+  const filterOptions = [
+    { key: "popular", label: t.home.popular },
+    { key: "new", label: t.home.newIn },
+    { key: "cod", label: t.home.codOnly },
+  ] as const;
 
   return (
     <section className="px-4 pt-8 sm:px-10">
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-3">
         <h2 className="text-xl font-bold tracking-[-0.025em] text-ink sm:text-[21px]">
-          Featured products
+          {t.home.featuredProducts}
         </h2>
         <div className="flex gap-2">
-          {(
-            [
-              { key: "popular", label: "Popular" },
-              { key: "new", label: "New in" },
-              { key: "cod", label: "COD only" },
-            ] as const
-          ).map((opt) => (
+          {filterOptions.map((opt) => (
             <button
               key={opt.key}
               type="button"
@@ -502,7 +505,7 @@ function FeaturedProducts({
       </div>
       {!products || products.length === 0 ? (
         <div className="rounded-lg border border-dashed border-border p-10 text-center text-sm text-muted">
-          Products will appear here as vendors publish their catalogues.
+          {t.home.noProductsYet}
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -547,13 +550,14 @@ const TESTIMONIALS = [
 ];
 
 function Testimonials() {
+  const { t } = useLanguage();
   return (
     <section className="mt-8 bg-accent-tint px-4 pb-9 pt-9 sm:px-10">
       <div className="mb-6">
         <h2 className="text-xl font-bold tracking-[-0.025em] text-ink sm:text-[21px]">
-          What Karachi is saying
+          {t.home.whatKarachiSaying}
         </h2>
-        <p className="text-[13.5px] text-muted">Real feedback from customers across the city</p>
+        <p className="text-[13.5px] text-muted">{t.home.realFeedback}</p>
       </div>
       <div className="grid gap-[18px] sm:grid-cols-3">
         {TESTIMONIALS.map((t) => (
@@ -582,6 +586,7 @@ function Testimonials() {
 }
 
 function ContactSection() {
+  const { t } = useLanguage();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
@@ -602,13 +607,12 @@ function ContactSection() {
     <section id="contact-us" className="px-4 py-11 sm:px-10">
       <div className="grid gap-10 lg:grid-cols-[1fr_1.3fr]">
         <div className="flex flex-col gap-3.5 pt-2">
-          <p className="font-mono text-[10.5px] tracking-[0.16em] text-accent">GET IN TOUCH</p>
+          <p className="font-mono text-[10.5px] tracking-[0.16em] text-accent">{t.contact.getInTouch}</p>
           <h2 className="text-[26px] font-extrabold leading-[1.2] tracking-[-0.03em] text-ink">
-            Have a question? Contact us.
+            {t.contact.haveQuestion}
           </h2>
           <p className="max-w-[340px] text-sm leading-[1.65] text-muted">
-            For order help, vendor onboarding, or anything else — send a message and our
-            Karachi-based support team will get back to you.
+            {t.contact.description}
           </p>
           <div className="mt-2 flex flex-col gap-2.5">
             <div className="flex items-center gap-2.5">
@@ -631,7 +635,7 @@ function ContactSection() {
             </div>
             <div className="flex items-center gap-2.5">
               <span className="h-[7px] w-[7px] shrink-0 rounded-full bg-accent" />
-              <span className="text-[13.5px] text-ink-dark">Mon–Sat, 9:00 AM – 9:00 PM</span>
+              <span className="text-[13.5px] text-ink-dark">{t.contact.hours}</span>
             </div>
           </div>
         </div>
@@ -644,26 +648,23 @@ function ContactSection() {
           className="flex flex-col gap-4 rounded-xl border border-border bg-surface p-7"
         >
           {mutation.isSuccess ? (
-            <p className="text-[12.5px] font-bold text-success">
-              Thanks — we&rsquo;ve received your message and will reply within one business
-              day.
-            </p>
+            <p className="text-[12.5px] font-bold text-success">{t.contact.thanksMessage}</p>
           ) : (
             <>
               <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
-                <Field label="First name">
+                <Field label={t.contact.firstName}>
                   <input
                     required
-                    placeholder="First name"
+                    placeholder={t.contact.firstName}
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
                     className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
                   />
                 </Field>
-                <Field label="Last name">
+                <Field label={t.contact.lastName}>
                   <input
                     required
-                    placeholder="Last name"
+                    placeholder={t.contact.lastName}
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
                     className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
@@ -671,30 +672,30 @@ function ContactSection() {
                 </Field>
               </div>
               <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
-                <Field label="Phone number">
+                <Field label={t.contact.phoneNumber}>
                   <input
                     required
                     type="tel"
-                    placeholder="Phone number"
+                    placeholder={t.contact.phoneNumber}
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
                   />
                 </Field>
-                <Field label="Business name" optional>
+                <Field label={t.contact.businessName} optional optionalLabel={t.contact.optional}>
                   <input
-                    placeholder="Your shop name"
+                    placeholder={t.contact.yourShopName}
                     value={businessName}
                     onChange={(e) => setBusinessName(e.target.value)}
                     className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
                   />
                 </Field>
               </div>
-              <Field label="Message">
+              <Field label={t.contact.message}>
                 <textarea
                   required
                   rows={4}
-                  placeholder="Tell us what you need help with…"
+                  placeholder={t.contact.messagePlaceholder}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   className="resize-y rounded-lg border border-border px-[13px] py-[11px] font-sans text-[13.5px] outline-none focus:border-primary-light"
@@ -705,7 +706,7 @@ function ContactSection() {
                 disabled={mutation.isPending}
                 className="w-fit rounded-[9px] bg-accent px-[30px] py-[13px] text-sm font-bold text-white disabled:opacity-60"
               >
-                {mutation.isPending ? "Sending…" : "Send message"}
+                {mutation.isPending ? t.contact.sending : t.contact.sendMessage}
               </button>
             </>
           )}
@@ -718,17 +719,19 @@ function ContactSection() {
 function Field({
   label,
   optional,
+  optionalLabel,
   children,
 }: {
   label: string;
   optional?: boolean;
+  optionalLabel?: string;
   children: React.ReactNode;
 }) {
   return (
     <div className="flex flex-col gap-[7px]">
       <span className="text-[12.5px] font-bold text-ink-dark">
         {label}
-        {optional ? <span className="font-medium text-muted-table"> (optional)</span> : null}
+        {optional ? <span className="font-medium text-muted-table"> {optionalLabel}</span> : null}
       </span>
       {children}
     </div>
