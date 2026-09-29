@@ -387,6 +387,27 @@ export async function getPublishedProductBySlug(
   return data as unknown as ProductWithMedia | null;
 }
 
+/** Products by id, across any vendor — for admin pickers (e.g. scoping a
+ *  promotion to specific products) that need to resolve a saved id list back
+ *  into display names. */
+export async function getProductsByIds(
+  supabase: Client,
+  ids: string[],
+): Promise<{ id: string; name: string; price: number; vendors: { store_name: string } | null }[]> {
+  if (ids.length === 0) return [];
+  const { data, error } = await supabase
+    .from("products")
+    .select("id, name, price, vendors(store_name)")
+    .in("id", ids);
+  if (error) throw error;
+  return data as unknown as {
+    id: string;
+    name: string;
+    price: number;
+    vendors: { store_name: string } | null;
+  }[];
+}
+
 export async function listCategories(supabase: Client): Promise<CategoryRow[]> {
   const { data, error } = await supabase.from("categories").select("*").order("name");
   if (error) throw error;

@@ -148,14 +148,20 @@ Deno.serve(async (req: Request) => {
   // Admin-managed promotions ("20% off Electronics" etc) apply automatically —
   // no code needed. Fetched once and matched per vendor group below.
   const nowIso = new Date().toISOString();
-  const { data: activePromotions } = await admin
+  const { data: activePromotionsRaw } = await admin
     .from("promotions")
     .select(
-      "id, vendor_id, category_id, discount_type, discount_value, funded_by, vendor_funded_percent, max_discount_amount, min_order_amount",
+      "id, vendor_id, category_id, discount_type, discount_value, funded_by, vendor_funded_percent, max_discount_amount, min_order_amount, promotion_products(product_id)",
     )
     .eq("is_active", true)
     .lte("starts_at", nowIso)
     .gt("ends_at", nowIso);
+  const activePromotions = (activePromotionsRaw ?? []).map((p) => ({
+    ...p,
+    product_ids: (p.promotion_products as unknown as { product_id: string }[]).map(
+      (pp) => pp.product_id,
+    ),
+  }));
 
   function promotionUnitDiscount(
     promo: { discount_type: string; discount_value: number },
@@ -194,15 +200,25 @@ Deno.serve(async (req: Request) => {
       vendor_funded_percent: number;
       max_discount_amount: number | null;
       min_order_amount: number | null;
+      product_ids: string[];
     } | null = null;
     let bestPromoDiscount = 0;
-    for (const promo of activePromotions ?? []) {
-      if (promo.vendor_id && promo.vendor_id !== vendorId) continue;
+    for (const promo of activePromotions) {
+      const productScoped = promo.product_ids.length > 0;
+      if (!productScoped && promo.vendor_id && promo.vendor_id !== vendorId) continue;
       if (promo.min_order_amount && subtotal < promo.min_order_amount) continue;
       let raw = 0;
       for (const item of items) {
-        const product = item.products as unknown as { price: number; category_id: string | null };
-        if (promo.category_id && promo.category_id !== product.category_id) continue;
+        const product = item.products as unknown as {
+          id: string;
+          price: number;
+          category_id: string | null;
+        };
+        if (productScoped) {
+          if (!promo.product_ids.includes(product.id)) continue;
+        } else if (promo.category_id && promo.category_id !== product.category_id) {
+          continue;
+        }
         const variant = item.product_variants as unknown as { price_override: number | null } | null;
         const unitPrice = variant?.price_override ?? product.price;
         raw += promotionUnitDiscount(promo, unitPrice) * item.quantity;

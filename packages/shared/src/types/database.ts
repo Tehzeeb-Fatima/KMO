@@ -1050,6 +1050,24 @@ export interface Database {
         };
         Relationships: [];
       };
+      promotion_products: {
+        Row: {
+          promotion_id: string;
+          product_id: string;
+          created_at: string;
+        };
+        Insert: {
+          promotion_id: string;
+          product_id: string;
+          created_at?: string;
+        };
+        Update: {
+          promotion_id?: string;
+          product_id?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {

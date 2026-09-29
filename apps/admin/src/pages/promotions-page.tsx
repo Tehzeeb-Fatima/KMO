@@ -3,10 +3,13 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createPromotion,
   deletePromotion,
+  getProductsByIds,
   listAllPromotions,
   listCategories,
+  listPublishedProducts,
   listVendors,
   logAdminAction,
+  setPromotionProducts,
   updatePromotion,
   uploadPromotionImage,
   type PromotionWithLinks,
@@ -124,8 +127,12 @@ export function PromotionsPage() {
                     <span className="truncate font-bold text-ink-dark">{promo.title}</span>
                   </div>
                   <span className="truncate text-muted">
-                    {promo.vendors?.store_name ?? "All vendors"}
-                    {promo.categories ? ` · ${promo.categories.name}` : ""}
+                    {promo.promotion_products.length > 0
+                      ? `${promo.promotion_products.length} product${promo.promotion_products.length === 1 ? "" : "s"}`
+                      : (promo.vendors?.store_name ?? "All vendors")}
+                    {promo.promotion_products.length === 0 && promo.categories
+                      ? ` · ${promo.categories.name}`
+                      : ""}
                   </span>
                   <span className="text-ink-dark">
                     {promo.discount_type === "percentage"
@@ -213,6 +220,46 @@ function PromotionForm({
     queryFn: () => listCategories(supabase),
   });
 
+  const [targetMode, setTargetMode] = useState<"vendor" | "products">(
+    promotion && promotion.promotion_products.length > 0 ? "products" : "vendor",
+  );
+  const [selectedProducts, setSelectedProducts] = useState<
+    { id: string; name: string; price: number; vendorName: string }[]
+  >([]);
+  const [productSearch, setProductSearch] = useState("");
+
+  useQuery({
+    queryKey: ["promotion-initial-products", promotion?.id],
+    queryFn: async () => {
+      const rows = await getProductsByIds(
+        supabase,
+        promotion!.promotion_products.map((pp) => pp.product_id),
+      );
+      setSelectedProducts(
+        rows.map((r) => ({
+          id: r.id,
+          name: r.name,
+          price: r.price,
+          vendorName: r.vendors?.store_name ?? "—",
+        })),
+      );
+      return rows;
+    },
+    enabled: !!promotion && promotion.promotion_products.length > 0,
+  });
+
+  const { data: productResults, isFetching: searchingProducts } = useQuery({
+    queryKey: ["promotion-product-search", productSearch],
+    queryFn: () => listPublishedProducts(supabase, { search: productSearch, limit: 20 }),
+    enabled: targetMode === "products" && productSearch.trim().length >= 2,
+  });
+
+  function toggleProduct(p: { id: string; name: string; price: number; vendorName: string }) {
+    setSelectedProducts((prev) =>
+      prev.some((sp) => sp.id === p.id) ? prev.filter((sp) => sp.id !== p.id) : [...prev, p],
+    );
+  }
+
   const [title, setTitle] = useState(promotion?.title ?? "");
   const [subtitle, setSubtitle] = useState(promotion?.subtitle ?? "");
   const [imageUrl, setImageUrl] = useState(promotion?.image_url ?? "");
@@ -286,13 +333,16 @@ function PromotionForm({
           throw new Error("For a shared split, the vendor's share must be between 1 and 99%.");
         }
       }
+      if (targetMode === "products" && selectedProducts.length === 0) {
+        throw new Error("Pick at least one product for this promotion to apply to.");
+      }
 
       const payload = {
         title: title.trim(),
         subtitle: subtitle.trim() || null,
         image_url: imageUrl || null,
-        vendor_id: vendorId || null,
-        category_id: categoryId || null,
+        vendor_id: targetMode === "products" ? null : vendorId || null,
+        category_id: targetMode === "products" ? null : categoryId || null,
         discount_type: discountType,
         discount_value: value,
         starts_at: start.toISOString(),
@@ -305,9 +355,17 @@ function PromotionForm({
         min_order_amount: minOrderAmount ? Number(minOrderAmount) : null,
       };
 
-      return promotion
-        ? updatePromotion(supabase, promotion.id, payload)
-        : createPromotion(supabase, payload);
+      const saved = promotion
+        ? await updatePromotion(supabase, promotion.id, payload)
+        : await createPromotion(supabase, payload);
+
+      await setPromotionProducts(
+        supabase,
+        saved.id,
+        targetMode === "products" ? selectedProducts.map((p) => p.id) : [],
+      );
+
+      return saved;
     },
     onSuccess: (saved) => {
       queryClient.invalidateQueries({ queryKey: ["admin-promotions"] });
@@ -351,36 +409,132 @@ function PromotionForm({
             />
           </Field>
 
-          <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
-            <Field label="Vendor (optional)">
-              <select
-                value={vendorId}
-                onChange={(e) => setVendorId(e.target.value)}
-                className="rounded-lg border border-border px-3 py-2.5 text-[13px] text-ink-dark"
-              >
-                <option value="">All vendors</option>
-                {vendors?.map((v) => (
-                  <option key={v.id} value={v.id}>
-                    {v.store_name}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Category (optional)">
-              <select
-                value={categoryId}
-                onChange={(e) => setCategoryId(e.target.value)}
-                className="rounded-lg border border-border px-3 py-2.5 text-[13px] text-ink-dark"
-              >
-                <option value="">All categories</option>
-                {categories?.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </Field>
-          </div>
+          <Field label="Applies to">
+            <div className="flex gap-2">
+              {(
+                [
+                  { value: "vendor", label: "Vendor & category" },
+                  { value: "products", label: "Specific products" },
+                ] as const
+              ).map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setTargetMode(opt.value)}
+                  className="rounded-lg px-3.5 py-2.5 text-[12.5px] font-bold"
+                  style={
+                    targetMode === opt.value
+                      ? { border: "1.5px solid var(--color-accent)", background: "var(--color-accent-tint)", color: "var(--color-primary)" }
+                      : { border: "1.5px solid var(--color-border)", background: "#fff", color: "var(--color-ink-secondary)" }
+                  }
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </Field>
+
+          {targetMode === "vendor" ? (
+            <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+              <Field label="Vendor (optional)">
+                <select
+                  value={vendorId}
+                  onChange={(e) => setVendorId(e.target.value)}
+                  className="rounded-lg border border-border px-3 py-2.5 text-[13px] text-ink-dark"
+                >
+                  <option value="">All vendors</option>
+                  {vendors?.map((v) => (
+                    <option key={v.id} value={v.id}>
+                      {v.store_name}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="Category (optional)">
+                <select
+                  value={categoryId}
+                  onChange={(e) => setCategoryId(e.target.value)}
+                  className="rounded-lg border border-border px-3 py-2.5 text-[13px] text-ink-dark"
+                >
+                  <option value="">All categories</option>
+                  {categories?.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2.5 rounded-lg border border-border bg-surface-alt p-4">
+              <Field label="Search products (any vendor)">
+                <input
+                  placeholder="Search by product name…"
+                  value={productSearch}
+                  onChange={(e) => setProductSearch(e.target.value)}
+                  className="rounded-lg border border-border bg-white px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
+                />
+              </Field>
+              {searchingProducts ? <p className="text-[12px] text-muted">Searching…</p> : null}
+              {productResults && productResults.length > 0 ? (
+                <div className="flex max-h-[180px] flex-col gap-1 overflow-y-auto rounded-lg border border-border bg-white p-1.5">
+                  {productResults.map((p) => {
+                    const picked = selectedProducts.some((sp) => sp.id === p.id);
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() =>
+                          toggleProduct({
+                            id: p.id,
+                            name: p.name,
+                            price: p.price,
+                            vendorName: p.vendors?.store_name ?? "—",
+                          })
+                        }
+                        className="flex items-center justify-between rounded-md px-2.5 py-2 text-left text-[12.5px]"
+                        style={picked ? { background: "var(--color-accent-tint)" } : undefined}
+                      >
+                        <span>
+                          <span className="font-bold text-ink-dark">{p.name}</span>
+                          <span className="ml-1.5 text-muted-table">· {p.vendors?.store_name}</span>
+                        </span>
+                        <span className="shrink-0 font-bold text-primary">{picked ? "✓ Added" : "+ Add"}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : null}
+
+              <div className="flex flex-col gap-1.5">
+                <span className="text-[11.5px] font-bold uppercase tracking-[0.06em] text-muted-table">
+                  Selected ({selectedProducts.length})
+                </span>
+                {selectedProducts.length === 0 ? (
+                  <p className="text-[12px] text-muted">No products picked yet.</p>
+                ) : (
+                  selectedProducts.map((p) => (
+                    <div
+                      key={p.id}
+                      className="flex items-center justify-between rounded-md border border-border bg-white px-2.5 py-2 text-[12.5px]"
+                    >
+                      <span>
+                        <span className="font-bold text-ink-dark">{p.name}</span>
+                        <span className="ml-1.5 text-muted-table">· {p.vendorName}</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => toggleProduct(p)}
+                        className="shrink-0 text-[11.5px] font-bold text-danger"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
             <Field label="Discount shown as">

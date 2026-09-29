@@ -14,9 +14,14 @@ export interface PromotionForPricing {
   vendor_funded_percent: number;
   max_discount_amount: number | null;
   min_order_amount: number | null;
+  /** Non-empty when the promotion is scoped to specific products (possibly
+   *  across several vendors) rather than a whole vendor/category — when set,
+   *  this is the *only* match rule; vendor_id/category_id are ignored. */
+  product_ids: string[];
 }
 
 export interface PricingLineItem {
+  productId: string;
   vendorId: string;
   categoryId: string | null;
   unitPrice: number;
@@ -26,6 +31,17 @@ export interface PricingLineItem {
 function unitDiscount(promo: PromotionForPricing, unitPrice: number): number {
   if (promo.discount_type === "percentage") return unitPrice * (promo.discount_value / 100);
   return Math.max(0, unitPrice - promo.discount_value);
+}
+
+function matchesItem(
+  promo: PromotionForPricing,
+  vendorId: string,
+  item: { productId: string; categoryId: string | null },
+): boolean {
+  if (promo.product_ids.length > 0) return promo.product_ids.includes(item.productId);
+  if (promo.vendor_id && promo.vendor_id !== vendorId) return false;
+  if (promo.category_id && promo.category_id !== item.categoryId) return false;
+  return true;
 }
 
 /** The best-matching active promotion for one vendor's items in the cart, if any. */
@@ -39,12 +55,12 @@ export function bestPromotionForVendor(
   let bestDiscount = 0;
 
   for (const promo of activePromotions) {
-    if (promo.vendor_id && promo.vendor_id !== vendorId) continue;
+    if (promo.product_ids.length === 0 && promo.vendor_id && promo.vendor_id !== vendorId) continue;
     if (promo.min_order_amount && vendorSubtotal < promo.min_order_amount) continue;
 
     let raw = 0;
     for (const item of vendorItems) {
-      if (promo.category_id && promo.category_id !== item.categoryId) continue;
+      if (!matchesItem(promo, vendorId, item)) continue;
       raw += unitDiscount(promo, item.unitPrice) * item.quantity;
     }
     if (raw <= 0) continue;
@@ -57,4 +73,33 @@ export function bestPromotionForVendor(
   }
 
   return { promotion: best, discountAmount: Math.round(bestDiscount * 100) / 100 };
+}
+
+/** The best-matching active promotion for a single product, e.g. for the
+ *  product detail page's price/discount badge — same match rules as
+ *  checkout, just for one item instead of a vendor's whole cart group. */
+export function bestPromotionForProduct(
+  product: { id: string; vendorId: string; categoryId: string | null },
+  unitPrice: number,
+  activePromotions: PromotionForPricing[],
+): { promotion: PromotionForPricing | null; discountedPrice: number; percentOff: number } {
+  let best: PromotionForPricing | null = null;
+  let bestDiscount = 0;
+
+  for (const promo of activePromotions) {
+    if (!matchesItem(promo, product.vendorId, { productId: product.id, categoryId: product.categoryId }))
+      continue;
+    const raw = unitDiscount(promo, unitPrice);
+    if (raw <= 0) continue;
+    const capped = promo.max_discount_amount ? Math.min(raw, promo.max_discount_amount) : raw;
+    if (capped > bestDiscount) {
+      bestDiscount = capped;
+      best = promo;
+    }
+  }
+
+  if (!best) return { promotion: null, discountedPrice: unitPrice, percentOff: 0 };
+  const discountedPrice = Math.max(0, Math.round((unitPrice - bestDiscount) * 100) / 100);
+  const percentOff = Math.round((bestDiscount / unitPrice) * 100);
+  return { promotion: best, discountedPrice, percentOff };
 }

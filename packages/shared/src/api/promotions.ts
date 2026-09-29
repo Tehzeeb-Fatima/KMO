@@ -9,9 +9,11 @@ type PromotionUpdate = Database["public"]["Tables"]["promotions"]["Update"];
 export interface PromotionWithLinks extends PromotionRow {
   vendors: { store_name: string; slug: string } | null;
   categories: { name: string; slug: string } | null;
+  promotion_products: { product_id: string }[];
 }
 
-const PROMOTION_SELECT = "*, vendors(store_name, slug), categories(name, slug)";
+const PROMOTION_SELECT =
+  "*, vendors(store_name, slug), categories(name, slug), promotion_products(product_id)";
 
 /** Live deals for the storefront: active, and inside their time window. */
 export async function listActivePromotions(
@@ -69,6 +71,28 @@ export async function updatePromotion(
 export async function deletePromotion(supabase: Client, id: string): Promise<void> {
   const { error } = await supabase.from("promotions").delete().eq("id", id);
   if (error) throw error;
+}
+
+/** Replaces a promotion's product-scoping list wholesale. An empty array
+ *  clears product-scoping, falling the promotion back to matching by
+ *  vendor_id/category_id instead. */
+export async function setPromotionProducts(
+  supabase: Client,
+  promotionId: string,
+  productIds: string[],
+): Promise<void> {
+  const { error: deleteError } = await supabase
+    .from("promotion_products")
+    .delete()
+    .eq("promotion_id", promotionId);
+  if (deleteError) throw deleteError;
+
+  if (productIds.length === 0) return;
+
+  const { error: insertError } = await supabase
+    .from("promotion_products")
+    .insert(productIds.map((product_id) => ({ promotion_id: promotionId, product_id })));
+  if (insertError) throw insertError;
 }
 
 /** Uploads a promotion banner to the `promotion-media` bucket. */
