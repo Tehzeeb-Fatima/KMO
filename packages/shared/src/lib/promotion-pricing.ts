@@ -103,3 +103,21 @@ export function bestPromotionForProduct(
   const percentOff = Math.round((bestDiscount / unitPrice) * 100);
   return { promotion: best, discountedPrice, percentOff };
 }
+
+/** Price + "was" price for a product card in a grid (search results, home
+ *  sections, a store's product list, etc.) — an active promotion targeting
+ *  this product overrides the vendor's own compare_at_price, the same
+ *  priority the product detail page uses, so a promoted product shows the
+ *  same discount everywhere it appears. */
+export function cardPricing(
+  product: { id: string; vendorId: string; categoryId: string | null; price: number; compareAtPrice: number | null },
+  activePromotions: PromotionForPricing[],
+): { price: number; compareAtPrice: number | null } {
+  const match = bestPromotionForProduct(
+    { id: product.id, vendorId: product.vendorId, categoryId: product.categoryId },
+    product.price,
+    activePromotions,
+  );
+  if (match.promotion) return { price: match.discountedPrice, compareAtPrice: product.price };
+  return { price: product.price, compareAtPrice: product.compareAtPrice };
+}

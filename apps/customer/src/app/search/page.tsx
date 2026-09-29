@@ -4,7 +4,8 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { listCategories, listPublishedProducts } from "@kmo/shared/api";
+import { listActivePromotions, listCategories, listPublishedProducts, toPricingPromotions } from "@kmo/shared/api";
+import { cardPricing } from "@kmo/shared/lib";
 import { ProductCard } from "@kmo/shared/ui";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/i18n/language-context";
@@ -76,6 +77,11 @@ function SearchPageContent() {
         sort,
       }),
   });
+  const { data: activePromotions } = useQuery({
+    queryKey: ["active-promotions-search"],
+    queryFn: () => listActivePromotions(supabase, 100),
+  });
+  const pricingPromotions = toPricingPromotions(activePromotions ?? []);
 
   const filterPanel = (
     <div className="flex flex-col gap-6">
@@ -186,19 +192,25 @@ function SearchPageContent() {
               ? Array.from({ length: 8 }).map((_, i) => (
                   <div key={i} className="h-64 animate-pulse rounded-lg bg-surface-alt" />
                 ))
-              : products?.map((p) => (
-                  <ProductCard
-                    key={p.id}
-                    href={`/product/${p.slug}`}
-                    LinkComponent={Link}
-                    imageUrl={p.product_images[0]?.url}
-                    vendorName={p.vendors?.store_name}
-                    name={p.name}
-                    price={p.price}
-                    compareAtPrice={p.compare_at_price}
-                    has360={p.has_360_view}
-                  />
-                ))}
+              : products?.map((p) => {
+                  const cp = cardPricing(
+                    { id: p.id, vendorId: p.vendor_id, categoryId: p.category_id, price: p.price, compareAtPrice: p.compare_at_price },
+                    pricingPromotions,
+                  );
+                  return (
+                    <ProductCard
+                      key={p.id}
+                      href={`/product/${p.slug}`}
+                      LinkComponent={Link}
+                      imageUrl={p.product_images[0]?.url}
+                      vendorName={p.vendors?.store_name}
+                      name={p.name}
+                      price={cp.price}
+                      compareAtPrice={cp.compareAtPrice}
+                      has360={p.has_360_view}
+                    />
+                  );
+                })}
             {!isLoading && products?.length === 0 ? (
               <div className="col-span-full rounded-lg border border-dashed border-border p-10 text-center text-sm text-muted">
                 {t.search.noResults}

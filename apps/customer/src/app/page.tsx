@@ -12,8 +12,10 @@ import {
   listRecentReviews,
   getSiteRatingSummary,
   submitContactMessage,
+  toPricingPromotions,
   type TopCategory,
 } from "@kmo/shared/api";
+import { cardPricing } from "@kmo/shared/lib";
 import { Countdown, ProductCard } from "@kmo/shared/ui";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/i18n/language-context";
@@ -44,6 +46,11 @@ export default function Home() {
     queryKey: ["active-promotions"],
     queryFn: () => listActivePromotions(supabase, 6),
   });
+  const { data: allActivePromotions } = useQuery({
+    queryKey: ["active-promotions-pricing"],
+    queryFn: () => listActivePromotions(supabase, 100),
+  });
+  const pricingPromotions = toPricingPromotions(allActivePromotions ?? []);
   const { data: topCategories } = useQuery({
     queryKey: ["top-categories"],
     queryFn: () => listTopCategories(supabase, 3),
@@ -178,7 +185,7 @@ export default function Home() {
 
       {/* the three busiest categories, ranked by units sold */}
       {(topCategories ?? []).map((category) => (
-        <TopCategorySection key={category.id} category={category} />
+        <TopCategorySection key={category.id} category={category} pricingPromotions={pricingPromotions} />
       ))}
 
       {/* featured vendors — 3 col */}
@@ -246,7 +253,7 @@ export default function Home() {
       </section>
 
       {/* featured products — 4 col */}
-      <FeaturedProducts products={products} />
+      <FeaturedProducts products={products} pricingPromotions={pricingPromotions} />
 
       {/* ratings & reviews summary */}
       {ratingSummary && ratingSummary.count > 0 ? (
@@ -417,7 +424,13 @@ function PromotionsSection({
   );
 }
 
-function TopCategorySection({ category }: { category: TopCategory }) {
+function TopCategorySection({
+  category,
+  pricingPromotions,
+}: {
+  category: TopCategory;
+  pricingPromotions: ReturnType<typeof toPricingPromotions>;
+}) {
   const { t } = useLanguage();
   const { data: products } = useQuery({
     queryKey: ["top-category-products", category.id],
@@ -447,19 +460,25 @@ function TopCategorySection({ category }: { category: TopCategory }) {
         </Link>
       </div>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {products.map((p) => (
-          <ProductCard
-            key={p.id}
-            href={`/product/${p.slug}`}
-            LinkComponent={Link}
-            imageUrl={p.product_images[0]?.url}
-            vendorName={p.vendors?.store_name}
-            name={p.name}
-            price={p.price}
-            compareAtPrice={p.compare_at_price}
-            has360={p.has_360_view}
-          />
-        ))}
+        {products.map((p) => {
+          const cp = cardPricing(
+            { id: p.id, vendorId: p.vendor_id, categoryId: p.category_id, price: p.price, compareAtPrice: p.compare_at_price },
+            pricingPromotions,
+          );
+          return (
+            <ProductCard
+              key={p.id}
+              href={`/product/${p.slug}`}
+              LinkComponent={Link}
+              imageUrl={p.product_images[0]?.url}
+              vendorName={p.vendors?.store_name}
+              name={p.name}
+              price={cp.price}
+              compareAtPrice={cp.compareAtPrice}
+              has360={p.has_360_view}
+            />
+          );
+        })}
       </div>
     </section>
   );
@@ -467,8 +486,10 @@ function TopCategorySection({ category }: { category: TopCategory }) {
 
 function FeaturedProducts({
   products,
+  pricingPromotions,
 }: {
   products: Awaited<ReturnType<typeof listPublishedProducts>> | undefined;
+  pricingPromotions: ReturnType<typeof toPricingPromotions>;
 }) {
   const { t } = useLanguage();
   const [filter, setFilter] = useState<"popular" | "new" | "cod">("popular");
@@ -509,19 +530,25 @@ function FeaturedProducts({
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {products.map((p) => (
-            <ProductCard
-              key={p.id}
-              href={`/product/${p.slug}`}
-              LinkComponent={Link}
-              imageUrl={p.product_images[0]?.url}
-              vendorName={p.vendors?.store_name}
-              name={p.name}
-              price={p.price}
-              compareAtPrice={p.compare_at_price}
-              has360={p.has_360_view}
-            />
-          ))}
+          {products.map((p) => {
+            const cp = cardPricing(
+              { id: p.id, vendorId: p.vendor_id, categoryId: p.category_id, price: p.price, compareAtPrice: p.compare_at_price },
+              pricingPromotions,
+            );
+            return (
+              <ProductCard
+                key={p.id}
+                href={`/product/${p.slug}`}
+                LinkComponent={Link}
+                imageUrl={p.product_images[0]?.url}
+                vendorName={p.vendors?.store_name}
+                name={p.name}
+                price={cp.price}
+                compareAtPrice={cp.compareAtPrice}
+                has360={p.has_360_view}
+              />
+            );
+          })}
         </div>
       )}
     </section>

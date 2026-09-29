@@ -17,9 +17,10 @@ import {
   askProductQuestion,
   listPublishedProducts,
   listActivePromotions,
+  toPricingPromotions,
   MIN_360_FRAMES,
 } from "@kmo/shared/api";
-import { bestPromotionForProduct } from "@kmo/shared/lib";
+import { bestPromotionForProduct, cardPricing } from "@kmo/shared/lib";
 import { Breadcrumbs, Button, ProductCard, Product360Viewer } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "@/lib/supabase";
@@ -219,6 +220,7 @@ export default function ProductDetailClient() {
   // source of truth for the discount shown — it's what checkout will
   // actually charge. It takes priority over the vendor's own compare_at_price
   // ("was" price) so the two can never disagree or silently stack.
+  const pricingPromotions = toPricingPromotions(activePromotions ?? []);
   const promoMatch = bestPromotionForProduct(
     {
       id: product.id,
@@ -226,17 +228,7 @@ export default function ProductDetailClient() {
       categoryId: product.category_id,
     },
     listPrice,
-    (activePromotions ?? []).map((p) => ({
-      id: p.id,
-      vendor_id: p.vendor_id,
-      category_id: p.category_id,
-      discount_type: p.discount_type,
-      discount_value: p.discount_value,
-      vendor_funded_percent: p.vendor_funded_percent,
-      max_discount_amount: p.max_discount_amount,
-      min_order_amount: p.min_order_amount,
-      product_ids: p.promotion_products.map((pp) => pp.product_id),
-    })),
+    pricingPromotions,
   );
 
   const price = promoMatch.promotion ? promoMatch.discountedPrice : listPrice;
@@ -768,18 +760,24 @@ export default function ProductDetailClient() {
             {moreFromVendor
               .filter((p) => p.id !== product.id)
               .slice(0, 5)
-              .map((p) => (
-                <ProductCard
-                  key={p.id}
-                  href={`/product/${p.slug}`}
-                  LinkComponent={Link}
-                  imageUrl={p.product_images[0]?.url}
-                  name={p.name}
-                  price={p.price}
-                  compareAtPrice={p.compare_at_price}
-                  cod={false}
-                />
-              ))}
+              .map((p) => {
+                const cp = cardPricing(
+                  { id: p.id, vendorId: p.vendor_id, categoryId: p.category_id, price: p.price, compareAtPrice: p.compare_at_price },
+                  pricingPromotions,
+                );
+                return (
+                  <ProductCard
+                    key={p.id}
+                    href={`/product/${p.slug}`}
+                    LinkComponent={Link}
+                    imageUrl={p.product_images[0]?.url}
+                    name={p.name}
+                    price={cp.price}
+                    compareAtPrice={cp.compareAtPrice}
+                    cod={false}
+                  />
+                );
+              })}
           </div>
         </div>
       ) : null}
@@ -792,18 +790,24 @@ export default function ProductDetailClient() {
             {suggested
               .filter((p) => p.id !== product.id)
               .slice(0, 5)
-              .map((p) => (
-                <ProductCard
-                  key={p.id}
-                  href={`/product/${p.slug}`}
-                  LinkComponent={Link}
-                  imageUrl={p.product_images[0]?.url}
-                  vendorName={p.vendors?.store_name}
-                  name={p.name}
-                  price={p.price}
-                  compareAtPrice={p.compare_at_price}
-                />
-              ))}
+              .map((p) => {
+                const cp = cardPricing(
+                  { id: p.id, vendorId: p.vendor_id, categoryId: p.category_id, price: p.price, compareAtPrice: p.compare_at_price },
+                  pricingPromotions,
+                );
+                return (
+                  <ProductCard
+                    key={p.id}
+                    href={`/product/${p.slug}`}
+                    LinkComponent={Link}
+                    imageUrl={p.product_images[0]?.url}
+                    vendorName={p.vendors?.store_name}
+                    name={p.name}
+                    price={cp.price}
+                    compareAtPrice={cp.compareAtPrice}
+                  />
+                );
+              })}
           </div>
         </div>
       ) : null}

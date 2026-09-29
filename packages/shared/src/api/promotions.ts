@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../types";
+import type { PromotionForPricing } from "../lib/promotion-pricing";
 
 type Client = SupabaseClient<Database>;
 type PromotionRow = Database["public"]["Tables"]["promotions"]["Row"];
@@ -93,6 +94,22 @@ export async function setPromotionProducts(
     .from("promotion_products")
     .insert(productIds.map((product_id) => ({ promotion_id: promotionId, product_id })));
   if (insertError) throw insertError;
+}
+
+/** Maps the API shape into the plain shape `bestPromotionForVendor` /
+ *  `bestPromotionForProduct` / `cardPricing` expect. */
+export function toPricingPromotions(promotions: PromotionWithLinks[]): PromotionForPricing[] {
+  return promotions.map((p) => ({
+    id: p.id,
+    vendor_id: p.vendor_id,
+    category_id: p.category_id,
+    discount_type: p.discount_type,
+    discount_value: p.discount_value,
+    vendor_funded_percent: p.vendor_funded_percent,
+    max_discount_amount: p.max_discount_amount,
+    min_order_amount: p.min_order_amount,
+    product_ids: p.promotion_products.map((pp) => pp.product_id),
+  }));
 }
 
 /** Uploads a promotion banner to the `promotion-media` bucket. */

@@ -9,9 +9,12 @@ import {
   getOrCreateConversation,
   getVendorBySlug,
   isFollowingVendor,
+  listActivePromotions,
   listPublishedProducts,
+  toPricingPromotions,
   unfollowVendor,
 } from "@kmo/shared/api";
+import { cardPricing } from "@kmo/shared/lib";
 import { Breadcrumbs, PillTabs, ProductCard } from "@kmo/shared/ui";
 import { WEEK_DAYS, type BusinessHours, type VendorPolicies } from "@kmo/shared/types";
 import { useAuth } from "@kmo/shared/auth";
@@ -282,6 +285,11 @@ function ProductsTab({ vendorId }: { vendorId: string }) {
     queryKey: ["vendor-products", vendorId],
     queryFn: () => listPublishedProducts(supabase, { vendorId }),
   });
+  const { data: activePromotions } = useQuery({
+    queryKey: ["active-promotions-store"],
+    queryFn: () => listActivePromotions(supabase, 100),
+  });
+  const pricingPromotions = toPricingPromotions(activePromotions ?? []);
 
   return (
     <div>
@@ -304,19 +312,25 @@ function ProductsTab({ vendorId }: { vendorId: string }) {
             {t.store.noProductsListed}
           </div>
         ) : (
-          products.map((p) => (
-            <ProductCard
-              key={p.id}
-              href={`/product/${p.slug}`}
-              LinkComponent={Link}
-              imageUrl={p.product_images[0]?.url}
-              vendorName={p.vendors?.store_name}
-              name={p.name}
-              price={p.price}
-              compareAtPrice={p.compare_at_price}
-              has360={p.has_360_view}
-            />
-          ))
+          products.map((p) => {
+            const cp = cardPricing(
+              { id: p.id, vendorId: p.vendor_id, categoryId: p.category_id, price: p.price, compareAtPrice: p.compare_at_price },
+              pricingPromotions,
+            );
+            return (
+              <ProductCard
+                key={p.id}
+                href={`/product/${p.slug}`}
+                LinkComponent={Link}
+                imageUrl={p.product_images[0]?.url}
+                vendorName={p.vendors?.store_name}
+                name={p.name}
+                price={cp.price}
+                compareAtPrice={cp.compareAtPrice}
+                has360={p.has_360_view}
+              />
+            );
+          })
         )}
       </div>
     </div>

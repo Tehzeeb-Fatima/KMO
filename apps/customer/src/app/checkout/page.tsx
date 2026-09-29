@@ -10,6 +10,7 @@ import {
   listCartItems,
   placeOrder,
   previewCoupon,
+  toPricingPromotions,
 } from "@kmo/shared/api";
 import type { PaymentMethod } from "@kmo/shared/types";
 import { bestPromotionForVendor } from "@kmo/shared/lib";
@@ -155,17 +156,7 @@ function CheckoutContent() {
 
   // Mirrors place_order's matching exactly, so this total is what gets charged
   // — not an estimate that then changes once the order is actually created.
-  const pricingPromotions = (activePromotions ?? []).map((p) => ({
-    id: p.id,
-    vendor_id: p.vendor_id,
-    category_id: p.category_id,
-    discount_type: p.discount_type,
-    discount_value: p.discount_value,
-    vendor_funded_percent: p.vendor_funded_percent,
-    max_discount_amount: p.max_discount_amount,
-    min_order_amount: p.min_order_amount,
-    product_ids: p.promotion_products.map((pp) => pp.product_id),
-  }));
+  const pricingPromotions = toPricingPromotions(activePromotions ?? []);
   const promotionsByVendor = new Map<string, ReturnType<typeof bestPromotionForVendor>>();
   if (items && activePromotions) {
     const byVendor = new Map<string, typeof items>();

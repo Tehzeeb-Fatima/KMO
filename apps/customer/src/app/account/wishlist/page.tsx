@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { listWishlist, removeFromWishlist } from "@kmo/shared/api";
+import { listActivePromotions, listWishlist, removeFromWishlist, toPricingPromotions } from "@kmo/shared/api";
+import { cardPricing } from "@kmo/shared/lib";
 import { ConfirmDialog, ProductCard } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { RequireAuth } from "@/components/require-auth";
@@ -27,6 +28,11 @@ function WishlistContent() {
     queryKey: ["wishlist"],
     queryFn: () => listWishlist(supabase),
   });
+  const { data: activePromotions } = useQuery({
+    queryKey: ["active-promotions-wishlist"],
+    queryFn: () => listActivePromotions(supabase, 100),
+  });
+  const pricingPromotions = toPricingPromotions(activePromotions ?? []);
 
   const [pendingRemoveId, setPendingRemoveId] = useState<string | null>(null);
   const removeMutation = useMutation({
@@ -51,7 +57,18 @@ function WishlistContent() {
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {items.map((item) => (
+          {items.map((item) => {
+            const cp = cardPricing(
+              {
+                id: item.products.id,
+                vendorId: item.products.vendor_id,
+                categoryId: item.products.category_id,
+                price: item.products.price,
+                compareAtPrice: item.products.compare_at_price,
+              },
+              pricingPromotions,
+            );
+            return (
             <div key={item.id} className="relative">
               <ProductCard
                 href={`/product/${item.products.slug}`}
@@ -59,8 +76,8 @@ function WishlistContent() {
                 imageUrl={item.products.product_images[0]?.url}
                 vendorName={item.products.vendors?.store_name}
                 name={item.products.name}
-                price={item.products.price}
-                compareAtPrice={item.products.compare_at_price}
+                price={cp.price}
+                compareAtPrice={cp.compareAtPrice}
               />
               <button
                 type="button"
@@ -70,7 +87,8 @@ function WishlistContent() {
                 ×
               </button>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
