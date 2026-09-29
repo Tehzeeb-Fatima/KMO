@@ -7,14 +7,18 @@ import { useQuery } from "@tanstack/react-query";
 import { listCategories, listPublishedProducts } from "@kmo/shared/api";
 import { ProductCard } from "@kmo/shared/ui";
 import { supabase } from "@/lib/supabase";
+import { useLanguage } from "@/lib/i18n/language-context";
+import type { TranslationTree } from "@/lib/i18n/translations";
 
 type Sort = "newest" | "price_asc" | "price_desc";
 
-const SORT_OPTIONS: { value: Sort; label: string }[] = [
-  { value: "newest", label: "Newest" },
-  { value: "price_asc", label: "Price: low to high" },
-  { value: "price_desc", label: "Price: high to low" },
-];
+function sortOptions(t: TranslationTree): { value: Sort; label: string }[] {
+  return [
+    { value: "newest", label: t.search.sortNewest },
+    { value: "price_asc", label: t.search.sortPriceAsc },
+    { value: "price_desc", label: t.search.sortPriceDesc },
+  ];
+}
 
 export default function SearchPage() {
   return (
@@ -27,6 +31,8 @@ export default function SearchPage() {
 function SearchPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useLanguage();
+  const SORT_OPTIONS = sortOptions(t);
 
   const q = searchParams.get("q") ?? "";
   const category = searchParams.get("category") ?? "";
@@ -74,7 +80,7 @@ function SearchPageContent() {
   const filterPanel = (
     <div className="flex flex-col gap-6">
       <div>
-        <p className="mb-3 text-[13px] font-bold text-ink">Category</p>
+        <p className="mb-3 text-[13px] font-bold text-ink">{t.search.category}</p>
         <div className="flex flex-col gap-1">
           <button
             type="button"
@@ -86,7 +92,7 @@ function SearchPageContent() {
                 : { color: "var(--color-ink-secondary)" }
             }
           >
-            All categories
+            {t.search.allCategories}
           </button>
           {categories?.map((c) => (
             <button
@@ -107,11 +113,11 @@ function SearchPageContent() {
       </div>
 
       <div>
-        <p className="mb-3 text-[13px] font-bold text-ink">Price range</p>
+        <p className="mb-3 text-[13px] font-bold text-ink">{t.search.priceRange}</p>
         <div className="flex items-center gap-2">
           <input
             type="number"
-            placeholder="Min"
+            placeholder={t.search.min}
             defaultValue={minPrice}
             onBlur={(e) => updateParams({ min: e.target.value || null })}
             className="w-full rounded-lg border border-border px-3 py-2 text-[13px] outline-none focus:border-primary-light"
@@ -119,7 +125,7 @@ function SearchPageContent() {
           <span className="text-muted">–</span>
           <input
             type="number"
-            placeholder="Max"
+            placeholder={t.search.max}
             defaultValue={maxPrice}
             onBlur={(e) => updateParams({ max: e.target.value || null })}
             className="w-full rounded-lg border border-border px-3 py-2 text-[13px] outline-none focus:border-primary-light"
@@ -135,7 +141,7 @@ function SearchPageContent() {
         <input
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
-          placeholder="Search products, brands and vendors"
+          placeholder={t.search.searchPlaceholder}
           className="flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-muted-table"
         />
         <button
@@ -143,7 +149,7 @@ function SearchPageContent() {
           onClick={() => setFiltersOpen(true)}
           className="rounded-full border border-border bg-white px-4 py-2 text-[13px] font-bold text-primary lg:hidden"
         >
-          Filters
+          {t.search.filters}
         </button>
       </div>
 
@@ -153,8 +159,8 @@ function SearchPageContent() {
         <div>
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <p className="text-[13px] text-muted">
-              {isLoading ? "Searching…" : `${products?.length ?? 0} results`}
-              {q ? ` for "${q}"` : ""}
+              {isLoading ? t.search.searching : `${products?.length ?? 0} ${t.search.results}`}
+              {q ? ` ${t.search.resultsFor} "${q}"` : ""}
             </p>
             <div className="flex flex-wrap gap-2">
               {SORT_OPTIONS.map((opt) => (
@@ -195,7 +201,7 @@ function SearchPageContent() {
                 ))}
             {!isLoading && products?.length === 0 ? (
               <div className="col-span-full rounded-lg border border-dashed border-border p-10 text-center text-sm text-muted">
-                No products match your search.
+                {t.search.noResults}
               </div>
             ) : null}
           </div>
@@ -210,13 +216,13 @@ function SearchPageContent() {
           />
           <div className="flex w-[85%] max-w-[320px] flex-col gap-6 overflow-y-auto bg-surface p-6">
             <div className="flex items-center justify-between">
-              <p className="text-base font-bold text-ink">Filters</p>
+              <p className="text-base font-bold text-ink">{t.search.filters}</p>
               <button
                 type="button"
                 onClick={() => setFiltersOpen(false)}
                 className="text-sm font-bold text-primary"
               >
-                Done
+                {t.search.done}
               </button>
             </div>
             {filterPanel}

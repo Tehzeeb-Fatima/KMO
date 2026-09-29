@@ -6,8 +6,10 @@ import { useQuery } from "@tanstack/react-query";
 import { listVendors } from "@kmo/shared/api";
 import { Breadcrumbs } from "@kmo/shared/ui";
 import { supabase } from "@/lib/supabase";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 export default function VendorsPage() {
+  const { t } = useLanguage();
   const [search, setSearch] = useState("");
 
   const { data: vendors, isLoading } = useQuery({
@@ -20,18 +22,18 @@ export default function VendorsPage() {
       <Breadcrumbs
         LinkComponent={Link}
         className="mb-2"
-        items={[{ label: "Home", href: "/" }, { label: "Vendors" }]}
+        items={[{ label: t.common.home, href: "/" }, { label: t.vendorsPage.title }]}
       />
       <h1 className="mt-2 text-2xl font-bold tracking-[-0.025em] text-ink sm:text-[26px]">
-        All vendors
+        {t.vendorsPage.title}
       </h1>
       <p className="mt-1 text-[13.5px] text-muted">
-        Browse every verified Karachi shop selling on Karachi Mart.
+        {t.vendorsPage.subtitle}
       </p>
 
       <input
         type="text"
-        placeholder="Search vendors by name…"
+        placeholder={t.vendorsPage.searchPlaceholder}
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         className="mt-5 w-full max-w-[400px] rounded-lg border border-border bg-surface px-3.5 py-2.5 text-[13.5px] outline-none focus:border-primary-light"
@@ -46,7 +48,7 @@ export default function VendorsPage() {
           </div>
         ) : !vendors || vendors.length === 0 ? (
           <div className="rounded-lg border border-dashed border-border p-10 text-center text-sm text-muted">
-            No vendors found.
+            {t.vendorsPage.noVendors}
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-4">
@@ -76,7 +78,7 @@ export default function VendorsPage() {
                       {v.store_name}
                     </span>
                     <span className="rounded bg-danger-tint px-[5px] py-[3px] font-mono text-[9px] tracking-[0.05em] text-danger">
-                      VERIFIED
+                      {t.home.verified}
                     </span>
                   </div>
                   {v.description ? (
@@ -85,8 +87,8 @@ export default function VendorsPage() {
                     </p>
                   ) : null}
                   <div className="flex items-center justify-between border-t border-[#F1EAE6] pt-[11px] text-[12.5px]">
-                    <span className="text-muted">{v.area || "Karachi"}</span>
-                    <span className="font-bold text-primary">Visit →</span>
+                    <span className="text-muted">{v.area || t.header.city}</span>
+                    <span className="font-bold text-primary">{t.home.visit}</span>
                   </div>
                 </div>
               </Link>

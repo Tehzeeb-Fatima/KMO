@@ -17,6 +17,7 @@ import { WEEK_DAYS, type BusinessHours, type VendorPolicies } from "@kmo/shared/
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "@/lib/supabase";
 import { ensureCustomerId } from "@/lib/ensure-customer-id";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 type Tab = "products" | "policies" | "reviews" | "about";
 
@@ -24,6 +25,7 @@ export default function StoreClient() {
   const params = useParams<{ slug: string }>();
   const router = useRouter();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<Tab>("products");
 
@@ -91,16 +93,14 @@ export default function StoreClient() {
   }
 
   if (isLoading) {
-    return <p className="p-10 text-sm text-muted">Loading store…</p>;
+    return <p className="p-10 text-sm text-muted">{t.store.loadingStore}</p>;
   }
 
   if (!vendor) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center p-10 text-center">
-        <h1 className="text-xl font-bold text-ink">Store not found</h1>
-        <p className="mt-2 text-sm text-muted">
-          This store doesn&rsquo;t exist, or isn&rsquo;t approved yet.
-        </p>
+        <h1 className="text-xl font-bold text-ink">{t.store.storeNotFound}</h1>
+        <p className="mt-2 text-sm text-muted">{t.store.storeNotFoundHint}</p>
       </div>
     );
   }
@@ -113,8 +113,8 @@ export default function StoreClient() {
       <Breadcrumbs
         LinkComponent={Link}
         items={[
-          { label: "Home", href: "/" },
-          { label: "Vendors", href: "/vendors" },
+          { label: t.common.home, href: "/" },
+          { label: t.vendorsPage.title, href: "/vendors" },
           { label: vendor.store_name },
         ]}
       />
@@ -156,8 +156,8 @@ export default function StoreClient() {
                   {vendor.store_name}
                 </h1>
                 <span className="rounded-[5px] bg-danger-tint px-[7px] py-1 font-mono text-[8.5px] uppercase tracking-[0.1em] text-danger sm:text-[9.5px]">
-                  <span className="hidden sm:inline">Verified vendor</span>
-                  <span className="sm:hidden">Verified</span>
+                  <span className="hidden sm:inline">{t.store.verifiedVendor}</span>
+                  <span className="sm:hidden">{t.store.verified}</span>
                 </span>
               </div>
 
@@ -168,7 +168,7 @@ export default function StoreClient() {
               ) : null}
 
               <div className="flex items-center gap-[18px] text-[12.5px] text-muted">
-                {vendor.area ? <span>Ships from {vendor.area}</span> : null}
+                {vendor.area ? <span>{t.store.shipsFrom} {vendor.area}</span> : null}
               </div>
             </div>
           </div>
@@ -190,7 +190,7 @@ export default function StoreClient() {
                     : { background: "var(--color-accent)", color: "#fff" }
                 }
               >
-                {isFollowing ? "Following ✓" : "Follow store"}
+                {isFollowing ? t.store.followingCheck : t.store.followStore}
               </button>
               <button
                 type="button"
@@ -198,7 +198,7 @@ export default function StoreClient() {
                 disabled={chatMutation.isPending}
                 className="flex-1 rounded-lg border border-border px-4 py-[11px] text-sm font-bold text-primary"
               >
-                Chat
+                {t.store.chat}
               </button>
             </div>
           </div>
@@ -209,9 +209,8 @@ export default function StoreClient() {
             <div className="flex items-center gap-[13px] rounded-[9px] border border-[#EFCBBB] bg-danger-tint px-4 py-[13px] sm:px-5 sm:py-[15px]">
               <span className="h-[9px] w-[9px] shrink-0 rounded-full bg-accent" />
               <p className="text-[13.5px] leading-[1.55] text-[#7A3018]">
-                <strong className="font-bold">Store is on vacation.</strong>{" "}
-                {vendor.vacation_message ||
-                  "You can still browse the catalogue, but new orders are paused."}
+                <strong className="font-bold">{t.store.storeOnVacation}</strong>{" "}
+                {vendor.vacation_message || t.store.vacationDefaultMessage}
               </p>
             </div>
           </div>
@@ -223,10 +222,10 @@ export default function StoreClient() {
             value={tab}
             onChange={setTab}
             options={[
-              { value: "products", label: "Products" },
-              { value: "policies", label: "Store policies" },
-              { value: "reviews", label: "Reviews" },
-              { value: "about", label: "About" },
+              { value: "products", label: t.store.tabProducts },
+              { value: "policies", label: t.store.tabPolicies },
+              { value: "reviews", label: t.store.tabReviews },
+              { value: "about", label: t.store.tabAbout },
             ]}
           />
         </div>
@@ -254,6 +253,7 @@ function initials(name: string) {
 }
 
 function HoursPill({ onVacation, sub }: { onVacation: boolean; sub?: string }) {
+  const { t } = useLanguage();
   return (
     <div
       className="flex items-center gap-2 rounded-lg border px-3 py-2"
@@ -268,7 +268,7 @@ function HoursPill({ onVacation, sub }: { onVacation: boolean; sub?: string }) {
       />
       <span className="text-xs">
         <span className="font-bold text-ink">
-          {onVacation ? "On vacation" : "Open now"}
+          {onVacation ? t.store.onVacation : t.store.openNow}
         </span>
         {sub ? <span className="text-muted"> · {sub}</span> : null}
       </span>
@@ -277,6 +277,7 @@ function HoursPill({ onVacation, sub }: { onVacation: boolean; sub?: string }) {
 }
 
 function ProductsTab({ vendorId }: { vendorId: string }) {
+  const { t } = useLanguage();
   const { data: products, isLoading } = useQuery({
     queryKey: ["vendor-products", vendorId],
     queryFn: () => listPublishedProducts(supabase, { vendorId }),
@@ -286,7 +287,9 @@ function ProductsTab({ vendorId }: { vendorId: string }) {
     <div>
       <div className="mb-4 flex items-center justify-between">
         <p className="text-[13px] text-muted">
-          {isLoading ? "Loading…" : `Showing ${products?.length ?? 0} products`}
+          {isLoading
+            ? t.common.loading
+            : `${t.store.showingProducts} ${products?.length ?? 0} ${t.store.productsWord}`}
         </p>
       </div>
       <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-4">
@@ -298,7 +301,7 @@ function ProductsTab({ vendorId }: { vendorId: string }) {
           </div>
         ) : !products || products.length === 0 ? (
           <div className="col-span-full rounded-lg border border-dashed border-border p-10 text-center text-sm text-muted">
-            This store hasn&rsquo;t listed any products yet.
+            {t.store.noProductsListed}
           </div>
         ) : (
           products.map((p) => (
@@ -321,29 +324,32 @@ function ProductsTab({ vendorId }: { vendorId: string }) {
 }
 
 function PoliciesTab({ policies }: { policies: VendorPolicies }) {
+  const { t } = useLanguage();
   return (
     <div className="grid gap-4 sm:grid-cols-2">
-      <PolicyCard title="Shipping policy" body={policies?.shipping} />
-      <PolicyCard title="Refund & returns policy" body={policies?.refunds} />
+      <PolicyCard title={t.store.shippingPolicy} body={policies?.shipping} />
+      <PolicyCard title={t.store.refundsPolicy} body={policies?.refunds} />
     </div>
   );
 }
 
 function PolicyCard({ title, body }: { title: string; body?: string }) {
+  const { t } = useLanguage();
   return (
     <div className="rounded-lg border border-border bg-surface p-5">
       <p className="text-[15px] font-bold text-ink">{title}</p>
       <p className="mt-2 text-[13.5px] leading-relaxed text-ink-dark">
-        {body || "Not provided yet."}
+        {body || t.store.notProvidedYet}
       </p>
     </div>
   );
 }
 
 function ReviewsTab() {
+  const { t } = useLanguage();
   return (
     <div className="rounded-lg border border-dashed border-border p-10 text-center text-sm text-muted">
-      No reviews yet.
+      {t.store.noReviewsYet}
     </div>
   );
 }
@@ -355,17 +361,18 @@ function AboutTab({
   description: string | null;
   businessHours: BusinessHours;
 }) {
+  const { t } = useLanguage();
   return (
     <div className="grid gap-6 sm:grid-cols-[minmax(0,1fr)_330px]">
       <div>
-        <h2 className="text-lg font-bold tracking-[-0.02em] text-ink">About the store</h2>
+        <h2 className="text-lg font-bold tracking-[-0.02em] text-ink">{t.store.aboutStore}</h2>
         <p className="mt-3 max-w-[640px] text-sm leading-[1.7] text-ink-dark">
-          {description || "This store hasn't added a description yet."}
+          {description || t.store.noDescriptionYet}
         </p>
       </div>
 
       <div className="rounded-lg border border-border bg-surface p-5">
-        <p className="text-[15px] font-bold text-ink">Store hours</p>
+        <p className="text-[15px] font-bold text-ink">{t.store.storeHours}</p>
         <div className="mt-2 flex flex-col">
           {WEEK_DAYS.map((day) => (
             <div
@@ -374,7 +381,7 @@ function AboutTab({
             >
               <span className="text-muted">{day.label}</span>
               <span className="font-medium text-ink-dark">
-                {businessHours?.[day.key] || "Closed"}
+                {businessHours?.[day.key] || t.store.closed}
               </span>
             </div>
           ))}
