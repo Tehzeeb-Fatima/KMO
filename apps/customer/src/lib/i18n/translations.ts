@@ -103,6 +103,11 @@ export const translations = {
       sendMessage: "Send message",
       thanksMessage:
         "Thanks — we've received your message and will reply within one business day.",
+      contactPageSubtitle:
+        "Questions about an order, a store, or becoming a vendor on KMO? Send us a message and our team will get back to you.",
+      thanksMessageShort: "Thanks — we've received your message and will reply soon.",
+      howCanWeHelp: "How can we help?",
+      somethingWentWrong: "Something went wrong — please try again.",
     },
     auth: {
       signInTitle: "Sign in",
@@ -474,6 +479,11 @@ export const translations = {
       sending: "بھیجا جا رہا ہے…",
       sendMessage: "پیغام بھیجیں",
       thanksMessage: "شکریہ — ہمیں آپ کا پیغام مل گیا ہے، ہم ایک کاروباری دن میں جواب دیں گے۔",
+      contactPageSubtitle:
+        "آرڈر، کسی اسٹور، یا KMO پر وینڈر بننے کے بارے میں سوالات ہیں؟ ہمیں پیغام بھیجیں اور ہماری ٹیم آپ سے رابطہ کرے گی۔",
+      thanksMessageShort: "شکریہ — ہمیں آپ کا پیغام مل گیا ہے، ہم جلد جواب دیں گے۔",
+      howCanWeHelp: "ہم آپ کی کیسے مدد کر سکتے ہیں؟",
+      somethingWentWrong: "کچھ غلط ہو گیا — براہ کرم دوبارہ کوشش کریں۔",
     },
     auth: {
       signInTitle: "سائن ان کریں",
