@@ -8,6 +8,7 @@ import { ConfirmDialog } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { RequireAuth } from "@/components/require-auth";
 import { supabase } from "@/lib/supabase";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 export default function FollowingPage() {
   return (
@@ -19,6 +20,7 @@ export default function FollowingPage() {
 
 function FollowingContent() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
 
   const { data: vendors, isLoading } = useQuery({
@@ -40,15 +42,14 @@ function FollowingContent() {
   return (
     <div className="mx-auto w-full max-w-[900px] px-4 py-8 sm:px-6">
       <h1 className="mb-5 text-xl font-extrabold tracking-[-0.03em] text-ink sm:text-2xl">
-        Followed stores
+        {t.account.followedStoresTitle}
       </h1>
 
       {isLoading ? (
-        <p className="text-sm text-muted">Loading…</p>
+        <p className="text-sm text-muted">{t.account.loadingFollowed}</p>
       ) : !vendors || vendors.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border p-10 text-center text-sm text-muted">
-          You haven&rsquo;t followed any stores yet — visit a store page and tap &ldquo;Follow
-          store&rdquo;.
+          {t.account.noFollowedHint}
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -65,14 +66,14 @@ function FollowingContent() {
               </span>
               <Link href={`/store/${v.slug}`} className="min-w-0 flex-1">
                 <p className="truncate text-[13.5px] font-bold text-ink-dark">{v.store_name}</p>
-                <p className="truncate text-xs text-muted">{v.area || "Karachi"}</p>
+                <p className="truncate text-xs text-muted">{v.area || t.header.city}</p>
               </Link>
               <button
                 type="button"
                 onClick={() => setPendingUnfollowId(v.id)}
                 className="shrink-0 rounded-full border border-border px-3 py-1.5 text-[11px] font-bold text-danger"
               >
-                Unfollow
+                {t.account.unfollow}
               </button>
             </div>
           ))}
@@ -81,8 +82,8 @@ function FollowingContent() {
 
       <ConfirmDialog
         open={!!pendingUnfollowId}
-        title="Unfollow this store?"
-        confirmLabel="Unfollow"
+        title={t.account.unfollowTitle}
+        confirmLabel={t.account.unfollow}
         loading={unfollowMutation.isPending}
         onConfirm={() => unfollowMutation.mutate(pendingUnfollowId!)}
         onCancel={() => setPendingUnfollowId(null)}

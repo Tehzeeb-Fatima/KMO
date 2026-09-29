@@ -8,6 +8,7 @@ import { ORDER_STATUS_META, ORDER_STATUS_FLOW } from "@kmo/shared/lib";
 import { useAuth } from "@kmo/shared/auth";
 import { RequireAuth } from "@/components/require-auth";
 import { supabase } from "@/lib/supabase";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 export default function OrdersPage() {
   return (
@@ -18,6 +19,7 @@ export default function OrdersPage() {
 }
 
 function OrdersContent() {
+  const { t } = useLanguage();
   const { data: orders, isLoading } = useQuery({
     queryKey: ["my-orders"],
     queryFn: () => listMyOrders(supabase),
@@ -26,14 +28,14 @@ function OrdersContent() {
   return (
     <div className="mx-auto w-full max-w-[900px] px-4 py-8 sm:px-6">
       <h1 className="mb-5 text-xl font-extrabold tracking-[-0.03em] text-ink sm:text-2xl">
-        Your orders
+        {t.account.yourOrders}
       </h1>
 
       {isLoading ? (
-        <p className="text-sm text-muted">Loading orders…</p>
+        <p className="text-sm text-muted">{t.account.loadingOrders}</p>
       ) : !orders || orders.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border p-10 text-center text-sm text-muted">
-          You haven&rsquo;t placed any orders yet.
+          {t.account.noOrdersPlaced}
         </div>
       ) : (
         <div className="flex flex-col gap-4">
@@ -48,6 +50,7 @@ function OrdersContent() {
 
 function OrderCard({ order }: { order: OrderWithItems }) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [returningItemId, setReturningItemId] = useState<string | null>(null);
   const [reason, setReason] = useState("");
@@ -77,10 +80,10 @@ function OrderCard({ order }: { order: OrderWithItems }) {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <p className="text-sm font-bold text-ink-dark">
-            Order #{order.order_number} · {order.vendors?.store_name}
+            {t.account.orderNumber}{order.order_number} · {order.vendors?.store_name}
           </p>
           <p className="text-xs text-muted">
-            Placed{" "}
+            {t.account.placed}{" "}
             {new Date(order.created_at).toLocaleDateString(undefined, {
               day: "numeric",
               month: "long",
@@ -129,7 +132,7 @@ function OrderCard({ order }: { order: OrderWithItems }) {
                   onClick={() => setReturningItemId(item.id)}
                   className="text-xs font-bold text-accent"
                 >
-                  Return
+                  {t.account.returnAction}
                 </button>
               ) : null}
             </div>
@@ -140,7 +143,7 @@ function OrderCard({ order }: { order: OrderWithItems }) {
       {returningItemId ? (
         <div className="mt-4 flex flex-col gap-2 rounded-lg bg-surface-alt p-3.5">
           <textarea
-            placeholder="Why are you returning this item?"
+            placeholder={t.account.returnReasonPlaceholder}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             rows={2}
@@ -153,21 +156,21 @@ function OrderCard({ order }: { order: OrderWithItems }) {
               onClick={() => returnMutation.mutate(returningItemId)}
               className="rounded-lg bg-accent px-4 py-2 text-xs font-bold text-white disabled:opacity-60"
             >
-              {returnMutation.isPending ? "Submitting…" : "Submit return request"}
+              {returnMutation.isPending ? t.account.submittingReturn : t.account.submitReturnRequest}
             </button>
             <button
               type="button"
               onClick={() => setReturningItemId(null)}
               className="text-xs font-bold text-primary"
             >
-              Cancel
+              {t.account.cancel}
             </button>
           </div>
         </div>
       ) : null}
 
       <div className="mt-4 flex justify-between border-t border-[#F1EAE6] pt-4 text-sm font-bold">
-        <span className="text-ink">Total</span>
+        <span className="text-ink">{t.account.total}</span>
         <span className="text-accent">Rs. {order.total.toLocaleString()}</span>
       </div>
     </div>

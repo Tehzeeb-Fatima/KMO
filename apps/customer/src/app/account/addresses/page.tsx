@@ -7,6 +7,7 @@ import { Button, ConfirmDialog } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { RequireAuth } from "@/components/require-auth";
 import { supabase } from "@/lib/supabase";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 export default function AddressesPage() {
   return (
@@ -18,6 +19,7 @@ export default function AddressesPage() {
 
 function AddressesContent() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const { data: addresses, isLoading } = useQuery({
     queryKey: ["addresses"],
@@ -64,17 +66,17 @@ function AddressesContent() {
     <div className="mx-auto w-full max-w-[700px] px-4 py-8 sm:px-6">
       <div className="mb-5 flex items-center justify-between">
         <h1 className="text-xl font-extrabold tracking-[-0.03em] text-ink sm:text-2xl">
-          Your addresses
+          {t.account.yourAddresses}
         </h1>
         {!adding ? (
           <Button variant="secondary" onClick={() => setAdding(true)}>
-            + Add address
+            + {t.account.addAddress}
           </Button>
         ) : null}
       </div>
 
       {isLoading ? (
-        <p className="text-sm text-muted">Loading…</p>
+        <p className="text-sm text-muted">{t.account.loadingAddresses}</p>
       ) : (
         <div className="flex flex-col gap-3">
           {addresses?.map((addr) => (
@@ -96,12 +98,12 @@ function AddressesContent() {
                 onClick={() => setPendingDeleteId(addr.id)}
                 className="text-xs font-bold text-danger"
               >
-                Remove
+                {t.account.remove}
               </button>
             </div>
           ))}
           {addresses?.length === 0 && !adding ? (
-            <p className="text-sm text-muted">No saved addresses yet.</p>
+            <p className="text-sm text-muted">{t.account.noSavedAddresses}</p>
           ) : null}
         </div>
       )}
@@ -110,32 +112,32 @@ function AddressesContent() {
         <div className="mt-4 flex flex-col gap-3 rounded-xl border border-border bg-surface p-5">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <input
-              placeholder="Label, e.g. Home"
+              placeholder={t.account.labelPlaceholder}
               value={label}
               onChange={(e) => setLabel(e.target.value)}
               className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
             />
             <input
-              placeholder="Phone number"
+              placeholder={t.account.phoneNumber}
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
             />
           </div>
           <input
-            placeholder="Full name"
+            placeholder={t.account.fullNamePlaceholder}
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
           />
           <input
-            placeholder="Street address, house / flat number"
+            placeholder={t.account.streetAddressPlaceholder}
             value={addressLine}
             onChange={(e) => setAddressLine(e.target.value)}
             className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
           />
           <input
-            placeholder="Area / town"
+            placeholder={t.account.areaPlaceholder}
             value={area}
             onChange={(e) => setArea(e.target.value)}
             className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
@@ -145,14 +147,14 @@ function AddressesContent() {
               disabled={addMutation.isPending || !fullName || !phone || !addressLine}
               onClick={() => addMutation.mutate()}
             >
-              {addMutation.isPending ? "Saving…" : "Save address"}
+              {addMutation.isPending ? t.account.saving : t.account.saveAddress}
             </Button>
             <button
               type="button"
               onClick={() => setAdding(false)}
               className="text-sm font-bold text-primary"
             >
-              Cancel
+              {t.account.cancel}
             </button>
           </div>
         </div>
@@ -160,8 +162,8 @@ function AddressesContent() {
 
       <ConfirmDialog
         open={!!pendingDeleteId}
-        title="Remove this address?"
-        confirmLabel="Remove"
+        title={t.account.removeAddressTitle}
+        confirmLabel={t.account.remove}
         loading={deleteMutation.isPending}
         onConfirm={() => deleteMutation.mutate(pendingDeleteId!)}
         onCancel={() => setPendingDeleteId(null)}

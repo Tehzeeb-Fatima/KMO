@@ -9,6 +9,7 @@ import { useAuth } from "@kmo/shared/auth";
 import { RequireAuth } from "@/components/require-auth";
 import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 export default function MessagesPage() {
   return (
@@ -22,6 +23,7 @@ export default function MessagesPage() {
 
 function MessagesContent() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const searchParams = useSearchParams();
   const preselected = searchParams.get("c");
   const [activeId, setActiveId] = useState<string | null>(preselected);
@@ -43,14 +45,14 @@ function MessagesContent() {
   return (
     <div className="mx-auto w-full max-w-[900px] px-4 py-8 sm:px-6">
       <h1 className="mb-5 text-xl font-extrabold tracking-[-0.03em] text-ink sm:text-2xl">
-        Messages
+        {t.account.messagesTitle}
       </h1>
 
       {isLoading ? (
-        <p className="text-sm text-muted">Loading…</p>
+        <p className="text-sm text-muted">{t.account.loadingConversations}</p>
       ) : !conversations || conversations.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border p-10 text-center text-sm text-muted">
-          No conversations yet — start one from a store page.
+          {t.account.noConversationsYet}
         </div>
       ) : (
         <div className="grid h-[560px] grid-cols-1 overflow-hidden rounded-xl border border-border bg-surface sm:grid-cols-[240px_minmax(0,1fr)]">
@@ -72,7 +74,7 @@ function MessagesContent() {
                   style={{ background: isActive ? "var(--color-primary-tint)" : "transparent" }}
                 >
                   <span className="text-[13px] font-bold text-ink-dark">{c.vendors?.store_name}</span>
-                  <p className="line-clamp-1 text-xs text-muted">{last?.body ?? "No messages yet"}</p>
+                  <p className="line-clamp-1 text-xs text-muted">{last?.body ?? t.account.noMessagesShort}</p>
                 </button>
               );
             })}
@@ -102,6 +104,7 @@ function Thread({
   onBack: () => void;
 }) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [draft, setDraft] = useState("");
 
@@ -159,7 +162,7 @@ function Thread({
           onKeyDown={(e) => {
             if (e.key === "Enter" && draft.trim()) sendMutation.mutate();
           }}
-          placeholder="Write a message…"
+          placeholder={t.account.writeMessagePlaceholder}
           className="min-w-0 flex-1 rounded-full border border-border px-4 py-2.5 text-[13px] outline-none focus:border-primary-light"
         />
         <button
@@ -168,7 +171,7 @@ function Thread({
           onClick={() => sendMutation.mutate()}
           className="shrink-0 rounded-full bg-primary px-5 py-2.5 text-xs font-bold text-white disabled:opacity-60"
         >
-          Send
+          {t.account.send}
         </button>
       </div>
     </div>

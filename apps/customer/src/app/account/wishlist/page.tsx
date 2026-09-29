@@ -8,6 +8,7 @@ import { ConfirmDialog, ProductCard } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { RequireAuth } from "@/components/require-auth";
 import { supabase } from "@/lib/supabase";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 export default function WishlistPage() {
   return (
@@ -19,6 +20,7 @@ export default function WishlistPage() {
 
 function WishlistContent() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
 
   const { data: items, isLoading } = useQuery({
@@ -38,14 +40,14 @@ function WishlistContent() {
   return (
     <div className="mx-auto w-full max-w-[1100px] px-4 py-8 sm:px-6">
       <h1 className="mb-5 text-xl font-extrabold tracking-[-0.03em] text-ink sm:text-2xl">
-        Your wishlist
+        {t.account.yourWishlist}
       </h1>
 
       {isLoading ? (
-        <p className="text-sm text-muted">Loading…</p>
+        <p className="text-sm text-muted">{t.account.loadingWishlist}</p>
       ) : !items || items.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border p-10 text-center text-sm text-muted">
-          Nothing saved yet — tap the heart on a product to add it here.
+          {t.account.wishlistEmptyHint}
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
@@ -74,8 +76,8 @@ function WishlistContent() {
 
       <ConfirmDialog
         open={!!pendingRemoveId}
-        title="Remove from wishlist?"
-        confirmLabel="Remove"
+        title={t.account.removeFromWishlistTitle}
+        confirmLabel={t.account.remove}
         loading={removeMutation.isPending}
         onConfirm={() => removeMutation.mutate(pendingRemoveId!)}
         onCancel={() => setPendingRemoveId(null)}
