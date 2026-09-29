@@ -8,6 +8,8 @@ import { ShoppingCart, User } from "lucide-react";
 import { listCartItems, listCategories } from "@kmo/shared/api";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "@/lib/supabase";
+import { useLanguage } from "@/lib/i18n/language-context";
+import { LanguageSwitcher } from "@/components/language-switcher";
 
 const VENDOR_URL = process.env.NEXT_PUBLIC_VENDOR_URL ?? "https://vendor.karachimartonline.com";
 const ADMIN_URL = process.env.NEXT_PUBLIC_ADMIN_URL ?? "https://admin.karachimartonline.com";
@@ -15,6 +17,7 @@ const ADMIN_URL = process.env.NEXT_PUBLIC_ADMIN_URL ?? "https://admin.karachimar
 export function SiteHeader() {
   const router = useRouter();
   const { user, profile } = useAuth();
+  const { t } = useLanguage();
   const [query, setQuery] = useState("");
 
   const { data: cartItems } = useQuery({
@@ -38,12 +41,12 @@ export function SiteHeader() {
         ? VENDOR_URL
         : "/account";
   const accountLabel = !loggedIn
-    ? "Sign in"
+    ? t.header.signIn
     : profile?.role === "admin"
-      ? "Admin dashboard"
+      ? t.header.adminDashboard
       : profile?.role === "vendor"
-        ? "Vendor dashboard"
-        : (profile?.full_name?.split(" ")[0] ?? "Account");
+        ? t.header.vendorDashboard
+        : (profile?.full_name?.split(" ")[0] ?? t.header.account);
 
   function handleSearch(e: FormEvent) {
     e.preventDefault();
@@ -76,14 +79,14 @@ export function SiteHeader() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search products, brands and vendors"
+            placeholder={t.header.searchPlaceholder}
             className="flex-1 truncate bg-transparent text-sm text-ink outline-none placeholder:text-muted-table"
           />
           <button
             type="submit"
             className="shrink-0 rounded-full bg-accent px-6 py-2.5 text-[13px] font-bold text-white"
           >
-            Search
+            {t.header.search}
           </button>
         </form>
 
@@ -91,10 +94,12 @@ export function SiteHeader() {
           <div className="hidden shrink-0 items-center gap-2 md:flex">
             <span className="h-[7px] w-[7px] rounded-full bg-accent" />
             <span className="leading-[1.25]">
-              <span className="block text-[10.5px] text-muted-table">Deliver to</span>
-              <span className="block text-[13px] font-bold text-ink-dark">Karachi</span>
+              <span className="block text-[10.5px] text-muted-table">{t.header.deliverTo}</span>
+              <span className="block text-[13px] font-bold text-ink-dark">{t.header.city}</span>
             </span>
           </div>
+
+          <LanguageSwitcher />
 
           <Link
             href={accountHref}
@@ -109,7 +114,7 @@ export function SiteHeader() {
             className="relative flex shrink-0 items-center gap-1.5 pr-1 text-[13.5px] font-bold text-primary"
           >
             <ShoppingCart className="h-[19px] w-[19px]" strokeWidth={2} />
-            <span className="hidden sm:inline">Cart</span>
+            <span className="hidden sm:inline">{t.header.cart}</span>
             {cartCount > 0 ? (
               <span className="absolute -right-1 -top-2 flex h-[17px] min-w-[17px] items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-white">
                 {cartCount}
@@ -122,8 +127,12 @@ export function SiteHeader() {
       <div className="flex items-center gap-1.5 bg-surface px-4 pb-2 md:hidden">
         <span className="h-[6px] w-[6px] shrink-0 rounded-full bg-accent" />
         <span className="text-[11.5px] text-muted-table">
-          Deliver to <span className="font-bold text-ink-dark">Karachi</span>
+          {t.header.deliverTo} <span className="font-bold text-ink-dark">{t.header.city}</span>
         </span>
+      </div>
+
+      <div className="flex items-center justify-end bg-surface px-4 pb-2 sm:hidden">
+        <LanguageSwitcher />
       </div>
 
       <form onSubmit={handleSearch} className="bg-surface px-4 pb-3 sm:hidden">
@@ -131,11 +140,11 @@ export function SiteHeader() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search products and vendors"
+            placeholder={t.header.searchPlaceholderShort}
             className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-table"
           />
           <button type="submit" className="rounded-full bg-accent px-4 py-2 text-xs font-bold text-white">
-            Go
+            {t.header.go}
           </button>
         </div>
       </form>

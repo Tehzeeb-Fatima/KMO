@@ -17,12 +17,16 @@ import { Button } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { RequireAuth } from "@/components/require-auth";
 import { supabase } from "@/lib/supabase";
+import { useLanguage } from "@/lib/i18n/language-context";
+import type { TranslationTree } from "@/lib/i18n/translations";
 
-const PAYMENT_OPTIONS: { value: PaymentMethod; label: string; sub: string }[] = [
-  { value: "cod", label: "Cash on delivery", sub: "Pay the rider when your order arrives" },
-  { value: "card", label: "Debit / credit card", sub: "Visa, Mastercard, all Pakistani banks" },
-  { value: "jazzcash", label: "JazzCash / Easypaisa", sub: "Pay via mobile wallet" },
-];
+function paymentOptions(t: TranslationTree): { value: PaymentMethod; label: string; sub: string }[] {
+  return [
+    { value: "cod", label: t.checkout.cod, sub: t.checkout.codSub },
+    { value: "card", label: t.checkout.card, sub: t.checkout.cardSub },
+    { value: "jazzcash", label: t.checkout.wallet, sub: t.checkout.walletSub },
+  ];
+}
 
 export default function CheckoutPage() {
   return (
@@ -36,6 +40,8 @@ function CheckoutContent() {
   const router = useRouter();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
+  const PAYMENT_OPTIONS = paymentOptions(t);
 
   const { data: items } = useQuery({ queryKey: ["cart"], queryFn: () => listCartItems(supabase) });
   const { data: addresses } = useQuery({
@@ -354,7 +360,7 @@ function CheckoutContent() {
         </div>
 
         <div className="flex flex-col gap-4 rounded-xl border border-border bg-surface p-6 lg:sticky lg:top-6 lg:self-start">
-          <p className="text-[17px] font-bold text-ink">Order summary</p>
+          <p className="text-[17px] font-bold text-ink">{t.checkout.orderSummary}</p>
           <div className="flex flex-col gap-2 border-t border-[#F1EAE6] pt-3.5">
             {items?.map((item) => (
               <div key={item.id} className="flex justify-between text-[12.5px] text-muted">
@@ -371,15 +377,15 @@ function CheckoutContent() {
             ))}
           </div>
           <div className="flex justify-between text-[13.5px]">
-            <span className="text-muted">Delivery</span>
+            <span className="text-muted">{t.checkout.delivery}</span>
             <span className="font-semibold text-success">
-              {deliveryFee === 0 ? "Free" : `Rs. ${deliveryFee.toLocaleString()}`}
+              {deliveryFee === 0 ? t.checkout.free : `Rs. ${deliveryFee.toLocaleString()}`}
             </span>
           </div>
 
           {promotionDiscount > 0 ? (
             <div className="flex justify-between text-[13.5px]">
-              <span className="text-muted">Promotion</span>
+              <span className="text-muted">{t.checkout.promotion}</span>
               <span className="font-semibold text-accent">
                 − Rs. {promotionDiscount.toLocaleString()}
               </span>
@@ -388,22 +394,23 @@ function CheckoutContent() {
 
           {coupon && !couponAppliesHere ? (
             <p className="text-xs text-muted">
-              A promotion already applies to that vendor's items, so coupon{" "}
-              <span className="font-mono font-bold">{coupon.code}</span> isn&rsquo;t needed.
+              {t.checkout.promotionSupersedesCoupon}{" "}
+              <span className="font-mono font-bold">{coupon.code}</span>{" "}
+              {t.checkout.promotionSupersedesCouponSuffix}
             </p>
           ) : null}
 
           {couponAppliesHere ? (
             <div className="flex justify-between text-[13.5px]">
               <span className="text-muted">
-                Coupon <span className="font-mono font-bold text-primary">{coupon.code}</span>
+                {t.checkout.coupon} <span className="font-mono font-bold text-primary">{coupon.code}</span>
               </span>
               <span className="font-semibold text-accent">− Rs. {discount.toLocaleString()}</span>
             </div>
           ) : (
             <div className="flex gap-2">
               <input
-                placeholder="Coupon code"
+                placeholder={t.checkout.couponCode}
                 value={couponInput}
                 onChange={(e) => setCouponInput(e.target.value)}
                 className="flex-1 rounded-lg border border-border px-3 py-2 text-[13px] outline-none focus:border-primary-light"
@@ -413,14 +420,14 @@ function CheckoutContent() {
                 onClick={applyCoupon}
                 className="rounded-lg border border-border bg-white px-3.5 py-2 text-xs font-bold text-primary"
               >
-                Apply
+                {t.checkout.apply}
               </button>
             </div>
           )}
           {couponError ? <p className="text-xs text-danger">{couponError}</p> : null}
 
           <div className="flex justify-between border-t border-[#F1EAE6] pt-3.5 text-lg font-extrabold">
-            <span className="text-ink">Total</span>
+            <span className="text-ink">{t.checkout.total}</span>
             <span className="text-accent">Rs. {total.toLocaleString()}</span>
           </div>
           {error ? <p className="text-sm text-danger">{error}</p> : null}
@@ -432,7 +439,7 @@ function CheckoutContent() {
               placeOrderMutation.mutate();
             }}
           >
-            {placeOrderMutation.isPending ? "Placing order…" : "Place order"}
+            {placeOrderMutation.isPending ? t.checkout.placingOrder : t.checkout.placeOrder}
           </Button>
         </div>
       </div>

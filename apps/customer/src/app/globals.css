@@ -141,4 +141,10 @@
   html {
     @apply font-sans;
   }
+  html[dir="rtl"] {
+    font-family: var(--font-noto-nastaliq-urdu), var(--font-plus-jakarta-sans), sans-serif;
+  }
+  html[dir="rtl"] .font-mono {
+    font-family: var(--font-noto-nastaliq-urdu), var(--font-plus-jakarta-sans), sans-serif;
+  }
 }

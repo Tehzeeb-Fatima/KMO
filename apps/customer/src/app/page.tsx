@@ -16,8 +16,10 @@ import {
 } from "@kmo/shared/api";
 import { Countdown, ProductCard } from "@kmo/shared/ui";
 import { supabase } from "@/lib/supabase";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 export default function Home() {
+  const { t } = useLanguage();
   const { data: categories } = useQuery({
     queryKey: ["categories"],
     queryFn: () => listCategories(supabase),
@@ -64,21 +66,21 @@ export default function Home() {
         {/* panel A — headline */}
         <div className="flex min-h-[260px] flex-col justify-center gap-4 rounded-lg bg-primary p-8 sm:min-h-[300px] sm:p-[38px_34px]">
           <p className="font-mono text-[10.5px] tracking-[0.18em] text-[#E09A76]">
-            7,400 VERIFIED KARACHI SELLERS
+            {t.home.badge}
           </p>
           <h1 className="text-[32px] font-extrabold leading-[1.05] tracking-[-0.038em] text-white sm:text-[44px]">
-            Shop local.
+            {t.home.titleLine1}
             <br />
-            Support your city.
+            {t.home.titleLine2}
           </h1>
           <p className="max-w-[400px] text-[15px] leading-[1.6] text-[#D5C4E2]">
-            From Tariq Road to Empress Market, delivered anywhere in the city.
+            {t.home.subtitle}
           </p>
           <Link
             href="/search"
             className="mt-1 w-fit rounded-[7px] bg-accent px-7 py-3.5 text-sm font-bold text-white"
           >
-            Start shopping
+            {t.home.startShopping}
           </Link>
         </div>
 

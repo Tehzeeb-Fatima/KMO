@@ -1,44 +1,49 @@
+"use client";
+
 import Link from "next/link";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 const VENDOR_URL = process.env.NEXT_PUBLIC_VENDOR_URL ?? "https://vendor.karachimartonline.com";
 
-const COLUMNS = [
-  {
-    heading: "Shop",
-    links: [
-      { href: "/search", label: "Categories" },
-      { href: "/#featured-vendors", label: "Featured vendors" },
-      { href: "/search", label: "Deals" },
-    ],
-  },
-  {
-    heading: "Support",
-    links: [
-      { href: "/#contact-us", label: "Contact us" },
-      { href: "/account/orders", label: "Track my order" },
-      { href: "/shipping-policy", label: "Shipping & returns" },
-    ],
-  },
-  {
-    heading: "Sell",
-    links: [
-      { href: `${VENDOR_URL}/signup`, label: "Become a vendor" },
-      { href: VENDOR_URL, label: "Vendor dashboard" },
-      { href: "/return-policy", label: "Vendor policies" },
-    ],
-  },
-  {
-    heading: "Company",
-    links: [
-      { href: "/about", label: "About us" },
-      { href: "/faqs", label: "FAQs" },
-      { href: "/terms", label: "Terms & conditions" },
-      { href: "/privacy", label: "Privacy policy" },
-    ],
-  },
-];
-
 export function SiteFooter() {
+  const { t } = useLanguage();
+
+  const columns = [
+    {
+      heading: t.footer.shop,
+      links: [
+        { href: "/search", label: t.footer.categories },
+        { href: "/#featured-vendors", label: t.footer.featuredVendors },
+        { href: "/search", label: t.footer.deals },
+      ],
+    },
+    {
+      heading: t.footer.support,
+      links: [
+        { href: "/#contact-us", label: t.footer.contactUs },
+        { href: "/account/orders", label: t.footer.trackOrder },
+        { href: "/shipping-policy", label: t.footer.shippingReturns },
+      ],
+    },
+    {
+      heading: t.footer.sell,
+      links: [
+        { href: `${VENDOR_URL}/signup`, label: t.footer.becomeVendor },
+        { href: VENDOR_URL, label: t.footer.vendorDashboard },
+        { href: "/return-policy", label: t.footer.vendorPolicies },
+      ],
+    },
+    {
+      heading: t.footer.company,
+      links: [
+        { href: "/about", label: t.footer.aboutUs },
+        { href: "/faqs", label: t.footer.faqs },
+        { href: "/terms", label: t.footer.terms },
+        { href: "/privacy", label: t.footer.privacy },
+      ],
+    },
+  ];
+
   return (
     <footer className="bg-sidebar">
       <div className="mx-auto grid w-full max-w-[1358px] grid-cols-2 gap-8 px-4 py-12 sm:grid-cols-3 sm:px-10 lg:grid-cols-5">
@@ -51,12 +56,11 @@ export function SiteFooter() {
             <span className="text-base font-extrabold text-white">Karachi Mart</span>
           </div>
           <p className="max-w-[280px] text-[13px] leading-[1.6] text-[#B9A3CD]">
-            A marketplace for one city. Verified Karachi vendors, cash on delivery, and
-            delivery you can plan around.
+            {t.footer.description}
           </p>
         </div>
 
-        {COLUMNS.map((col) => (
+        {columns.map((col) => (
           <div key={col.heading}>
             <p className="text-xs font-bold uppercase tracking-[0.08em] text-[#7B5A96]">
               {col.heading}
@@ -78,9 +82,9 @@ export function SiteFooter() {
       </div>
       <div className="mx-auto flex w-full max-w-[1358px] flex-col items-center justify-between gap-2 border-t border-[#45305C] px-4 py-5 text-center sm:flex-row sm:px-10 sm:text-left">
         <p className="text-xs text-[#8A749E]">
-          © {new Date().getFullYear()} Karachi Mart Online. All rights reserved.
+          © {new Date().getFullYear()} {t.footer.rightsReserved}
         </p>
-        <p className="text-xs text-[#8A749E]">Cash on delivery available citywide</p>
+        <p className="text-xs text-[#8A749E]">{t.footer.codAvailable}</p>
       </div>
     </footer>
   );

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans, IBM_Plex_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, IBM_Plex_Mono, Noto_Nastaliq_Urdu } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { AppChrome } from "@/components/app-chrome";
@@ -15,6 +15,12 @@ const ibmPlexMono = IBM_Plex_Mono({
   variable: "--font-ibm-plex-mono",
   weight: ["400", "500", "600"],
   subsets: ["latin"],
+});
+
+const notoNastaliqUrdu = Noto_Nastaliq_Urdu({
+  variable: "--font-noto-nastaliq-urdu",
+  weight: ["400", "700"],
+  subsets: ["arabic"],
 });
 
 export const metadata: Metadata = {
@@ -39,7 +45,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         "h-full antialiased font-sans",
         plusJakartaSans.variable,
         ibmPlexMono.variable,
+        notoNastaliqUrdu.variable,
       )}
+      suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
         <RegisterServiceWorker />
