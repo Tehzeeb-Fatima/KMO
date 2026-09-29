@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  deleteVendor,
   getVendorById,
   listCategories,
   listMyProducts,
@@ -11,7 +12,7 @@ import {
   setVendorCategories,
   setVendorStatus,
 } from "@kmo/shared/api";
-import { StatusBadge, type StatusBadgeVariant } from "@kmo/shared/ui";
+import { ConfirmDialog, StatusBadge, type StatusBadgeVariant } from "@kmo/shared/ui";
 import type { VendorVerificationStatus } from "@kmo/shared/types";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "../lib/supabase";
@@ -84,6 +85,21 @@ function VendorsList({
     });
   }, [vendors, search, statusFilter]);
 
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteVendor(supabase, id),
+    onSuccess: (_void, id) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-vendors"] });
+      if (user) void logAdminAction(supabase, user.id, "vendor.delete", "vendor", id);
+      setPendingDelete(null);
+      setDeleteError(null);
+    },
+    onError: (err: Error) => setDeleteError(err.message),
+  });
+
   return (
     <div>
       <div className="mb-[18px] flex items-center gap-3">
@@ -115,7 +131,7 @@ function VendorsList({
       </div>
 
       <div className="overflow-hidden rounded-xl border border-border bg-surface">
-        <div className="grid grid-cols-[2fr_1.4fr_1fr_1fr_140px] border-b border-border bg-surface-alt px-5 py-3 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
+        <div className="grid grid-cols-[2fr_1.4fr_1fr_1fr_190px] border-b border-border bg-surface-alt px-5 py-3 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
           <span>Vendor</span>
           <span>Category</span>
           <span>Products</span>
@@ -134,7 +150,7 @@ function VendorsList({
             return (
               <div
                 key={v.id}
-                className="grid grid-cols-[2fr_1.4fr_1fr_1fr_140px] items-center border-b border-[#F5F0EE] px-5 py-4 last:border-b-0"
+                className="grid grid-cols-[2fr_1.4fr_1fr_1fr_190px] items-center border-b border-[#F5F0EE] px-5 py-4 last:border-b-0"
               >
                 <button
                   type="button"
@@ -160,12 +176,32 @@ function VendorsList({
                 <span>
                   <StatusBadge variant={meta.variant}>{meta.label}</StatusBadge>
                 </span>
-                <RowAction vendorId={v.id} status={v.verification_status} />
+                <RowAction
+                  vendorId={v.id}
+                  status={v.verification_status}
+                  onDelete={() => setPendingDelete({ id: v.id, name: v.store_name })}
+                />
               </div>
             );
           })
         )}
       </div>
+
+      <ConfirmDialog
+        open={!!pendingDelete}
+        title={`Delete "${pendingDelete?.name}"?`}
+        message={
+          deleteError ??
+          "This permanently removes the vendor and everything under it (products, images, payouts, coupons, messages). This can't be undone. Vendors with any order history can't be deleted — suspend them instead."
+        }
+        confirmLabel="Delete"
+        loading={deleteMutation.isPending}
+        onConfirm={() => deleteMutation.mutate(pendingDelete!.id)}
+        onCancel={() => {
+          setPendingDelete(null);
+          setDeleteError(null);
+        }}
+      />
     </div>
   );
 }
@@ -173,9 +209,11 @@ function VendorsList({
 function RowAction({
   vendorId,
   status,
+  onDelete,
 }: {
   vendorId: string;
   status: VendorVerificationStatus;
+  onDelete: () => void;
 }) {
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -188,9 +226,19 @@ function RowAction({
     },
   });
 
+  const deleteButton = (
+    <button
+      type="button"
+      onClick={onDelete}
+      className="rounded-md border border-border bg-white px-2.5 py-1.5 text-[11px] font-bold text-danger"
+    >
+      Delete
+    </button>
+  );
+
   if (status === "pending") {
     return (
-      <div className="flex gap-1.5">
+      <div className="flex flex-wrap gap-1.5">
         <button
           type="button"
           onClick={() => mutation.mutate("approved")}
@@ -205,30 +253,37 @@ function RowAction({
         >
           Reject
         </button>
+        {deleteButton}
       </div>
     );
   }
 
   if (status === "approved") {
     return (
-      <button
-        type="button"
-        onClick={() => mutation.mutate("suspended")}
-        className="rounded-md border border-border bg-white px-2.5 py-1.5 text-[11px] font-bold text-primary"
-      >
-        Suspend
-      </button>
+      <div className="flex flex-wrap gap-1.5">
+        <button
+          type="button"
+          onClick={() => mutation.mutate("suspended")}
+          className="rounded-md border border-border bg-white px-2.5 py-1.5 text-[11px] font-bold text-primary"
+        >
+          Suspend
+        </button>
+        {deleteButton}
+      </div>
     );
   }
 
   return (
-    <button
-      type="button"
-      onClick={() => mutation.mutate("approved")}
-      className="rounded-md bg-primary px-2.5 py-1.5 text-[11px] font-bold text-white"
-    >
-      Reactivate
-    </button>
+    <div className="flex flex-wrap gap-1.5">
+      <button
+        type="button"
+        onClick={() => mutation.mutate("approved")}
+        className="rounded-md bg-primary px-2.5 py-1.5 text-[11px] font-bold text-white"
+      >
+        Reactivate
+      </button>
+      {deleteButton}
+    </div>
   );
 }
 
@@ -317,6 +372,18 @@ function VendorDetail({ vendorId, onBack }: { vendorId: string; onBack: () => vo
       queryClient.invalidateQueries({ queryKey: ["admin-vendors"] });
       if (user) void logAdminAction(supabase, user.id, `vendor.${next}`, "vendor", vendorId);
     },
+  });
+
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteVendor(supabase, vendorId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-vendors"] });
+      if (user) void logAdminAction(supabase, user.id, "vendor.delete", "vendor", vendorId);
+      onBack();
+    },
+    onError: (err: Error) => setDeleteError(err.message),
   });
 
   if (isLoading || !vendor) {
@@ -450,8 +517,35 @@ function VendorDetail({ vendorId, onBack }: { vendorId: string; onBack: () => vo
               Reactivate vendor
             </button>
           )}
+
+          <button
+            type="button"
+            onClick={() => {
+              setDeleteError(null);
+              setConfirmDelete(true);
+            }}
+            className="rounded-[9px] border border-border bg-white px-3 py-3 text-[13px] font-bold text-danger"
+          >
+            Delete vendor
+          </button>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={confirmDelete}
+        title={`Delete "${vendor.store_name}"?`}
+        message={
+          deleteError ??
+          "This permanently removes the vendor and everything under it (products, images, payouts, coupons, messages). This can't be undone. Vendors with any order history can't be deleted — suspend them instead."
+        }
+        confirmLabel="Delete"
+        loading={deleteMutation.isPending}
+        onConfirm={() => deleteMutation.mutate()}
+        onCancel={() => {
+          setConfirmDelete(false);
+          setDeleteError(null);
+        }}
+      />
     </div>
   );
 }

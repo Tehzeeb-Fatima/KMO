@@ -124,6 +124,28 @@ export async function setVendorStatus(
   return data;
 }
 
+/** Permanently removes a vendor and everything scoped to it (products, images,
+ *  payouts, coupons, conversations, category/courier assignments — all
+ *  `on delete cascade`). Refuses to run if the vendor has any orders, since
+ *  `orders.vendor_id` deliberately does NOT cascade: real transaction/order
+ *  history must never be deletable, only the vendor record itself — suspend
+ *  a vendor with history instead of deleting it. */
+export async function deleteVendor(supabase: Client, vendorId: string): Promise<void> {
+  const { count, error: countError } = await supabase
+    .from("orders")
+    .select("id", { count: "exact", head: true })
+    .eq("vendor_id", vendorId);
+  if (countError) throw countError;
+  if (count && count > 0) {
+    throw new Error(
+      `This vendor has ${count} order${count === 1 ? "" : "s"} on record and can't be deleted — suspend it instead to keep that history intact.`,
+    );
+  }
+
+  const { error } = await supabase.from("vendors").delete().eq("id", vendorId);
+  if (error) throw error;
+}
+
 /** Upload a logo/cover image to the `vendor-media` bucket and return its public URL. */
 export async function uploadVendorMedia(
   supabase: Client,
