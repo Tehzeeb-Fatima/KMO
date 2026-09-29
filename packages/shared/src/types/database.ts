@@ -99,6 +99,7 @@ export interface Database {
           commission_rate: number | null;
           preferred_courier: string | null;
           preferred_courier_id: string | null;
+          membership_started_at: string;
           created_at: string;
         };
         Insert: {
@@ -120,6 +121,7 @@ export interface Database {
           commission_rate?: number | null;
           preferred_courier?: string | null;
           preferred_courier_id?: string | null;
+          membership_started_at?: string;
           created_at?: string;
         };
         Update: {
@@ -141,6 +143,7 @@ export interface Database {
           commission_rate?: number | null;
           preferred_courier?: string | null;
           preferred_courier_id?: string | null;
+          membership_started_at?: string;
           created_at?: string;
         };
         Relationships: [];
@@ -660,6 +663,10 @@ export interface Database {
           default_commission_rate: number;
           delivery_zones: string[];
           maintenance_mode: boolean;
+          vendor_membership_fee: number;
+          vendor_free_trial_months: number;
+          vendor_agreement_title: string;
+          vendor_agreement_body: string;
           updated_at: string;
         };
         Insert: {
@@ -667,6 +674,10 @@ export interface Database {
           default_commission_rate?: number;
           delivery_zones?: string[];
           maintenance_mode?: boolean;
+          vendor_membership_fee?: number;
+          vendor_free_trial_months?: number;
+          vendor_agreement_title?: string;
+          vendor_agreement_body?: string;
           updated_at?: string;
         };
         Update: {
@@ -674,6 +685,10 @@ export interface Database {
           default_commission_rate?: number;
           delivery_zones?: string[];
           maintenance_mode?: boolean;
+          vendor_membership_fee?: number;
+          vendor_free_trial_months?: number;
+          vendor_agreement_title?: string;
+          vendor_agreement_body?: string;
           updated_at?: string;
         };
         Relationships: [];
@@ -709,6 +724,45 @@ export interface Database {
           transaction_reference?: string | null;
           notes?: string | null;
           payout_date?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      vendor_membership_charges: {
+        Row: {
+          id: string;
+          vendor_id: string;
+          period_start: string;
+          period_end: string;
+          amount: number;
+          status: "due" | "paid" | "waived";
+          paid_at: string | null;
+          notes: string | null;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          vendor_id: string;
+          period_start: string;
+          period_end: string;
+          amount: number;
+          status?: "due" | "paid" | "waived";
+          paid_at?: string | null;
+          notes?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          vendor_id?: string;
+          period_start?: string;
+          period_end?: string;
+          amount?: number;
+          status?: "due" | "paid" | "waived";
+          paid_at?: string | null;
+          notes?: string | null;
           created_by?: string | null;
           created_at?: string;
         };
@@ -1000,7 +1054,7 @@ export interface Database {
           is_active: boolean;
           sort_order: number;
           /** Who absorbs the discount at checkout. */
-          funded_by: "kmo" | "vendor" | "shared";
+          funded_by: "kmo" | "vendor";
           /** The vendor's share of the discount, 0-100. Always 0 for 'kmo',
            *  always 100 for 'vendor'; only meaningful to set for 'shared'. */
           vendor_funded_percent: number;
@@ -1023,7 +1077,7 @@ export interface Database {
           ends_at: string;
           is_active?: boolean;
           sort_order?: number;
-          funded_by?: "kmo" | "vendor" | "shared";
+          funded_by?: "kmo" | "vendor";
           vendor_funded_percent?: number;
           max_discount_amount?: number | null;
           min_order_amount?: number | null;
@@ -1042,7 +1096,7 @@ export interface Database {
           ends_at?: string;
           is_active?: boolean;
           sort_order?: number;
-          funded_by?: "kmo" | "vendor" | "shared";
+          funded_by?: "kmo" | "vendor";
           vendor_funded_percent?: number;
           max_discount_amount?: number | null;
           min_order_amount?: number | null;

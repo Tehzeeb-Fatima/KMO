@@ -30,7 +30,7 @@ export function SiteFooter() {
       links: [
         { href: `${VENDOR_URL}/signup`, label: t.footer.becomeVendor },
         { href: VENDOR_URL, label: t.footer.vendorDashboard },
-        { href: "/return-policy", label: t.footer.vendorPolicies },
+        { href: "/vendor-agreement", label: t.footer.vendorAgreement },
       ],
     },
     {

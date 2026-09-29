@@ -16,7 +16,18 @@ export async function getPlatformSettings(supabase: Client): Promise<SettingsRow
 
 export async function updatePlatformSettings(
   supabase: Client,
-  patch: Partial<Pick<SettingsRow, "default_commission_rate" | "delivery_zones" | "maintenance_mode">>,
+  patch: Partial<
+    Pick<
+      SettingsRow,
+      | "default_commission_rate"
+      | "delivery_zones"
+      | "maintenance_mode"
+      | "vendor_membership_fee"
+      | "vendor_free_trial_months"
+      | "vendor_agreement_title"
+      | "vendor_agreement_body"
+    >
+  >,
 ): Promise<SettingsRow> {
   const { data, error } = await supabase
     .from("platform_settings")

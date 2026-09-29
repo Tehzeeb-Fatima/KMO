@@ -119,7 +119,7 @@ Deno.serve(async (req: Request) => {
     .from("platform_settings")
     .select("default_commission_rate")
     .single();
-  const defaultCommissionRate = settings?.default_commission_rate ?? 8;
+  const defaultCommissionRate = settings?.default_commission_rate ?? 0;
 
   // A coupon is vendor-scoped: it only discounts the order for the vendor it
   // was created by, even if the cart spans multiple vendors.

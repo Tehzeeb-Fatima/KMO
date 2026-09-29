@@ -2,13 +2,17 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   deleteVendor,
+  getPlatformSettings,
   getVendorById,
   listCategories,
+  listMembershipCharges,
   listMyProducts,
   listVendorCategories,
   listVendorCategoryNames,
   listVendors,
   logAdminAction,
+  membershipStatus,
+  recordMembershipCharge,
   setVendorCategories,
   setVendorStatus,
 } from "@kmo/shared/api";
@@ -448,6 +452,8 @@ function VendorDetail({ vendorId, onBack }: { vendorId: string; onBack: () => vo
             </div>
           </div>
 
+          <VendorMembershipSection vendorId={vendorId} membershipStartedAt={vendor.membership_started_at} />
+
           <VendorProductsSection vendorId={vendorId} />
 
           <div className="rounded-lg border border-border bg-surface p-6">
@@ -546,6 +552,90 @@ function VendorDetail({ vendorId, onBack }: { vendorId: string; onBack: () => vo
           setDeleteError(null);
         }}
       />
+    </div>
+  );
+}
+
+function VendorMembershipSection({
+  vendorId,
+  membershipStartedAt,
+}: {
+  vendorId: string;
+  membershipStartedAt: string;
+}) {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  const { data: settings } = useQuery({
+    queryKey: ["platform-settings"],
+    queryFn: () => getPlatformSettings(supabase),
+  });
+  const { data: charges } = useQuery({
+    queryKey: ["vendor-membership-charges", vendorId],
+    queryFn: () => listMembershipCharges(supabase, vendorId),
+  });
+
+  const logPaymentMutation = useMutation({
+    mutationFn: () => {
+      const now = new Date();
+      const periodStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const periodEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+      return recordMembershipCharge(supabase, {
+        vendor_id: vendorId,
+        period_start: periodStart.toISOString().slice(0, 10),
+        period_end: periodEnd.toISOString().slice(0, 10),
+        amount: settings?.vendor_membership_fee ?? 499,
+        status: "paid",
+        created_by: user!.id,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["vendor-membership-charges", vendorId] });
+      if (user) void logAdminAction(supabase, user.id, "vendor.membership_paid", "vendor", vendorId);
+    },
+  });
+
+  if (!settings) return null;
+
+  const trial = membershipStatus(membershipStartedAt, settings.vendor_free_trial_months);
+
+  return (
+    <div className="rounded-lg border border-border bg-surface p-6">
+      <div className="flex items-center justify-between">
+        <span className="text-[15px] font-bold text-ink">Membership</span>
+        <button
+          type="button"
+          onClick={() => logPaymentMutation.mutate()}
+          disabled={logPaymentMutation.isPending}
+          className="rounded-md bg-primary px-3 py-1.5 text-[11.5px] font-bold text-white disabled:opacity-60"
+        >
+          {logPaymentMutation.isPending ? "Logging…" : "Log this month's payment"}
+        </button>
+      </div>
+      <p className="mt-2 text-[12.5px] text-muted">
+        {trial.inFreeTrial
+          ? `Free trial until ${trial.trialEndsAt.toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })}.`
+          : `Rs. ${settings.vendor_membership_fee}/month since the trial ended on ${trial.trialEndsAt.toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })}.`}
+      </p>
+      {charges && charges.length > 0 ? (
+        <div className="mt-3 flex flex-col gap-1.5">
+          {charges.map((c) => (
+            <div key={c.id} className="flex items-center justify-between text-[12px]">
+              <span className="text-ink-dark">
+                {new Date(c.period_start).toLocaleDateString(undefined, { month: "long", year: "numeric" })}
+              </span>
+              <span className="flex items-center gap-2">
+                <span className="text-muted">Rs. {c.amount.toLocaleString()}</span>
+                <StatusBadge variant={c.status === "paid" ? "success" : c.status === "waived" ? "warning" : "danger"}>
+                  {c.status}
+                </StatusBadge>
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="mt-3 text-xs text-muted">No membership payments logged yet.</p>
+      )}
     </div>
   );
 }

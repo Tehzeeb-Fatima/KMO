@@ -19,3 +19,4 @@ export * from "./contact";
 export * from "./notifications";
 export * from "./couriers";
 export * from "./promotions";
+export * from "./vendor-membership";

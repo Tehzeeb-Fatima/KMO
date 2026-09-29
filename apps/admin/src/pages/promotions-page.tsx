@@ -139,11 +139,7 @@ export function PromotionsPage() {
                       ? `${Number(promo.discount_value)}% off`
                       : `Rs. ${Number(promo.discount_value).toLocaleString()}`}
                     <span className="block text-[10.5px] font-normal text-muted-table">
-                      {promo.funded_by === "kmo"
-                        ? "KMO-funded"
-                        : promo.funded_by === "vendor"
-                          ? "Vendor-funded"
-                          : `Shared ${promo.vendor_funded_percent}% vendor`}
+                      {promo.funded_by === "kmo" ? "KMO-funded" : "Vendor-funded"}
                     </span>
                   </span>
                   <span className="text-muted">
@@ -278,12 +274,7 @@ function PromotionForm({
     promotion ? toLocalInput(promotion.ends_at) : defaultEnd(),
   );
   const [isActive, setIsActive] = useState(promotion?.is_active ?? true);
-  const [fundedBy, setFundedBy] = useState<"kmo" | "vendor" | "shared">(
-    promotion?.funded_by ?? "kmo",
-  );
-  const [vendorFundedPercent, setVendorFundedPercent] = useState(
-    String(promotion?.vendor_funded_percent ?? 50),
-  );
+  const [fundedBy, setFundedBy] = useState<"kmo" | "vendor">(promotion?.funded_by ?? "kmo");
   const [maxDiscountAmount, setMaxDiscountAmount] = useState(
     promotion?.max_discount_amount ? String(promotion.max_discount_amount) : "",
   );
@@ -327,12 +318,6 @@ function PromotionForm({
       if (!(end.getTime() > start.getTime())) {
         throw new Error("The end time has to be after the start time.");
       }
-      if (fundedBy === "shared") {
-        const pct = Number(vendorFundedPercent);
-        if (!(pct > 0 && pct < 100)) {
-          throw new Error("For a shared split, the vendor's share must be between 1 and 99%.");
-        }
-      }
       if (targetMode === "products" && selectedProducts.length === 0) {
         throw new Error("Pick at least one product for this promotion to apply to.");
       }
@@ -349,8 +334,7 @@ function PromotionForm({
         ends_at: end.toISOString(),
         is_active: isActive,
         funded_by: fundedBy,
-        vendor_funded_percent:
-          fundedBy === "kmo" ? 0 : fundedBy === "vendor" ? 100 : Number(vendorFundedPercent),
+        vendor_funded_percent: fundedBy === "kmo" ? 0 : 100,
         max_discount_amount: maxDiscountAmount ? Number(maxDiscountAmount) : null,
         min_order_amount: minOrderAmount ? Number(minOrderAmount) : null,
       };
@@ -568,7 +552,6 @@ function PromotionForm({
                   [
                     { value: "kmo", label: "KMO", hint: "Vendor payout unaffected" },
                     { value: "vendor", label: "Vendor", hint: "Vendor payout reduced" },
-                    { value: "shared", label: "Shared", hint: "Split by %" },
                   ] as const
                 ).map((opt) => {
                   const active = fundedBy === opt.value;
@@ -591,24 +574,6 @@ function PromotionForm({
                 })}
               </div>
             </Field>
-
-            {fundedBy === "shared" ? (
-              <div className="mt-3">
-                <Field label={`Vendor's share of the discount: ${vendorFundedPercent}%`}>
-                  <input
-                    type="range"
-                    min="1"
-                    max="99"
-                    value={vendorFundedPercent}
-                    onChange={(e) => setVendorFundedPercent(e.target.value)}
-                    className="w-full"
-                  />
-                  <span className="text-[11.5px] text-muted">
-                    KMO covers the remaining {100 - Number(vendorFundedPercent || 0)}%.
-                  </span>
-                </Field>
-              </div>
-            ) : null}
 
             <div className="mt-3 grid grid-cols-1 gap-3.5 sm:grid-cols-2">
               <Field label="Max discount per order (optional)">
@@ -633,8 +598,8 @@ function PromotionForm({
               </Field>
             </div>
             <p className="mt-2 text-[11px] text-muted">
-              Commission is always calculated on the full price, before this discount — a
-              promotion never changes a vendor's commission, only who covers the discount.
+              KMO does not charge commission on sales — a promotion only decides who covers
+              this discount, KMO or the vendor. It's never split between the two.
             </p>
           </div>
 

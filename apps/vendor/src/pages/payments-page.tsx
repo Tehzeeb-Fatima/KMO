@@ -3,16 +3,24 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createPayout,
   getMyVendor,
+  getPlatformSettings,
   getVendorDueAmount,
   listVendorPayouts,
+  membershipStatus,
   notifyAdmins,
 } from "@kmo/shared/api";
 import { StatusBadge } from "@kmo/shared/ui";
 import { supabase } from "../lib/supabase";
 
+const CUSTOMER_URL = import.meta.env.VITE_CUSTOMER_URL ?? "https://karachimartonline.com";
+
 export function PaymentsPage() {
   const queryClient = useQueryClient();
   const { data: vendor } = useQuery({ queryKey: ["my-vendor"], queryFn: () => getMyVendor(supabase) });
+  const { data: settings } = useQuery({
+    queryKey: ["platform-settings"],
+    queryFn: () => getPlatformSettings(supabase),
+  });
 
   const { data: due } = useQuery({
     queryKey: ["vendor-due", vendor?.id],
@@ -27,7 +35,11 @@ export function PaymentsPage() {
   });
 
   const paidToDate = payouts?.filter((p) => p.status === "paid").reduce((s, p) => s + p.amount, 0) ?? 0;
-  const commissionRate = vendor?.commission_rate ?? 8;
+  const commissionRate = vendor?.commission_rate ?? 0;
+  const trial =
+    vendor && settings
+      ? membershipStatus(vendor.membership_started_at, settings.vendor_free_trial_months)
+      : null;
 
   const [amountInput, setAmountInput] = useState("");
   const [requested, setRequested] = useState(false);
@@ -57,7 +69,30 @@ export function PaymentsPage() {
       <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <StatTile label="Available balance" value={`Rs. ${(due ?? 0).toLocaleString()}`} />
         <StatTile label="Paid to date" value={`Rs. ${paidToDate.toLocaleString()}`} />
-        <StatTile label="Commission rate" value={`${commissionRate}%`} accent />
+        <StatTile
+          label="Membership"
+          value={trial?.inFreeTrial ? "Free trial" : `Rs. ${settings?.vendor_membership_fee ?? 499}/mo`}
+          accent
+        />
+      </div>
+
+      <div className="mb-4 rounded-xl border border-border bg-surface p-5">
+        <p className="text-[13px] font-bold text-ink">
+          KMO charges no commission on your sales — you keep the full listed price.
+        </p>
+        <p className="mt-1 text-xs text-muted">
+          {trial?.inFreeTrial
+            ? `Your membership is free until ${trial.trialEndsAt.toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })}. After that, it's Rs. ${settings?.vendor_membership_fee ?? 499} per month.`
+            : `Your membership fee is Rs. ${settings?.vendor_membership_fee ?? 499} per month.`}
+        </p>
+        <a
+          href={`${CUSTOMER_URL}/vendor-agreement`}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-2 inline-block w-fit text-xs font-bold text-primary"
+        >
+          Read the full vendor agreement →
+        </a>
       </div>
 
       <div className="mb-4 flex flex-col gap-3.5 rounded-xl border border-border bg-surface p-6">
