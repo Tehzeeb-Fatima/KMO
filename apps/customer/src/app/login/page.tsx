@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { AuthLayout, Button, Input, PasswordInput, PillTabs } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "@/lib/supabase";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 type Mode = "email" | "phone";
 type PhoneStep = "enter-phone" | "enter-code";
@@ -36,6 +37,7 @@ function LoginContent() {
   const searchParams = useSearchParams();
   const next = searchParams.get("next");
   const { user, profile } = useAuth();
+  const { t } = useLanguage();
 
   const [mode, setMode] = useState<Mode>("email");
   const [submitting, setSubmitting] = useState(false);
@@ -119,15 +121,15 @@ function LoginContent() {
   return (
     <AuthLayout
       logoSrc="/kmo-icon.png"
-      title="Welcome back"
-      subtitle="Sign in to track orders, manage your wishlist, and check out faster."
-      panelHeadline="Pakistan's local marketplace, online."
-      panelBody="Shop from thousands of vendors across Karachi — electronics, fashion, groceries and more, delivered to your door."
+      title={t.auth.welcomeBack}
+      subtitle={t.auth.signInSubtitle}
+      panelHeadline={t.auth.panelHeadline}
+      panelBody={t.auth.panelBody}
       footer={
         <>
-          New to Karachi Mart?{" "}
+          {t.auth.newToKmo}{" "}
           <Link href="/signup" className="font-semibold text-primary hover:text-primary-light">
-            Create an account
+            {t.auth.createAccount}
           </Link>
         </>
       }
@@ -139,8 +141,8 @@ function LoginContent() {
           setError(null);
         }}
         options={[
-          { value: "email", label: "Email" },
-          { value: "phone", label: "Phone" },
+          { value: "email", label: t.auth.emailTab },
+          { value: "phone", label: t.auth.phoneTab },
         ]}
         className="mb-6 w-full [&>button]:flex-1 [&>button]:text-center"
       />
@@ -148,7 +150,7 @@ function LoginContent() {
       {mode === "email" ? (
         <form onSubmit={handleEmailSubmit} className="flex flex-col gap-4">
           <Input
-            label="Email"
+            label={t.auth.email}
             type="email"
             name="email"
             autoComplete="email"
@@ -158,7 +160,7 @@ function LoginContent() {
           />
           <div>
             <PasswordInput
-              label="Password"
+              label={t.auth.password}
               name="password"
               autoComplete="current-password"
               required
@@ -167,22 +169,22 @@ function LoginContent() {
             />
             <div className="mt-1.5 text-right">
               <Link href="/reset-password" className="text-xs font-medium text-primary hover:text-primary-light">
-                Forgot password?
+                {t.auth.forgotPassword}
               </Link>
             </div>
           </div>
           {error ? <p className="text-sm text-danger">{error}</p> : null}
           <Button type="submit" disabled={submitting} className="mt-1 w-full">
-            {submitting ? "Signing in…" : "Sign in"}
+            {submitting ? t.auth.signingIn : t.auth.signInButton}
           </Button>
         </form>
       ) : phoneStep === "enter-phone" ? (
         <form onSubmit={handleSendCode} className="flex flex-col gap-4">
           <Input
-            label="Phone number"
+            label={t.auth.phone}
             type="tel"
             name="phone"
-            placeholder="+92 3XX XXXXXXX"
+            placeholder={t.auth.phonePlaceholder}
             autoComplete="tel"
             required
             value={phone}
@@ -190,16 +192,16 @@ function LoginContent() {
           />
           {error ? <p className="text-sm text-danger">{error}</p> : null}
           <Button type="submit" disabled={submitting} className="mt-1 w-full">
-            {submitting ? "Sending code…" : "Send code"}
+            {submitting ? t.auth.sendingCode : t.auth.sendCode}
           </Button>
         </form>
       ) : (
         <form onSubmit={handleVerifyCode} className="flex flex-col gap-4">
           <p className="text-sm text-muted">
-            Enter the code we sent to <span className="font-semibold text-ink">{phone}</span>.
+            {t.auth.enterCodeSentTo} <span className="font-semibold text-ink">{phone}</span>.
           </p>
           <Input
-            label="Verification code"
+            label={t.auth.verificationCode}
             inputMode="numeric"
             name="otp"
             required
@@ -208,14 +210,14 @@ function LoginContent() {
           />
           {error ? <p className="text-sm text-danger">{error}</p> : null}
           <Button type="submit" disabled={submitting} className="mt-1 w-full">
-            {submitting ? "Verifying…" : "Verify & sign in"}
+            {submitting ? t.auth.verifying : t.auth.verifyAndSignIn}
           </Button>
           <button
             type="button"
             onClick={() => setPhoneStep("enter-phone")}
             className="text-sm font-medium text-primary hover:text-primary-light"
           >
-            Use a different number
+            {t.auth.useDifferentNumber}
           </button>
         </form>
       )}

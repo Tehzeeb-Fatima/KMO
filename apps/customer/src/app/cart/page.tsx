@@ -7,6 +7,7 @@ import { listCartItems, removeCartItem, updateCartItemQuantity } from "@kmo/shar
 import { Breadcrumbs, Button, ConfirmDialog } from "@kmo/shared/ui";
 import { RequireAuth } from "@/components/require-auth";
 import { supabase } from "@/lib/supabase";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 export default function CartPage() {
   return (
@@ -18,6 +19,7 @@ export default function CartPage() {
 
 function CartContent() {
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
   const { data: items, isLoading } = useQuery({
     queryKey: ["cart"],
     queryFn: () => listCartItems(supabase),
@@ -59,15 +61,15 @@ function CartContent() {
     }, 0);
   }, [items]);
 
-  if (isLoading) return <p className="p-10 text-sm text-muted">Loading cart…</p>;
+  if (isLoading) return <p className="p-10 text-sm text-muted">{t.cart.loading}</p>;
 
   if (!items || items.length === 0) {
     return (
       <div className="mx-auto flex max-w-[600px] flex-1 flex-col items-center justify-center p-10 text-center">
-        <h1 className="text-xl font-bold text-ink">Your cart is empty</h1>
-        <p className="mt-2 text-sm text-muted">Browse the catalogue to find something you like.</p>
+        <h1 className="text-xl font-bold text-ink">{t.cart.empty}</h1>
+        <p className="mt-2 text-sm text-muted">{t.cart.emptyHint}</p>
         <Link href="/search" className="mt-4">
-          <Button>Start shopping</Button>
+          <Button>{t.cart.startShopping}</Button>
         </Link>
       </div>
     );
@@ -77,10 +79,10 @@ function CartContent() {
     <div className="mx-auto w-full max-w-[1358px] px-4 py-6 sm:px-6 lg:px-10">
       <Breadcrumbs
         LinkComponent={Link}
-        items={[{ label: "Home", href: "/" }, { label: "Your cart" }]}
+        items={[{ label: t.common.home, href: "/" }, { label: t.cart.title }]}
       />
       <h1 className="mb-5 text-xl font-extrabold tracking-[-0.03em] text-ink sm:text-2xl">
-        Your cart · {items.length} item{items.length === 1 ? "" : "s"}
+        {t.cart.title} · {items.length} {items.length === 1 ? t.cart.itemCount : t.cart.itemCountPlural}
       </h1>
 
       <div className="grid grid-cols-1 gap-[26px] lg:grid-cols-[minmax(0,1fr)_340px]">
@@ -97,7 +99,7 @@ function CartContent() {
                     {group.vendorName}
                   </span>
                   <span className="text-[12.5px] text-muted">
-                    Subtotal:{" "}
+                    {t.cart.subtotalLabel}{" "}
                     <strong className="text-ink-dark">Rs. {groupSubtotal.toLocaleString()}</strong>
                   </span>
                 </div>
@@ -133,7 +135,7 @@ function CartContent() {
                           onClick={() => setPendingRemoveId(item.id)}
                           className="w-fit text-xs font-bold text-accent"
                         >
-                          Remove
+                          {t.cart.remove}
                         </button>
                       </div>
                       <div className="col-start-2 flex min-w-0 items-center justify-between gap-3 sm:contents">
@@ -173,19 +175,19 @@ function CartContent() {
         </div>
 
         <div className="flex flex-col gap-4 rounded-xl border border-border bg-surface p-6 lg:sticky lg:top-6 lg:self-start">
-          <p className="text-[17px] font-bold tracking-[-0.02em] text-ink">Order summary</p>
+          <p className="text-[17px] font-bold tracking-[-0.02em] text-ink">{t.checkout.orderSummary}</p>
           <div className="flex justify-between border-t border-[#F1EAE6] pt-3.5 text-[13.5px]">
-            <span className="text-muted">Subtotal</span>
+            <span className="text-muted">{t.cart.subtotal}</span>
             <span className="font-semibold text-ink-dark">Rs. {subtotal.toLocaleString()}</span>
           </div>
           <div className="flex justify-between text-[13.5px]">
-            <span className="text-muted">Delivery</span>
+            <span className="text-muted">{t.cart.delivery}</span>
             <span className="font-semibold text-success">
-              {subtotal >= 2500 ? "Free" : "Rs. 120"}
+              {subtotal >= 2500 ? t.cart.free : "Rs. 120"}
             </span>
           </div>
           <div className="flex justify-between border-t border-[#F1EAE6] pt-3.5 text-lg font-extrabold">
-            <span className="text-ink">Total</span>
+            <span className="text-ink">{t.cart.total}</span>
             <span className="text-accent">
               Rs. {(subtotal + (subtotal >= 2500 ? 0 : 120) * groups.length).toLocaleString()}
             </span>
@@ -194,19 +196,19 @@ function CartContent() {
             <span className="rounded bg-white px-1.5 py-1 font-mono text-[9.5px] tracking-[0.08em] text-primary">
               COD
             </span>
-            <span className="text-xs text-primary">Cash on delivery available</span>
+            <span className="text-xs text-primary">{t.cart.codAvailable}</span>
           </div>
           <Link href="/checkout">
-            <Button className="w-full">Proceed to checkout</Button>
+            <Button className="w-full">{t.cart.proceedToCheckout}</Button>
           </Link>
         </div>
       </div>
 
       <ConfirmDialog
         open={!!pendingRemoveId}
-        title="Remove this item?"
-        message="It will be taken out of your cart."
-        confirmLabel="Remove"
+        title={t.cart.removeItemTitle}
+        message={t.cart.removeItemMessage}
+        confirmLabel={t.cart.remove}
         loading={removeMutation.isPending}
         onConfirm={() => removeMutation.mutate(pendingRemoveId!)}
         onCancel={() => setPendingRemoveId(null)}

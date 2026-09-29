@@ -24,12 +24,14 @@ import { Breadcrumbs, Button, ProductCard, Product360Viewer } from "@kmo/shared/
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "@/lib/supabase";
 import { ensureCustomerId } from "@/lib/ensure-customer-id";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 export default function ProductDetailClient() {
   const params = useParams<{ slug: string }>();
   const router = useRouter();
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   const { data: product, isLoading } = useQuery({
     queryKey: ["product", params.slug],
@@ -191,16 +193,14 @@ export default function ProductDetailClient() {
   });
 
   if (isLoading) {
-    return <p className="p-10 text-sm text-muted">Loading product…</p>;
+    return <p className="p-10 text-sm text-muted">{t.product.loading}</p>;
   }
 
   if (!product) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center p-10 text-center">
-        <h1 className="text-xl font-bold text-ink">Product not found</h1>
-        <p className="mt-2 text-sm text-muted">
-          This product doesn&rsquo;t exist, or isn&rsquo;t published.
-        </p>
+        <h1 className="text-xl font-bold text-ink">{t.product.notFound}</h1>
+        <p className="mt-2 text-sm text-muted">{t.product.notFoundHint}</p>
       </div>
     );
   }
@@ -286,10 +286,10 @@ export default function ProductDetailClient() {
         LinkComponent={Link}
         className="mb-4 hidden sm:block"
         items={[
-          { label: "Home", href: "/" },
+          { label: t.common.home, href: "/" },
           ...(product.vendors
             ? [
-                { label: "Vendors", href: "/vendors" },
+                { label: t.vendorsPage.title, href: "/vendors" },
                 {
                   label: product.vendors.store_name,
                   href: `/store/${product.vendors.slug}`,
@@ -319,7 +319,7 @@ export default function ProductDetailClient() {
                       }
                 }
               >
-                Product Images
+                {t.product.productImages}
               </button>
               <button
                 type="button"
@@ -336,7 +336,7 @@ export default function ProductDetailClient() {
                 }
               >
                 <RotateCcw className="h-3.5 w-3.5" />
-                360° View
+                {t.product.view360}
               </button>
             </div>
           ) : null}
@@ -409,7 +409,7 @@ export default function ProductDetailClient() {
           </h1>
           {product.brand ? (
             <p className="text-sm text-muted">
-              Brand: <span className="font-semibold text-ink-dark">{product.brand}</span>
+              {t.product.brand} <span className="font-semibold text-ink-dark">{product.brand}</span>
             </p>
           ) : null}
 
@@ -428,12 +428,12 @@ export default function ProductDetailClient() {
               </span>
             ) : null}
             <span className="rounded-full bg-primary-tint px-2.5 py-1 font-mono text-[10px] tracking-[0.1em] text-primary">
-              COD AVAILABLE
+              {t.product.codAvailableBadge}
             </span>
           </div>
 
           <p className="text-sm font-semibold" style={{ color: stock > 0 ? "var(--color-success)" : "var(--color-danger)" }}>
-            {stock > 0 ? `In stock (${stock} available)` : "Out of stock"}
+            {stock > 0 ? `${t.product.inStock} (${stock} ${t.product.available})` : t.product.outOfStock}
           </p>
 
           {Object.entries(variantGroups).map(([optionName, variants]) => (
@@ -441,7 +441,7 @@ export default function ProductDetailClient() {
               <span className="text-[13px] text-muted">
                 {optionName}:{" "}
                 <strong className="font-bold text-ink-dark">
-                  {selectedOptions[optionName] ?? "Select"}
+                  {selectedOptions[optionName] ?? t.product.select}
                 </strong>
               </span>
               <div className="flex flex-wrap gap-2">
@@ -507,7 +507,7 @@ export default function ProductDetailClient() {
               disabled={stock <= 0 || addMutation.isPending}
               onClick={() => addMutation.mutate()}
             >
-              {addMutation.isPending ? "Adding…" : "Add to cart"}
+              {addMutation.isPending ? t.product.adding : t.common.addToCart}
             </Button>
             <Button
               variant="primary"
@@ -519,7 +519,7 @@ export default function ProductDetailClient() {
                 })
               }
             >
-              Buy now
+              {t.product.buyNow}
             </Button>
             <button
               type="button"
@@ -534,7 +534,7 @@ export default function ProductDetailClient() {
 
           {product.description ? (
             <div className="border-t border-[#F1EAE6] pt-4">
-              <h2 className="mb-2 text-[15px] font-bold text-ink">Description</h2>
+              <h2 className="mb-2 text-[15px] font-bold text-ink">{t.product.description}</h2>
               <p className="text-sm leading-[1.75] text-ink-dark">{product.description}</p>
             </div>
           ) : null}
@@ -557,17 +557,14 @@ export default function ProductDetailClient() {
         <div className="flex flex-col gap-4">
           <div className="rounded-[10px] border border-border bg-surface p-5">
             <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-table">
-              Delivery &amp; payment
+              {t.product.deliveryPayment}
             </p>
             <div className="flex flex-col gap-3">
               {[
-                {
-                  label: "Karachi · 1–2 days",
-                  sub: "Free over Rs. 2,500, otherwise Rs. 120 flat.",
-                },
-                { label: "Cash on delivery", sub: "Pay the rider, not in advance." },
-                { label: "7-day returns", sub: "Managed by Karachi Mart, not the vendor." },
-                { label: "Size exchange", sub: "Available for eligible clothing items." },
+                { label: t.product.karachiDays, sub: t.product.karachiDaysSub },
+                { label: t.product.codLabel, sub: t.product.codLabelSub },
+                { label: t.product.returns7day, sub: t.product.returns7daySub },
+                { label: t.product.sizeExchange, sub: t.product.sizeExchangeSub },
               ].map((row) => (
                 <div key={row.label} className="flex gap-2.5">
                   <span className="mt-[6px] h-[7px] w-[7px] shrink-0 rounded-full bg-accent" />
@@ -583,7 +580,7 @@ export default function ProductDetailClient() {
           {product.vendors ? (
             <div className="rounded-[10px] border border-border bg-surface p-5">
               <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-table">
-                Sold by
+                {t.product.soldBy}
               </p>
               <div className="flex items-center gap-3">
                 <span className="flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-[10px] bg-primary text-sm font-bold text-white">
@@ -597,7 +594,7 @@ export default function ProductDetailClient() {
                     <p className="text-xs text-muted">
                       <span className="font-bold text-accent">★ {reviewAverage.toFixed(1)}</span>
                       {" · "}
-                      {reviewCount} ratings
+                      {reviewCount} {t.product.ratingsWord}
                     </p>
                   ) : null}
                 </div>
@@ -607,13 +604,13 @@ export default function ProductDetailClient() {
                   href={`/store/${product.vendors.slug}`}
                   className="flex-1 rounded-lg border border-border px-4 py-[11px] text-center text-sm font-bold text-primary"
                 >
-                  Visit store
+                  {t.product.visitStore}
                 </Link>
                 <a
                   href="#ask-a-question"
                   className="flex-1 rounded-lg border border-border px-4 py-[11px] text-center text-sm font-bold text-primary"
                 >
-                  Ask a question
+                  {t.product.askQuestion}
                 </a>
               </div>
             </div>
@@ -624,7 +621,7 @@ export default function ProductDetailClient() {
       {/* reviews */}
       <div className="mt-8 rounded-[10px] border border-border bg-surface p-6">
         <h2 className="text-lg font-bold text-ink">
-          Reviews {reviewCount > 0 ? `(${reviewCount})` : ""}
+          {t.product.reviews} {reviewCount > 0 ? `(${reviewCount})` : ""}
         </h2>
 
         <div className="mt-5 grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
@@ -637,7 +634,7 @@ export default function ProductDetailClient() {
                 <p className="tracking-[0.1em] text-accent">
                   {"★".repeat(Math.round(reviewAverage))}
                 </p>
-                <p className="mt-1 text-[12.5px] text-muted">{reviewCount} reviews</p>
+                <p className="mt-1 text-[12.5px] text-muted">{reviewCount} {t.product.reviewsWord}</p>
                 <div className="mt-4 flex flex-col gap-1.5">
                   {reviewBars.map((b) => (
                     <div key={b.stars} className="flex items-center gap-2 text-xs">
@@ -651,7 +648,7 @@ export default function ProductDetailClient() {
                 </div>
               </>
             ) : (
-              <p className="text-sm text-muted">No reviews yet.</p>
+              <p className="text-sm text-muted">{t.product.noReviewsYet}</p>
             )}
 
             {user ? (
@@ -670,7 +667,7 @@ export default function ProductDetailClient() {
                   ))}
                 </div>
                 <textarea
-                  placeholder="Share your experience with this product…"
+                  placeholder={t.product.shareExperience}
                   value={reviewBody}
                   onChange={(e) => setReviewBody(e.target.value)}
                   rows={2}
@@ -682,7 +679,7 @@ export default function ProductDetailClient() {
                   disabled={!reviewBody.trim() || reviewMutation.isPending}
                   onClick={() => reviewMutation.mutate()}
                 >
-                  {reviewMutation.isPending ? "Submitting…" : "Write a review"}
+                  {reviewMutation.isPending ? t.product.submitting : t.product.writeReview}
                 </Button>
               </div>
             ) : null}
@@ -690,7 +687,7 @@ export default function ProductDetailClient() {
 
           <div className="flex flex-col gap-4">
             {!reviews || reviews.length === 0 ? (
-              <p className="text-sm text-muted">Be the first to write one.</p>
+              <p className="text-sm text-muted">{t.product.beFirstReview}</p>
             ) : (
               reviews.map((r) => (
                 <div key={r.id} className="border-t border-[#F1EAE6] pt-4 first:border-t-0 first:pt-0">
@@ -703,7 +700,7 @@ export default function ProductDetailClient() {
                   {r.body ? <p className="mt-1 text-sm text-ink-dark">{r.body}</p> : null}
                   {r.vendor_reply ? (
                     <div className="mt-2 rounded-lg bg-primary-tint p-2.5 text-xs text-primary">
-                      <strong className="font-bold">Vendor reply:</strong> {r.vendor_reply}
+                      <strong className="font-bold">{t.product.vendorReply}</strong> {r.vendor_reply}
                     </div>
                   ) : null}
                 </div>
@@ -716,14 +713,13 @@ export default function ProductDetailClient() {
       {/* questions */}
       <div id="ask-a-question" className="mt-8 rounded-[10px] border border-border bg-surface p-6">
         <div className="rounded-[10px] border border-[#EFCBBB] bg-accent-tint p-5">
-          <p className="text-[15px] font-bold text-ink">Ask a question</p>
+          <p className="text-[15px] font-bold text-ink">{t.product.askQuestion}</p>
           <p className="mt-1 text-[12.5px] text-muted">
-            {product.vendors?.store_name ?? "The vendor"} usually replies within a few hours
-            during store hours.
+            {product.vendors?.store_name ?? t.product.theVendor} {t.product.vendorRepliesWithin}
           </p>
           <div className="mt-3.5 flex flex-col gap-2 sm:flex-row">
             <input
-              placeholder="e.g. Does this come with a warranty?"
+              placeholder={t.product.questionPlaceholder}
               value={questionDraft}
               onChange={(e) => setQuestionDraft(e.target.value)}
               className="flex-1 rounded-full border border-border bg-white px-4 py-2.5 text-sm outline-none focus:border-primary-light"
@@ -734,14 +730,16 @@ export default function ProductDetailClient() {
               onClick={() => questionMutation.mutate()}
               className="rounded-full bg-accent px-5 py-2.5 text-sm font-bold text-white disabled:opacity-60"
             >
-              {questionMutation.isPending ? "Sending…" : "Submit question"}
+              {questionMutation.isPending ? t.product.sending : t.product.submitQuestion}
             </button>
           </div>
         </div>
 
         <div className="mt-5">
           <p className="text-[15px] font-bold text-ink">
-            {questions && questions.length > 0 ? `${questions.length} answered questions` : "No questions yet"}
+            {questions && questions.length > 0
+              ? `${questions.length} ${t.product.answeredQuestions}`
+              : t.product.noQuestionsYet}
           </p>
           <div className="mt-3 flex flex-col gap-3.5">
             {questions?.map((q) => (
@@ -754,7 +752,7 @@ export default function ProductDetailClient() {
                     <span className="font-mono font-bold text-accent">A:</span> {q.answer}
                   </p>
                 ) : (
-                  <p className="mt-1.5 text-xs text-muted">Awaiting a reply from the vendor.</p>
+                  <p className="mt-1.5 text-xs text-muted">{t.product.awaitingReply}</p>
                 )}
               </div>
             ))}
@@ -765,7 +763,7 @@ export default function ProductDetailClient() {
       {/* more from this vendor */}
       {moreFromVendor && moreFromVendor.length > 1 ? (
         <div className="mt-8">
-          <h2 className="mb-4 text-lg font-bold text-ink">More from this vendor</h2>
+          <h2 className="mb-4 text-lg font-bold text-ink">{t.product.moreFromVendor}</h2>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
             {moreFromVendor
               .filter((p) => p.id !== product.id)
@@ -789,7 +787,7 @@ export default function ProductDetailClient() {
       {/* suggested products */}
       {suggested && suggested.length > 1 ? (
         <div className="mt-8">
-          <h2 className="mb-4 text-lg font-bold text-ink">Suggested products</h2>
+          <h2 className="mb-4 text-lg font-bold text-ink">{t.product.suggestedProducts}</h2>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
             {suggested
               .filter((p) => p.id !== product.id)

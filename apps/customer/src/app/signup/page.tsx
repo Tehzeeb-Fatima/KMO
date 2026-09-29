@@ -6,10 +6,12 @@ import { useRouter } from "next/navigation";
 import { AuthLayout, Button, Input, PasswordInput } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "@/lib/supabase";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 export default function SignupPage() {
   const router = useRouter();
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -30,7 +32,7 @@ export default function SignupPage() {
     setError(null);
 
     if (password !== confirmPassword) {
-      setError("Passwords don't match.");
+      setError(t.auth.passwordsDontMatch);
       return;
     }
 
@@ -66,11 +68,11 @@ export default function SignupPage() {
     return (
       <AuthLayout
         logoSrc="/kmo-icon.png"
-        title="Check your email"
-        subtitle={`We sent a confirmation link to ${email}. Follow it to finish creating your account.`}
+        title={t.auth.checkEmailTitle}
+        subtitle={t.auth.checkEmailSubtitle.replace("{email}", email)}
       >
         <Link href="/login" className="text-sm font-semibold text-primary hover:text-primary-light">
-          Back to sign in
+          {t.auth.backToSignIn}
         </Link>
       </AuthLayout>
     );
@@ -79,20 +81,20 @@ export default function SignupPage() {
   return (
     <AuthLayout
       logoSrc="/kmo-icon.png"
-      title="Create your account"
-      subtitle="Join Karachi Mart to shop from local vendors across the city."
+      title={t.auth.signUpTitle}
+      subtitle={t.auth.signUpSubtitle}
       footer={
         <>
-          Already have an account?{" "}
+          {t.auth.haveAccount}{" "}
           <Link href="/login" className="font-semibold text-primary hover:text-primary-light">
-            Sign in
+            {t.auth.signInLink}
           </Link>
         </>
       }
     >
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <Input
-          label="Full name"
+          label={t.auth.fullName}
           name="full_name"
           autoComplete="name"
           required
@@ -100,7 +102,7 @@ export default function SignupPage() {
           onChange={(e) => setFullName(e.target.value)}
         />
         <Input
-          label="Email"
+          label={t.auth.email}
           type="email"
           name="email"
           autoComplete="email"
@@ -109,16 +111,16 @@ export default function SignupPage() {
           onChange={(e) => setEmail(e.target.value)}
         />
         <Input
-          label="Phone number"
+          label={t.auth.phone}
           type="tel"
           name="phone"
-          placeholder="+92 3XX XXXXXXX"
+          placeholder={t.auth.phonePlaceholder}
           autoComplete="tel"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
         />
         <PasswordInput
-          label="Password"
+          label={t.auth.password}
           name="password"
           autoComplete="new-password"
           required
@@ -127,7 +129,7 @@ export default function SignupPage() {
           onChange={(e) => setPassword(e.target.value)}
         />
         <PasswordInput
-          label="Confirm password"
+          label={t.auth.confirmPassword}
           name="confirm_password"
           autoComplete="new-password"
           required
@@ -137,7 +139,7 @@ export default function SignupPage() {
         />
         {error ? <p className="text-sm text-danger">{error}</p> : null}
         <Button type="submit" disabled={submitting} className="mt-1 w-full">
-          {submitting ? "Creating account…" : "Create account"}
+          {submitting ? t.auth.creatingAccount : t.auth.signUpButton}
         </Button>
       </form>
     </AuthLayout>
