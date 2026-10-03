@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  bulkDeleteVendors,
+  bulkSetVendorStatus,
   deleteVendor,
   getPlatformSettings,
   getVendorById,
@@ -104,6 +106,56 @@ function VendorsList({
     onError: (err: Error) => setDeleteError(err.message),
   });
 
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkConfirm, setBulkConfirm] = useState<"suspended" | "delete" | null>(null);
+  const [bulkMessage, setBulkMessage] = useState<string | null>(null);
+  const allVisibleSelected = filtered.length > 0 && filtered.every((v) => selected.has(v.id));
+
+  function toggleSelected(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleAllVisible() {
+    setSelected(allVisibleSelected ? new Set() : new Set(filtered.map((v) => v.id)));
+  }
+
+  const bulkMutation = useMutation({
+    mutationFn: async ({
+      action,
+      ids,
+    }: {
+      action: VendorVerificationStatus | "delete";
+      ids: string[];
+    }) => {
+      if (action === "delete") {
+        const r = await bulkDeleteVendors(supabase, ids);
+        return `Deleted ${r.deleted}.${r.failed.length ? ` ${r.failed.length} skipped (they have order history — suspend them instead).` : ""}`;
+      }
+      const r = await bulkSetVendorStatus(supabase, ids, action);
+      return `Updated ${ids.length - r.failed}.${r.failed ? ` ${r.failed} failed.` : ""}`;
+    },
+    onSuccess: (message, { action, ids }) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-vendors"] });
+      if (user) {
+        void logAdminAction(supabase, user.id, `vendor.bulk.${action}`, "vendor", undefined, {
+          count: ids.length,
+        });
+      }
+      setSelected(new Set());
+      setBulkConfirm(null);
+      setBulkMessage(message);
+    },
+    onError: (err: Error) => {
+      setBulkConfirm(null);
+      setBulkMessage(err.message);
+    },
+  });
+
   return (
     <div>
       <div className="mb-[18px] flex items-center gap-3">
@@ -134,8 +186,67 @@ function VendorsList({
         </button>
       </div>
 
+      {selected.size > 0 ? (
+        <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-border bg-primary-tint p-3">
+          <span className="mr-2 text-[13px] font-bold text-ink-dark">{selected.size} selected</span>
+          <button
+            type="button"
+            disabled={bulkMutation.isPending}
+            onClick={() => bulkMutation.mutate({ action: "approved", ids: [...selected] })}
+            className="rounded-md bg-primary px-3 py-1.5 text-[12px] font-bold text-white disabled:opacity-60"
+          >
+            Approve
+          </button>
+          <button
+            type="button"
+            disabled={bulkMutation.isPending}
+            onClick={() => bulkMutation.mutate({ action: "rejected", ids: [...selected] })}
+            className="rounded-md border border-border bg-white px-3 py-1.5 text-[12px] font-bold text-danger disabled:opacity-60"
+          >
+            Reject
+          </button>
+          <button
+            type="button"
+            disabled={bulkMutation.isPending}
+            onClick={() => setBulkConfirm("suspended")}
+            className="rounded-md border border-border bg-white px-3 py-1.5 text-[12px] font-bold text-primary disabled:opacity-60"
+          >
+            Suspend
+          </button>
+          <button
+            type="button"
+            disabled={bulkMutation.isPending}
+            onClick={() => setBulkConfirm("delete")}
+            className="rounded-md border border-border bg-white px-3 py-1.5 text-[12px] font-bold text-danger disabled:opacity-60"
+          >
+            Delete
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelected(new Set())}
+            className="ml-auto text-[12px] font-bold text-muted"
+          >
+            Clear selection
+          </button>
+        </div>
+      ) : null}
+      {bulkMessage ? (
+        <p className="mb-3 text-[12.5px] font-semibold text-ink-dark">
+          {bulkMessage}{" "}
+          <button type="button" onClick={() => setBulkMessage(null)} className="text-accent">
+            Dismiss
+          </button>
+        </p>
+      ) : null}
+
       <div className="overflow-hidden rounded-xl border border-border bg-surface">
-        <div className="grid grid-cols-[2fr_1.4fr_1fr_1fr_190px] border-b border-border bg-surface-alt px-5 py-3 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
+        <div className="grid grid-cols-[32px_2fr_1.4fr_1fr_1fr_190px] items-center border-b border-border bg-surface-alt px-5 py-3 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
+          <input
+            type="checkbox"
+            aria-label="Select all visible vendors"
+            checked={allVisibleSelected}
+            onChange={toggleAllVisible}
+          />
           <span>Vendor</span>
           <span>Category</span>
           <span>Products</span>
@@ -154,8 +265,14 @@ function VendorsList({
             return (
               <div
                 key={v.id}
-                className="grid grid-cols-[2fr_1.4fr_1fr_1fr_190px] items-center border-b border-[#F5F0EE] px-5 py-4 last:border-b-0"
+                className="grid grid-cols-[32px_2fr_1.4fr_1fr_1fr_190px] items-center border-b border-[#F5F0EE] px-5 py-4 last:border-b-0"
               >
+                <input
+                  type="checkbox"
+                  aria-label={`Select ${v.store_name}`}
+                  checked={selected.has(v.id)}
+                  onChange={() => toggleSelected(v.id)}
+                />
                 <button
                   type="button"
                   onClick={() => onOpen(v.id)}
@@ -190,6 +307,29 @@ function VendorsList({
           })
         )}
       </div>
+
+      <ConfirmDialog
+        open={!!bulkConfirm}
+        title={
+          bulkConfirm === "delete"
+            ? `Delete ${selected.size} vendor${selected.size === 1 ? "" : "s"}?`
+            : `Suspend ${selected.size} vendor${selected.size === 1 ? "" : "s"}?`
+        }
+        message={
+          bulkConfirm === "delete"
+            ? "Vendors with order history will be skipped, since they can't be deleted. Everything else (products, payouts, messages) is removed permanently."
+            : "Suspended vendors' products stop showing to shoppers. You can approve them again later."
+        }
+        confirmLabel={bulkConfirm === "delete" ? "Delete" : "Suspend"}
+        loading={bulkMutation.isPending}
+        onConfirm={() =>
+          bulkMutation.mutate({
+            action: bulkConfirm === "delete" ? "delete" : "suspended",
+            ids: [...selected],
+          })
+        }
+        onCancel={() => setBulkConfirm(null)}
+      />
 
       <ConfirmDialog
         open={!!pendingDelete}

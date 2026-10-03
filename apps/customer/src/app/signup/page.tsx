@@ -3,10 +3,12 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AuthLayout, Button, Input, PasswordInput } from "@kmo/shared/ui";
+import { AuthLayout, Button, Input, PasswordInput, Turnstile } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/i18n/language-context";
+
+const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -19,6 +21,8 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState("");
+  const [captchaResetKey, setCaptchaResetKey] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [checkEmail, setCheckEmail] = useState(false);
 
@@ -36,11 +40,17 @@ export default function SignupPage() {
       return;
     }
 
+    if (TURNSTILE_SITE_KEY && !captchaToken) {
+      setError("Please complete the security check.");
+      return;
+    }
+
     setSubmitting(true);
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
+        captchaToken: captchaToken || undefined,
         emailRedirectTo: `${window.location.origin}/`,
         data: {
           full_name: fullName,
@@ -50,6 +60,7 @@ export default function SignupPage() {
       },
     });
     setSubmitting(false);
+    setCaptchaResetKey((k) => k + 1);
 
     if (error) {
       setError(error.message);
@@ -137,6 +148,9 @@ export default function SignupPage() {
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
         />
+        {TURNSTILE_SITE_KEY ? (
+          <Turnstile siteKey={TURNSTILE_SITE_KEY} onToken={setCaptchaToken} resetKey={captchaResetKey} />
+        ) : null}
         {error ? <p className="text-sm text-danger">{error}</p> : null}
         <Button type="submit" disabled={submitting} className="mt-1 w-full">
           {submitting ? t.auth.creatingAccount : t.auth.signUpButton}

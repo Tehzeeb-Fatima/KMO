@@ -246,7 +246,7 @@ function PromotionForm({
 
   const { data: productResults, isFetching: searchingProducts } = useQuery({
     queryKey: ["promotion-product-search", productSearch],
-    queryFn: () => listPublishedProducts(supabase, { search: productSearch, limit: 20 }),
+    queryFn: () => listPublishedProducts(supabase, { nameContains: productSearch.trim(), limit: 20 }),
     enabled: targetMode === "products" && productSearch.trim().length >= 2,
   });
 
@@ -258,6 +258,7 @@ function PromotionForm({
 
   const [title, setTitle] = useState(promotion?.title ?? "");
   const [subtitle, setSubtitle] = useState(promotion?.subtitle ?? "");
+  const [badgeText, setBadgeText] = useState(promotion?.badge_text ?? "");
   const [imageUrl, setImageUrl] = useState(promotion?.image_url ?? "");
   const [vendorId, setVendorId] = useState(promotion?.vendor_id ?? "");
   const [categoryId, setCategoryId] = useState(promotion?.category_id ?? "");
@@ -337,6 +338,7 @@ function PromotionForm({
         vendor_funded_percent: fundedBy === "kmo" ? 0 : 100,
         max_discount_amount: maxDiscountAmount ? Number(maxDiscountAmount) : null,
         min_order_amount: minOrderAmount ? Number(minOrderAmount) : null,
+        badge_text: badgeText.trim() || null,
       };
 
       const saved = promotion
@@ -380,6 +382,16 @@ function PromotionForm({
               placeholder="e.g. Eid Electronics Sale"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+              className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
+            />
+          </Field>
+
+          <Field label="Product label (optional)">
+            <input
+              placeholder="e.g. Flash Sale, Eid Special — leave empty to show -30%"
+              value={badgeText}
+              maxLength={24}
+              onChange={(e) => setBadgeText(e.target.value)}
               className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
             />
           </Field>

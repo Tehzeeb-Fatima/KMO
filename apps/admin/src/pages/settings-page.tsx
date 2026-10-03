@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getPlatformSettings, logAdminAction, updatePlatformSettings } from "@kmo/shared/api";
+import {
+  getPlatformSettings,
+  listVendors,
+  logAdminAction,
+  updatePlatformSettings,
+  uploadPromotionImage,
+} from "@kmo/shared/api";
 import { ConfirmDialog } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "../lib/supabase";
@@ -19,9 +25,18 @@ export function SettingsPage() {
   const [trialMonths, setTrialMonths] = useState("2");
   const [agreementTitle, setAgreementTitle] = useState("");
   const [agreementBody, setAgreementBody] = useState("");
+  const [vendorOfWeekId, setVendorOfWeekId] = useState("");
+  const [vendorOfWeekImage, setVendorOfWeekImage] = useState<string | null>(null);
+  const [vendorOfWeekImageUploading, setVendorOfWeekImageUploading] = useState(false);
+  const { data: approvedVendors } = useQuery({
+    queryKey: ["admin-vendors-for-week"],
+    queryFn: () => listVendors(supabase, { status: "approved" }),
+  });
 
   useEffect(() => {
     if (settings) {
+      setVendorOfWeekId(settings.vendor_of_week_id ?? "");
+      setVendorOfWeekImage(settings.vendor_of_week_image_url ?? null);
       setCommission(String(settings.default_commission_rate));
       setCodCitywide((settings.delivery_zones ?? []).includes("citywide-cod"));
       setMembershipFee(String(settings.vendor_membership_fee));
@@ -30,6 +45,21 @@ export function SettingsPage() {
       setAgreementBody(settings.vendor_agreement_body);
     }
   }, [settings]);
+
+  const [vendorOfWeekSaved, setVendorOfWeekSaved] = useState(false);
+  const saveVendorOfWeek = useMutation({
+    mutationFn: () =>
+      updatePlatformSettings(supabase, {
+        vendor_of_week_id: vendorOfWeekId || null,
+        vendor_of_week_image_url: vendorOfWeekImage,
+      }),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(["platform-settings"], updated);
+      if (user) void logAdminAction(supabase, user.id, "settings.vendor_of_week", "platform_settings");
+      setVendorOfWeekSaved(true);
+      setTimeout(() => setVendorOfWeekSaved(false), 2500);
+    },
+  });
 
   const saveCommission = useMutation({
     mutationFn: () =>
@@ -99,6 +129,77 @@ export function SettingsPage() {
 
   return (
     <div className="flex max-w-[640px] flex-col gap-4">
+      <div className="flex flex-col gap-3.5 rounded-xl border border-border bg-surface p-[22px_24px]">
+        <p className="text-[15px] font-bold text-ink">Vendor of the week</p>
+        <p className="text-xs text-muted">
+          The vendor featured in the homepage &ldquo;Vendor of the week&rdquo; card. If none is
+          picked, the first approved vendor is shown.
+        </p>
+        <div className="flex flex-col gap-2">
+          <span className="text-[12.5px] font-bold text-ink-dark">Banner image (optional)</span>
+          <div className="flex flex-wrap items-center gap-3">
+            {vendorOfWeekImage ? (
+              <div
+                className="h-[90px] w-[160px] rounded-[9px] border border-border bg-cover bg-center"
+                style={{ backgroundImage: `url(${vendorOfWeekImage})` }}
+              />
+            ) : null}
+            <label className="cursor-pointer rounded-lg border border-border bg-white px-4 py-2.5 text-[12.5px] font-bold text-primary">
+              {vendorOfWeekImageUploading ? "Uploading…" : vendorOfWeekImage ? "Change image" : "Upload image"}
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                disabled={vendorOfWeekImageUploading}
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  e.target.value = "";
+                  if (!file) return;
+                  setVendorOfWeekImageUploading(true);
+                  try {
+                    setVendorOfWeekImage(await uploadPromotionImage(supabase, file));
+                  } finally {
+                    setVendorOfWeekImageUploading(false);
+                  }
+                }}
+              />
+            </label>
+            {vendorOfWeekImage ? (
+              <button
+                type="button"
+                onClick={() => setVendorOfWeekImage(null)}
+                className="text-[12px] font-bold text-danger"
+              >
+                Remove image
+              </button>
+            ) : null}
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <select
+            value={vendorOfWeekId}
+            onChange={(e) => setVendorOfWeekId(e.target.value)}
+            className="min-w-[240px] rounded-lg border border-border px-3 py-2.5 text-[13px] text-ink-dark"
+          >
+            <option value="">Automatic (first approved vendor)</option>
+            {approvedVendors?.map((v) => (
+              <option key={v.id} value={v.id}>
+                {v.store_name}
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            onClick={() => saveVendorOfWeek.mutate()}
+            disabled={saveVendorOfWeek.isPending}
+            className="rounded-[7px] bg-accent px-5 py-2.5 text-[13px] font-bold text-white disabled:opacity-60"
+          >
+            {saveVendorOfWeek.isPending ? "Saving…" : "Save"}
+          </button>
+          {vendorOfWeekSaved ? <span className="text-[12px] font-bold text-success">Saved</span> : null}
+        </div>
+      </div>
+
       <div className="flex flex-col gap-3.5 rounded-xl border border-border bg-surface p-[22px_24px]">
         <p className="text-[15px] font-bold text-ink">Platform commission</p>
         <p className="text-xs text-muted">

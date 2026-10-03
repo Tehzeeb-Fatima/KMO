@@ -14,6 +14,7 @@ export interface PromotionForPricing {
   vendor_funded_percent: number;
   max_discount_amount: number | null;
   min_order_amount: number | null;
+  badge_text?: string | null;
   /** Non-empty when the promotion is scoped to specific products (possibly
    *  across several vendors) rather than a whole vendor/category — when set,
    *  this is the *only* match rule; vendor_id/category_id are ignored. */
@@ -112,12 +113,18 @@ export function bestPromotionForProduct(
 export function cardPricing(
   product: { id: string; vendorId: string; categoryId: string | null; price: number; compareAtPrice: number | null },
   activePromotions: PromotionForPricing[],
-): { price: number; compareAtPrice: number | null } {
+): { price: number; compareAtPrice: number | null; badgeText: string | null } {
   const match = bestPromotionForProduct(
     { id: product.id, vendorId: product.vendorId, categoryId: product.categoryId },
     product.price,
     activePromotions,
   );
-  if (match.promotion) return { price: match.discountedPrice, compareAtPrice: product.price };
-  return { price: product.price, compareAtPrice: product.compareAtPrice };
+  if (match.promotion) {
+    return {
+      price: match.discountedPrice,
+      compareAtPrice: product.price,
+      badgeText: match.promotion.badge_text ?? null,
+    };
+  }
+  return { price: product.price, compareAtPrice: product.compareAtPrice, badgeText: null };
 }

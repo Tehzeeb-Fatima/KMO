@@ -410,11 +410,15 @@ export default function ProductDetailClient() {
               Rs. {price.toLocaleString()}
             </span>
             {wasPrice ? (
-              <span className="text-sm text-[#A79A94] line-through">
+              <span className="text-sm font-semibold text-ink-dark line-through decoration-danger decoration-2">
                 Rs. {wasPrice.toLocaleString()}
               </span>
             ) : null}
-            {discountPct ? (
+            {promoMatch.promotion?.badge_text ? (
+              <span className="rounded-full bg-accent px-2.5 py-1 text-[13px] font-bold text-white">
+                {promoMatch.promotion.badge_text}
+              </span>
+            ) : discountPct ? (
               <span className="rounded-full bg-accent px-2.5 py-1 text-[13px] font-bold text-white">
                 -{discountPct}%
               </span>
@@ -774,6 +778,7 @@ export default function ProductDetailClient() {
                     name={p.name}
                     price={cp.price}
                     compareAtPrice={cp.compareAtPrice}
+                    promoLabel={cp.badgeText}
                     cod={false}
                   />
                 );
@@ -805,6 +810,7 @@ export default function ProductDetailClient() {
                     name={p.name}
                     price={cp.price}
                     compareAtPrice={cp.compareAtPrice}
+                    promoLabel={cp.badgeText}
                   />
                 );
               })}

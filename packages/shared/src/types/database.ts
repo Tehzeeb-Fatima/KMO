@@ -657,6 +657,36 @@ export interface Database {
         };
         Relationships: [];
       };
+      banners: {
+        Row: {
+          id: string;
+          image_url: string;
+          title: string | null;
+          link_url: string | null;
+          sort_order: number;
+          is_active: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          image_url: string;
+          title?: string | null;
+          link_url?: string | null;
+          sort_order?: number;
+          is_active?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          image_url?: string;
+          title?: string | null;
+          link_url?: string | null;
+          sort_order?: number;
+          is_active?: boolean;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       platform_settings: {
         Row: {
           id: boolean;
@@ -667,6 +697,8 @@ export interface Database {
           vendor_free_trial_months: number;
           vendor_agreement_title: string;
           vendor_agreement_body: string;
+          vendor_of_week_id: string | null;
+          vendor_of_week_image_url: string | null;
           updated_at: string;
         };
         Insert: {
@@ -678,6 +710,8 @@ export interface Database {
           vendor_free_trial_months?: number;
           vendor_agreement_title?: string;
           vendor_agreement_body?: string;
+          vendor_of_week_id?: string | null;
+          vendor_of_week_image_url?: string | null;
           updated_at?: string;
         };
         Update: {
@@ -689,6 +723,8 @@ export interface Database {
           vendor_free_trial_months?: number;
           vendor_agreement_title?: string;
           vendor_agreement_body?: string;
+          vendor_of_week_id?: string | null;
+          vendor_of_week_image_url?: string | null;
           updated_at?: string;
         };
         Relationships: [];
@@ -1062,6 +1098,8 @@ export interface Database {
           max_discount_amount: number | null;
           /** Order must reach this pre-discount subtotal to qualify. */
           min_order_amount: number | null;
+          /** Label shown on promoted products; null shows the "-X%" badge. */
+          badge_text: string | null;
           created_at: string;
         };
         Insert: {
@@ -1081,6 +1119,7 @@ export interface Database {
           vendor_funded_percent?: number;
           max_discount_amount?: number | null;
           min_order_amount?: number | null;
+          badge_text?: string | null;
           created_at?: string;
         };
         Update: {
@@ -1100,6 +1139,7 @@ export interface Database {
           vendor_funded_percent?: number;
           max_discount_amount?: number | null;
           min_order_amount?: number | null;
+          badge_text?: string | null;
           created_at?: string;
         };
         Relationships: [];

@@ -4,7 +4,13 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { listActivePromotions, listCategories, listPublishedProducts, toPricingPromotions } from "@kmo/shared/api";
+import {
+  listActivePromotions,
+  listCategories,
+  listPublishedProducts,
+  promotionProductFilter,
+  toPricingPromotions,
+} from "@kmo/shared/api";
 import { cardPricing } from "@kmo/shared/lib";
 import { ProductCard } from "@kmo/shared/ui";
 import { supabase } from "@/lib/supabase";
@@ -37,6 +43,7 @@ function SearchPageContent() {
 
   const q = searchParams.get("q") ?? "";
   const category = searchParams.get("category") ?? "";
+  const promo = searchParams.get("promo") ?? "";
   const minPrice = searchParams.get("min") ?? "";
   const maxPrice = searchParams.get("max") ?? "";
   const sort = (searchParams.get("sort") as Sort) ?? "newest";
@@ -66,34 +73,61 @@ function SearchPageContent() {
     queryFn: () => listCategories(supabase),
   });
 
-  const { data: products, isLoading } = useQuery({
-    queryKey: ["search", q, category, minPrice, maxPrice, sort],
-    queryFn: () =>
-      listPublishedProducts(supabase, {
-        search: q || undefined,
-        categoryId: category || undefined,
-        minPrice: minPrice ? Number(minPrice) : undefined,
-        maxPrice: maxPrice ? Number(maxPrice) : undefined,
-        sort,
-      }),
-  });
   const { data: activePromotions } = useQuery({
     queryKey: ["active-promotions-search"],
     queryFn: () => listActivePromotions(supabase, 100),
   });
   const pricingPromotions = toPricingPromotions(activePromotions ?? []);
+  const activePromo = promo ? activePromotions?.find((p) => p.id === promo) : undefined;
+  const promoFilter = activePromo ? promotionProductFilter(activePromo) : {};
+
+  const { data: products, isLoading } = useQuery({
+    queryKey: ["search", q, category, promo, minPrice, maxPrice, sort],
+    queryFn: () =>
+      listPublishedProducts(supabase, {
+        search: q || undefined,
+        ...(activePromo ? promoFilter : { categoryId: category || undefined }),
+        minPrice: minPrice ? Number(minPrice) : undefined,
+        maxPrice: maxPrice ? Number(maxPrice) : undefined,
+        sort,
+      }),
+    enabled: !promo || !!activePromotions,
+  });
 
   const filterPanel = (
     <div className="flex flex-col gap-6">
+      {activePromotions && activePromotions.length > 0 ? (
+        <div>
+          <p className="mb-3 text-[13px] font-bold text-ink">{t.home.limitedTimeDeals}</p>
+          <div className="flex flex-col gap-1">
+            {activePromotions.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => updateParams({ promo: p.id, category: null })}
+                className="rounded-md px-2.5 py-1.5 text-left text-[13px]"
+                style={
+                  promo === p.id
+                    ? { background: "var(--color-accent-tint)", color: "var(--color-accent)", fontWeight: 700 }
+                    : { color: "var(--color-ink-secondary)" }
+                }
+              >
+                {p.title}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       <div>
         <p className="mb-3 text-[13px] font-bold text-ink">{t.search.category}</p>
         <div className="flex flex-col gap-1">
           <button
             type="button"
-            onClick={() => updateParams({ category: null })}
+            onClick={() => updateParams({ category: null, promo: null })}
             className="rounded-md px-2.5 py-1.5 text-left text-[13px]"
             style={
-              !category
+              !category && !promo
                 ? { background: "var(--color-primary-tint)", color: "var(--color-primary)", fontWeight: 700 }
                 : { color: "var(--color-ink-secondary)" }
             }
@@ -104,7 +138,7 @@ function SearchPageContent() {
             <button
               key={c.id}
               type="button"
-              onClick={() => updateParams({ category: c.id })}
+              onClick={() => updateParams({ category: c.id, promo: null })}
               className="rounded-md px-2.5 py-1.5 text-left text-[13px]"
               style={
                 category === c.id
@@ -163,6 +197,16 @@ function SearchPageContent() {
         <aside className="hidden lg:block">{filterPanel}</aside>
 
         <div>
+          {activePromo ? (
+            <div className="mb-4">
+              <h2 className="text-xl font-bold tracking-[-0.025em] text-ink sm:text-[21px]">
+                {activePromo.title}
+              </h2>
+              {activePromo.subtitle ? (
+                <p className="text-[13.5px] text-muted">{activePromo.subtitle}</p>
+              ) : null}
+            </div>
+          ) : null}
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <p className="text-[13px] text-muted">
               {isLoading ? t.search.searching : `${products?.length ?? 0} ${t.search.results}`}
@@ -207,6 +251,7 @@ function SearchPageContent() {
                       name={p.name}
                       price={cp.price}
                       compareAtPrice={cp.compareAtPrice}
+                      promoLabel={cp.badgeText}
                       has360={p.has_360_view}
                     />
                   );

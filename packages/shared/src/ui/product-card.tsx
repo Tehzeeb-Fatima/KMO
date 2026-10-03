@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { RotateCcw } from "lucide-react";
 import { cn } from "../lib/utils";
 
@@ -13,6 +14,12 @@ export interface ProductCardProps {
   cod?: boolean;
   /** Shows a small "360°" badge — the viewer itself only loads on the detail page. */
   has360?: boolean;
+  /** Promotion label (admin-set); replaces the "-X%" badge when present. */
+  promoLabel?: string | null;
+  /** Top-right of the image, e.g. a wishlist heart. */
+  topRight?: ReactNode;
+  /** Below the price, e.g. an add-to-cart button. */
+  footer?: ReactNode;
   LinkComponent?: React.ComponentType<{ href: string; className?: string; children: React.ReactNode }>;
   className?: string;
 }
@@ -44,6 +51,9 @@ export function ProductCard({
   soldCount,
   cod = true,
   has360 = false,
+  promoLabel,
+  topRight,
+  footer,
   LinkComponent = DefaultLink,
   className,
 }: ProductCardProps) {
@@ -56,7 +66,7 @@ export function ProductCard({
     <LinkComponent
       href={href}
       className={cn(
-        "block overflow-hidden rounded-lg border border-border bg-surface",
+        "block overflow-hidden rounded-lg border border-border-primary bg-primary-tint-2 transition-shadow duration-200 hover:shadow-[0_10px_26px_-10px_rgba(74,34,102,0.5)]",
         className,
       )}
     >
@@ -74,20 +84,25 @@ export function ProductCard({
       ) : null}
 
       <div
-        className="relative mt-2.5 flex aspect-[16/10] items-end p-2.5"
+        className="relative mt-2.5 aspect-[16/10]"
         style={{
           background: imageUrl
             ? `url(${imageUrl}) center/cover`
             : "repeating-linear-gradient(135deg,#F3ECE8 0 8px,#E9DFD9 8px 16px)",
         }}
       >
-        {discountPct ? (
-          <span className="rounded bg-accent px-[7px] py-1 text-[10.5px] font-bold text-white">
+        {promoLabel ? (
+          <span className="absolute left-2.5 top-2.5 rounded bg-accent px-[7px] py-1 text-[10.5px] font-bold text-white">
+            {promoLabel}
+          </span>
+        ) : discountPct ? (
+          <span className="absolute left-2.5 top-2.5 rounded bg-accent px-[7px] py-1 text-[10.5px] font-bold text-white">
             -{discountPct}%
           </span>
         ) : null}
+        {topRight ? <div className="absolute right-2.5 top-2.5">{topRight}</div> : null}
         {has360 ? (
-          <span className="absolute right-2.5 top-2.5 flex items-center gap-1 rounded-full bg-black/60 px-2 py-[3px] text-[9.5px] font-bold text-white">
+          <span className="absolute bottom-2.5 right-2.5 flex items-center gap-1 rounded-full bg-black/60 px-2 py-[3px] text-[9.5px] font-bold text-white">
             <RotateCcw className="h-2.5 w-2.5" />
             360°
           </span>
@@ -103,7 +118,7 @@ export function ProductCard({
             Rs. {price.toLocaleString()}
           </span>
           {compareAtPrice && compareAtPrice > price ? (
-            <span className="text-[12.5px] text-[#A79A94] line-through">
+            <span className="text-[12.5px] font-semibold text-ink-dark line-through decoration-danger decoration-2">
               Rs. {compareAtPrice.toLocaleString()}
             </span>
           ) : null}
@@ -114,6 +129,7 @@ export function ProductCard({
             {typeof soldCount === "number" ? ` (${soldCount.toLocaleString()} sold)` : null}
           </p>
         ) : null}
+        {footer ? <div className="pt-1">{footer}</div> : null}
       </div>
     </LinkComponent>
   );

@@ -341,14 +341,20 @@ export async function listPublishedProducts(
     maxPrice?: number;
     sort?: "newest" | "price_asc" | "price_desc";
     search?: string;
+    /** Substring match on the product name — for pickers where partial words must match. */
+    nameContains?: string;
+    productIds?: string[];
     limit?: number;
   },
 ): Promise<ProductWithMedia[]> {
+  if (filter?.productIds && filter.productIds.length === 0) return [];
+
   let query = supabase
     .from("products")
     .select(PRODUCT_WITH_MEDIA_SELECT)
     .eq("status", "published");
 
+  if (filter?.productIds) query = query.in("id", filter.productIds);
   if (filter?.categoryId) query = query.eq("category_id", filter.categoryId);
   if (filter?.vendorId) query = query.eq("vendor_id", filter.vendorId);
   if (typeof filter?.minPrice === "number") query = query.gte("price", filter.minPrice);
@@ -358,6 +364,10 @@ export async function listPublishedProducts(
       type: "websearch",
       config: "english",
     });
+  }
+  if (filter?.nameContains) {
+    const escaped = filter.nameContains.replace(/[\\%_]/g, (c) => `\\${c}`);
+    query = query.ilike("name", `%${escaped}%`);
   }
 
   if (filter?.sort === "price_asc") query = query.order("price", { ascending: true });

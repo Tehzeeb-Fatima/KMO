@@ -334,6 +334,13 @@ function ProductForm({
   });
   const product = productId ? existing?.find((p) => p.id === productId) : null;
 
+  useEffect(
+    () => () => {
+      queryClient.invalidateQueries({ queryKey: ["my-products", vendorId] });
+    },
+    [queryClient, vendorId],
+  );
+
   const { data: existingExtraCategories } = useQuery({
     queryKey: ["product-categories", productId],
     queryFn: () => listProductCategories(supabase, productId!),

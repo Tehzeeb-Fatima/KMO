@@ -108,8 +108,25 @@ export function toPricingPromotions(promotions: PromotionWithLinks[]): Promotion
     vendor_funded_percent: p.vendor_funded_percent,
     max_discount_amount: p.max_discount_amount,
     min_order_amount: p.min_order_amount,
+    badge_text: p.badge_text,
     product_ids: p.promotion_products.map((pp) => pp.product_id),
   }));
+}
+
+/** The product filter that selects a promotion's items: its explicit product
+ *  list if it has one, otherwise the vendor/category it targets. */
+export function promotionProductFilter(promo: PromotionWithLinks): {
+  productIds?: string[];
+  vendorId?: string;
+  categoryId?: string;
+} {
+  if (promo.promotion_products.length > 0) {
+    return { productIds: promo.promotion_products.map((pp) => pp.product_id) };
+  }
+  return {
+    vendorId: promo.vendor_id ?? undefined,
+    categoryId: promo.category_id ?? undefined,
+  };
 }
 
 /** Uploads a promotion banner to the `promotion-media` bucket. */

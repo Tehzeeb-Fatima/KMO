@@ -44,6 +44,13 @@ export function AdminProductForm({
 }) {
   const queryClient = useQueryClient();
 
+  useEffect(
+    () => () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+    },
+    [queryClient],
+  );
+
   const { data: vendors } = useQuery({
     queryKey: ["admin-vendors-for-form"],
     queryFn: () => listVendors(supabase, { status: "approved" }),

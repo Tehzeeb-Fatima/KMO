@@ -114,7 +114,7 @@ export function Product360Uploader({
   }
 
   return (
-    <div className="flex flex-col gap-3.5 rounded-xl border border-border bg-surface-alt p-4">
+    <div className="flex flex-col gap-3.5 rounded-xl border border-border-primary bg-primary-tint p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="flex flex-col gap-0.5">
           <span className="flex items-center gap-2 text-[14px] font-bold text-ink">

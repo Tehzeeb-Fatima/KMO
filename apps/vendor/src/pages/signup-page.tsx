@@ -1,9 +1,11 @@
 import { useState, type FormEvent } from "react";
 import { Link, Navigate } from "react-router-dom";
-import { AuthLayout, Button, Input, PasswordInput } from "@kmo/shared/ui";
+import { AuthLayout, Button, Input, PasswordInput, Turnstile } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "../lib/supabase";
 import kmoIcon from "../assets/kmo-icon.png";
+
+const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY ?? "";
 
 export function SignupPage() {
   const { user } = useAuth();
@@ -17,17 +19,24 @@ export function SignupPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState("");
+  const [captchaResetKey, setCaptchaResetKey] = useState(0);
 
   if (user) return <Navigate to="/" replace />;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
+    if (TURNSTILE_SITE_KEY && !captchaToken) {
+      setError("Please complete the security check.");
+      return;
+    }
     setSubmitting(true);
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
+        captchaToken: captchaToken || undefined,
         emailRedirectTo: `${window.location.origin}/login`,
         data: {
           full_name: fullName,
@@ -40,6 +49,7 @@ export function SignupPage() {
       },
     });
     setSubmitting(false);
+    setCaptchaResetKey((k) => k + 1);
     if (error) {
       setError(error.message);
       return;
@@ -130,6 +140,9 @@ export function SignupPage() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
+        {TURNSTILE_SITE_KEY ? (
+          <Turnstile siteKey={TURNSTILE_SITE_KEY} onToken={setCaptchaToken} resetKey={captchaResetKey} />
+        ) : null}
         {error ? <p className="text-sm text-danger">{error}</p> : null}
         <Button type="submit" disabled={submitting} className="mt-1 w-full">
           {submitting ? "Submitting…" : "Submit application"}

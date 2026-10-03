@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
@@ -8,16 +8,22 @@ import {
   listCategories,
   listPublishedProducts,
   listTopCategories,
+  getPlatformSettings,
+  listActiveBanners,
+  type BannerRow,
   listVendors,
   listRecentReviews,
   getSiteRatingSummary,
   submitContactMessage,
+  promotionProductFilter,
   toPricingPromotions,
   type TopCategory,
 } from "@kmo/shared/api";
 import { cardPricing } from "@kmo/shared/lib";
 import { Countdown, ProductCard } from "@kmo/shared/ui";
 import { supabase } from "@/lib/supabase";
+import { HorizontalSlider } from "@/components/horizontal-slider";
+import { AddToCartButton, WishlistHeart } from "@/components/product-card-actions";
 import { useLanguage } from "@/lib/i18n/language-context";
 
 export default function Home() {
@@ -46,6 +52,10 @@ export default function Home() {
     queryKey: ["active-promotions"],
     queryFn: () => listActivePromotions(supabase, 6),
   });
+  const { data: banners } = useQuery({
+    queryKey: ["active-banners"],
+    queryFn: () => listActiveBanners(supabase),
+  });
   const { data: allActivePromotions } = useQuery({
     queryKey: ["active-promotions-pricing"],
     queryFn: () => listActivePromotions(supabase, 100),
@@ -56,7 +66,14 @@ export default function Home() {
     queryFn: () => listTopCategories(supabase, 3),
   });
 
-  const vendorOfWeek = vendors?.[0];
+  const { data: platformSettings } = useQuery({
+    queryKey: ["platform-settings"],
+    queryFn: () => getPlatformSettings(supabase),
+  });
+  const vendorOfWeek =
+    (platformSettings?.vendor_of_week_id &&
+      vendors?.find((v) => v.id === platformSettings.vendor_of_week_id)) ||
+    vendors?.[0];
   const { data: vendorOfWeekProductCount } = useQuery({
     queryKey: ["vendor-product-count", vendorOfWeek?.id],
     queryFn: async () => {
@@ -66,12 +83,23 @@ export default function Home() {
     enabled: !!vendorOfWeek,
   });
 
+  const sectionCategories: TopCategory[] = (() => {
+    const top = topCategories ?? [];
+    const topIds = new Set(top.map((c) => c.id));
+    const rest: TopCategory[] = (categories ?? [])
+      .filter((c) => !topIds.has(c.id))
+      .map((c) => ({ id: c.id, name: c.name, slug: c.slug, image_url: c.image_url, sold_count: 0, product_count: 0 }));
+    return [...top, ...rest].slice(0, 8);
+  })();
+
   return (
     <main className="flex flex-1 flex-col bg-bg">
+      <HomeBanner banners={banners} />
+
       {/* row 1 — hero, 3 panels */}
       <section className="grid gap-4 px-4 pt-7 sm:px-10 lg:grid-cols-[1.6fr_1fr_1fr]">
         {/* panel A — headline */}
-        <div className="flex min-h-[260px] flex-col justify-center gap-4 rounded-lg bg-primary p-8 sm:min-h-[300px] sm:p-[38px_34px]">
+        <div className="flex min-h-[260px] flex-col justify-center gap-4 rounded-lg bg-primary p-8 transition-all duration-300 [transform-style:preserve-3d] hover:[transform:perspective(900px)_rotateX(4deg)_rotateY(-4deg)_translateY(-6px)] hover:shadow-[0_24px_40px_-18px_rgba(74,34,102,0.6)] sm:min-h-[300px] sm:p-[38px_34px]">
           <p className="font-mono text-[10.5px] tracking-[0.18em] text-[#E09A76]">
             {t.home.badge}
           </p>
@@ -92,7 +120,7 @@ export default function Home() {
         </div>
 
         {/* panel B — COD callout */}
-        <div className="flex flex-col justify-between gap-3 rounded-lg bg-accent p-[26px]">
+        <div className="flex flex-col justify-between gap-3 rounded-lg bg-accent p-[26px] transition-all duration-300 [transform-style:preserve-3d] hover:[transform:perspective(900px)_rotateX(4deg)_rotateY(-4deg)_translateY(-6px)] hover:shadow-[0_24px_40px_-18px_rgba(74,34,102,0.6)]">
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-accent-tint" />
@@ -113,7 +141,7 @@ export default function Home() {
         </div>
 
         {/* panel C — vendor of the week */}
-        <div className="flex flex-col justify-between gap-3 rounded-lg border-[1.5px] border-primary p-[26px]">
+        <div className="flex flex-col justify-between gap-3 rounded-lg border-[1.5px] border-primary p-[26px] transition-all duration-300 [transform-style:preserve-3d] hover:[transform:perspective(900px)_rotateX(4deg)_rotateY(-4deg)_translateY(-6px)] hover:shadow-[0_24px_40px_-18px_rgba(74,34,102,0.6)]">
           <div className="flex flex-col gap-3">
             <p className="font-mono text-[10px] tracking-[0.16em] text-muted-table">
               {t.home.vendorOfWeek}
@@ -135,7 +163,15 @@ export default function Home() {
                     </p>
                   </div>
                 </div>
-                <div className="h-[82px] rounded-md bg-surface-alt" />
+                {platformSettings?.vendor_of_week_id === vendorOfWeek.id &&
+                platformSettings.vendor_of_week_image_url ? (
+                  <div
+                    className="h-[120px] rounded-md bg-cover bg-center"
+                    style={{ backgroundImage: `url(${platformSettings.vendor_of_week_image_url})` }}
+                  />
+                ) : (
+                  <div className="h-[82px] rounded-md bg-surface-alt" />
+                )}
               </>
             ) : (
               <p className="text-sm text-muted">{t.home.newVendorsWeekly}</p>
@@ -160,31 +196,25 @@ export default function Home() {
               {t.home.allCategories}
             </Link>
           </div>
-          <div className="flex gap-3 overflow-x-auto pb-2">
+          <HorizontalSlider itemClassName="w-[30%] sm:w-[calc((100%-6*1rem)/7)]">
             {categories.map((c) => (
-              <Link
-                key={c.id}
-                href={`/search?category=${c.id}`}
-                className="w-[128px] shrink-0 overflow-hidden rounded-lg border border-border bg-surface sm:w-[158px]"
-              >
+              <Link key={c.id} href={`/search?category=${c.id}`} className="flex flex-col items-center gap-2 text-center">
                 <div
-                  className="h-[74px] bg-surface-alt bg-cover bg-center sm:h-[98px]"
+                  className="aspect-square w-full rounded-full border-2 border-border-primary bg-primary-tint bg-cover bg-center"
                   style={c.image_url ? { backgroundImage: `url(${c.image_url})` } : undefined}
                 />
-                <div className="flex flex-col gap-0.5 p-3">
-                  <span className="line-clamp-1 text-[12.5px] font-bold text-ink-dark">{c.name}</span>
-                </div>
+                <span className="line-clamp-2 text-[12.5px] font-bold text-ink-dark">{c.name}</span>
               </Link>
             ))}
-          </div>
+          </HorizontalSlider>
         </section>
       ) : null}
 
       {/* limited-time promotions, admin-managed */}
-      <PromotionsSection promotions={promotions} />
+      <PromotionsSection promotions={promotions} pricingPromotions={pricingPromotions} />
 
       {/* the three busiest categories, ranked by units sold */}
-      {(topCategories ?? []).map((category) => (
+      {sectionCategories.map((category) => (
         <TopCategorySection key={category.id} category={category} pricingPromotions={pricingPromotions} />
       ))}
 
@@ -326,10 +356,92 @@ export default function Home() {
   );
 }
 
+function HomeBanner({ banners }: { banners: BannerRow[] | undefined }) {
+  const slides = banners ?? [];
+  const count = slides.length;
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    if (count < 2) return;
+    const id = setInterval(() => setIndex((i) => (i + 1) % count), 5000);
+    return () => clearInterval(id);
+  }, [count]);
+
+  if (count === 0) return null;
+
+  const current = slides[index % count];
+  const slideImage = (
+    <div
+      className="absolute inset-0 bg-cover bg-center"
+      style={{ backgroundImage: `url(${current.image_url})` }}
+    >
+      {current.title ? (
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-5 sm:p-8">
+          <p className="text-[18px] font-extrabold text-white sm:text-[26px]">{current.title}</p>
+        </div>
+      ) : null}
+    </div>
+  );
+
+  return (
+    <section className="px-4 pt-7 sm:px-10">
+      <div className="relative aspect-[16/9] overflow-hidden rounded-lg bg-primary transition-shadow duration-200 hover:shadow-[0_10px_26px_-10px_rgba(74,34,102,0.5)] sm:aspect-[8/3]">
+        {current.link_url ? (
+          current.link_url.startsWith("/") ? (
+            <Link href={current.link_url} className="block h-full w-full">
+              {slideImage}
+            </Link>
+          ) : (
+            <a href={current.link_url} className="block h-full w-full">
+              {slideImage}
+            </a>
+          )
+        ) : (
+          slideImage
+        )}
+
+        {count > 1 ? (
+          <>
+            <button
+              type="button"
+              aria-label="Previous banner"
+              onClick={() => setIndex((i) => (i - 1 + count) % count)}
+              className="absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-lg font-bold text-primary"
+            >
+              ‹
+            </button>
+            <button
+              type="button"
+              aria-label="Next banner"
+              onClick={() => setIndex((i) => (i + 1) % count)}
+              className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-lg font-bold text-primary"
+            >
+              ›
+            </button>
+            <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-2">
+              {slides.map((s, i) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  aria-label={`Banner ${i + 1}`}
+                  onClick={() => setIndex(i)}
+                  className={`h-2 rounded-full transition-all ${i === index % count ? "w-6 bg-white" : "w-2 bg-white/50"}`}
+                />
+              ))}
+            </div>
+          </>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
 function PromotionsSection({
   promotions,
+  pricingPromotions,
 }: {
   promotions: Awaited<ReturnType<typeof listActivePromotions>> | undefined;
+  pricingPromotions: ReturnType<typeof toPricingPromotions>;
 }) {
   const { t } = useLanguage();
   // A deal whose timer runs out while the page is open drops out immediately.
@@ -352,76 +464,170 @@ function PromotionsSection({
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {live.map((promo) => {
-          const href = promo.vendors
-            ? `/store/${promo.vendors.slug}`
-            : promo.category_id
-              ? `/search?category=${promo.category_id}`
-              : "/search";
-          return (
-            <Link
-              key={promo.id}
-              href={href}
-              className="group relative flex min-h-[210px] flex-col justify-between overflow-hidden rounded-xl border border-border bg-primary p-5 sm:min-h-[230px]"
-              style={
-                promo.image_url
-                  ? {
-                      backgroundImage: `linear-gradient(to top, rgba(28,10,42,0.92) 0%, rgba(28,10,42,0.55) 55%, rgba(28,10,42,0.25) 100%), url(${promo.image_url})`,
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
-                    }
-                  : undefined
-              }
-            >
-              <div className="flex flex-col gap-2">
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="rounded-full bg-accent px-2.5 py-1 text-[11px] font-extrabold text-white">
-                    {promo.discount_type === "percentage"
-                      ? `${Number(promo.discount_value)}${t.home.percentOff}`
-                      : `Rs. ${Number(promo.discount_value).toLocaleString()}`}
-                  </span>
-                  {promo.categories ? (
-                    <span className="rounded-full bg-white/15 px-2.5 py-1 font-mono text-[9.5px] uppercase tracking-[0.1em] text-white/90">
-                      {promo.categories.name}
-                    </span>
-                  ) : null}
-                </div>
-                <h3 className="text-[19px] font-extrabold leading-[1.2] tracking-[-0.02em] text-white sm:text-[21px]">
-                  {promo.title}
-                </h3>
-                {promo.subtitle ? (
-                  <p className="line-clamp-2 text-[13px] leading-[1.5] text-white/80">
-                    {promo.subtitle}
-                  </p>
-                ) : null}
-                {promo.vendors ? (
-                  <p className="text-[11.5px] font-semibold text-accent-tint">
-                    {promo.vendors.store_name}
-                  </p>
-                ) : null}
-              </div>
-
-              <div className="mt-4 flex flex-wrap items-end justify-between gap-2">
-                <div className="flex flex-col gap-1">
-                  <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-white/60">
-                    {t.home.endsIn}
-                  </span>
-                  <Countdown
-                    endsAt={promo.ends_at}
-                    onExpire={() => setExpired((prev) => ({ ...prev, [promo.id]: true }))}
-                  />
-                </div>
-                <span className="text-[12.5px] font-bold text-white group-hover:underline">
-                  {t.home.shopNow}
-                </span>
-              </div>
-            </Link>
-          );
-        })}
+      <div className="flex flex-col gap-5">
+        {live.map((promo) => (
+          <PromotionBlock
+            key={promo.id}
+            promo={promo}
+            pricingPromotions={pricingPromotions}
+            onExpire={() => setExpired((prev) => ({ ...prev, [promo.id]: true }))}
+          />
+        ))}
       </div>
     </section>
   );
+}
+
+function PromotionBlock({
+  promo,
+  pricingPromotions,
+  onExpire,
+}: {
+  promo: Awaited<ReturnType<typeof listActivePromotions>>[number];
+  pricingPromotions: ReturnType<typeof toPricingPromotions>;
+  onExpire: () => void;
+}) {
+  const { t } = useLanguage();
+  const sliderRef = useRef<HTMLDivElement>(null);
+  const { data: products } = useQuery({
+    queryKey: ["promotion-block-products", promo.id],
+    queryFn: () => listPublishedProducts(supabase, { ...promotionProductFilter(promo), limit: 24 }),
+  });
+  const useSlider = (products?.length ?? 0) > 6;
+
+  function scrollBy(direction: 1 | -1) {
+    sliderRef.current?.scrollBy({
+      left: direction * (sliderRef.current.clientWidth * 0.8),
+      behavior: "smooth",
+    });
+  }
+
+  return (
+    <div
+      className="overflow-hidden rounded-xl border border-border-primary bg-surface-lavender"
+      style={
+        promo.image_url
+          ? {
+              backgroundImage: `linear-gradient(to right, rgba(74,34,102,0.95) 0%, rgba(74,34,102,0.8) 60%, rgba(74,34,102,0.55) 100%), url(${promo.image_url})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }
+          : undefined
+      }
+    >
+      <div className="flex flex-wrap items-center justify-between gap-4 bg-primary px-5 py-4 sm:px-6">
+        <div className="flex min-w-0 flex-col gap-1.5">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="rounded-full bg-accent px-2.5 py-1 text-[11px] font-extrabold text-white">
+              {promo.badge_text ||
+                (promo.discount_type === "percentage"
+                  ? `${Number(promo.discount_value)}${t.home.percentOff}`
+                  : `Rs. ${Number(promo.discount_value).toLocaleString()}`)}
+            </span>
+          </div>
+          <h3 className="text-[19px] font-extrabold leading-[1.2] tracking-[-0.02em] text-white sm:text-[21px]">
+            {promo.title}
+          </h3>
+          {promo.subtitle ? (
+            <p className="line-clamp-1 text-[13px] text-white/80">{promo.subtitle}</p>
+          ) : null}
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="flex flex-col gap-1">
+            <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-white/60">
+              {t.home.endsIn}
+            </span>
+            <Countdown endsAt={promo.ends_at} onExpire={onExpire} />
+          </div>
+          <Link
+            href={`/search?promo=${promo.id}`}
+            className="shrink-0 rounded-[7px] bg-white px-4 py-2 text-[12.5px] font-bold text-primary"
+          >
+            {t.home.shopNow}
+          </Link>
+        </div>
+      </div>
+
+      {products && products.length > 0 ? (
+        useSlider ? (
+          <div className="relative px-3 py-4 sm:px-5">
+            <div
+              ref={sliderRef}
+              className="flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth sm:gap-4"
+            >
+              {products.map((p) => (
+                <div key={p.id} className="w-[46%] shrink-0 snap-start sm:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-5rem)/6)]">
+                  <PromoProductCard product={p} pricingPromotions={pricingPromotions} />
+                </div>
+              ))}
+            </div>
+            <button
+              type="button"
+              aria-label="Previous"
+              onClick={() => scrollBy(-1)}
+              className="absolute left-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white text-lg font-bold text-primary shadow-sm"
+            >
+              ‹
+            </button>
+            <button
+              type="button"
+              aria-label="Next"
+              onClick={() => scrollBy(1)}
+              className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white text-lg font-bold text-primary shadow-sm"
+            >
+              ›
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3 px-3 py-4 sm:grid-cols-3 sm:px-5 lg:grid-cols-6">
+            {products.map((p) => (
+              <PromoProductCard key={p.id} product={p} pricingPromotions={pricingPromotions} />
+            ))}
+          </div>
+        )
+      ) : null}
+    </div>
+  );
+}
+
+function PromoProductCard({
+  product: p,
+  pricingPromotions,
+}: {
+  product: Awaited<ReturnType<typeof listPublishedProducts>>[number];
+  pricingPromotions: ReturnType<typeof toPricingPromotions>;
+}) {
+  const cp = cardPricing(
+    { id: p.id, vendorId: p.vendor_id, categoryId: p.category_id, price: p.price, compareAtPrice: p.compare_at_price },
+    pricingPromotions,
+  );
+  return (
+    <ProductCard
+      href={`/product/${p.slug}`}
+      LinkComponent={Link}
+      imageUrl={p.product_images[0]?.url}
+      vendorName={p.vendors?.store_name}
+      name={p.name}
+      price={cp.price}
+      compareAtPrice={cp.compareAtPrice}
+      promoLabel={cp.badgeText}
+      has360={p.has_360_view}
+      topRight={<WishlistHeart productId={p.id} />}
+      footer={<AddToCartButton productId={p.id} {...defaultCartVariant(p)} />}
+    />
+  );
+}
+
+/** The variant a card adds to the cart: the first one in stock, or the base product. */
+function defaultCartVariant(p: {
+  stock_quantity: number;
+  product_variants: { id: string; stock_quantity: number }[];
+}): { variantId: string | null; outOfStock: boolean } {
+  if (p.product_variants.length > 0) {
+    const inStock = p.product_variants.find((v) => v.stock_quantity > 0);
+    return { variantId: inStock?.id ?? null, outOfStock: !inStock };
+  }
+  return { variantId: null, outOfStock: p.stock_quantity <= 0 };
 }
 
 function TopCategorySection({
@@ -434,7 +640,7 @@ function TopCategorySection({
   const { t } = useLanguage();
   const { data: products } = useQuery({
     queryKey: ["top-category-products", category.id],
-    queryFn: () => listPublishedProducts(supabase, { categoryId: category.id, limit: 4 }),
+    queryFn: () => listPublishedProducts(supabase, { categoryId: category.id, limit: 12 }),
   });
 
   if (!products || products.length === 0) return null;
@@ -459,27 +665,11 @@ function TopCategorySection({
           {t.home.seeAll}
         </Link>
       </div>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {products.map((p) => {
-          const cp = cardPricing(
-            { id: p.id, vendorId: p.vendor_id, categoryId: p.category_id, price: p.price, compareAtPrice: p.compare_at_price },
-            pricingPromotions,
-          );
-          return (
-            <ProductCard
-              key={p.id}
-              href={`/product/${p.slug}`}
-              LinkComponent={Link}
-              imageUrl={p.product_images[0]?.url}
-              vendorName={p.vendors?.store_name}
-              name={p.name}
-              price={cp.price}
-              compareAtPrice={cp.compareAtPrice}
-              has360={p.has_360_view}
-            />
-          );
-        })}
-      </div>
+      <HorizontalSlider>
+        {products.map((p) => (
+          <PromoProductCard key={p.id} product={p} pricingPromotions={pricingPromotions} />
+        ))}
+      </HorizontalSlider>
     </section>
   );
 }
@@ -545,7 +735,10 @@ function FeaturedProducts({
                 name={p.name}
                 price={cp.price}
                 compareAtPrice={cp.compareAtPrice}
+                promoLabel={cp.badgeText}
                 has360={p.has_360_view}
+                topRight={<WishlistHeart productId={p.id} />}
+                footer={<AddToCartButton productId={p.id} {...defaultCartVariant(p)} />}
               />
             );
           })}

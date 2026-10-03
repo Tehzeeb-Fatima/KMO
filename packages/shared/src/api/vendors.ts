@@ -146,6 +146,33 @@ export async function deleteVendor(supabase: Client, vendorId: string): Promise<
   if (error) throw error;
 }
 
+/** Applies one status to many vendors. Returns how many failed. */
+export async function bulkSetVendorStatus(
+  supabase: Client,
+  vendorIds: string[],
+  status: VendorRow["verification_status"],
+): Promise<{ failed: number }> {
+  const results = await Promise.allSettled(
+    vendorIds.map((id) => setVendorStatus(supabase, id, status)),
+  );
+  return { failed: results.filter((r) => r.status === "rejected").length };
+}
+
+/** Deletes many vendors. Vendors with order history are skipped and reported back. */
+export async function bulkDeleteVendors(
+  supabase: Client,
+  vendorIds: string[],
+): Promise<{ deleted: number; failed: { id: string; message: string }[] }> {
+  const results = await Promise.allSettled(vendorIds.map((id) => deleteVendor(supabase, id)));
+  const failed: { id: string; message: string }[] = [];
+  results.forEach((r, i) => {
+    if (r.status === "rejected") {
+      failed.push({ id: vendorIds[i], message: r.reason instanceof Error ? r.reason.message : "Failed" });
+    }
+  });
+  return { deleted: vendorIds.length - failed.length, failed };
+}
+
 /** Upload a logo/cover image to the `vendor-media` bucket and return its public URL. */
 export async function uploadVendorMedia(
   supabase: Client,

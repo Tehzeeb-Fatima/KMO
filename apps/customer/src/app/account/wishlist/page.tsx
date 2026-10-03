@@ -78,6 +78,7 @@ function WishlistContent() {
                 name={item.products.name}
                 price={cp.price}
                 compareAtPrice={cp.compareAtPrice}
+                promoLabel={cp.badgeText}
               />
               <button
                 type="button"

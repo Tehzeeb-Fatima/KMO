@@ -26,6 +26,8 @@ export async function updatePlatformSettings(
       | "vendor_free_trial_months"
       | "vendor_agreement_title"
       | "vendor_agreement_body"
+      | "vendor_of_week_id"
+      | "vendor_of_week_image_url"
     >
   >,
 ): Promise<SettingsRow> {
