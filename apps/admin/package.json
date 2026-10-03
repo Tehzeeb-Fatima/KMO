@@ -4,10 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --port 5175",
+    "dev": "vite --port 9901",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview --port 5175",
+    "preview": "vite preview --port 9901",
     "type-check": "tsc -b --noEmit",
     "clean": "rimraf dist"
   },
