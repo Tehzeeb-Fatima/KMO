@@ -34,7 +34,7 @@ export interface Product360UploaderProps {
   frameCounts: Record<string, number>;
   enabled: boolean;
   onToggle: (enabled: boolean) => void;
-  /** Photos are appended to the end of the current set, in the order picked. */
+  /** Extracted frames are appended to the end of the current set, in order. */
   onAddFrames: (files: File[]) => void;
   onRemoveFrame: (angleIndex: number) => void;
   onClearSet: () => void;
@@ -71,7 +71,6 @@ export function Product360Uploader({
   error,
 }: Product360UploaderProps) {
   const [open, setOpen] = React.useState(enabled);
-  const inputRef = React.useRef<HTMLInputElement>(null);
   const videoInputRef = React.useRef<HTMLInputElement>(null);
   const [videoStatus, setVideoStatus] = React.useState<string | null>(null);
   const [videoError, setVideoError] = React.useState<string | null>(null);
@@ -123,7 +122,7 @@ export function Product360Uploader({
             360° Product View
           </span>
           <span className="text-[12px] text-muted">
-            Photograph the product from all sides and upload the photos in order.
+            Upload a short video of the product turning all the way around.
           </span>
         </div>
         <button
@@ -143,11 +142,9 @@ export function Product360Uploader({
       </div>
 
       <p className="rounded-lg bg-white px-3.5 py-2.5 text-[11.5px] leading-[1.6] text-muted">
-        <span className="font-bold text-ink-dark">Easiest way — record a video.</span> Put the
-        product on a stool or turntable and take a steady {5}–{10} second clip all the way
-        around it. We&rsquo;ll cut the clip into {FRAMES_FROM_VIDEO} frames for you. A smooth,
-        even pan gives a far better spin than {RECOMMENDED_360_FRAMES} photos taken by hand —
-        and it&rsquo;s one upload instead of {RECOMMENDED_360_FRAMES}.
+        <span className="font-bold text-ink-dark">Record a 5–10 second video.</span> Put the
+        product on a stool or turntable and pan slowly all the way around it. We&rsquo;ll
+        convert the video into {FRAMES_FROM_VIDEO} frames automatically for the 360° spin.
       </p>
 
       {disabledReason ? (
@@ -202,7 +199,7 @@ export function Product360Uploader({
               className="flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-[12.5px] font-bold text-white disabled:opacity-60"
             >
               <Video className="h-3.5 w-3.5" />
-              {videoStatus ?? "Upload a video"}
+              {videoStatus ?? (count === 0 ? "Upload 360° video" : "Add another video")}
             </button>
             <input
               ref={videoInputRef}
@@ -216,20 +213,6 @@ export function Product360Uploader({
               }}
             />
 
-            <span className="text-[11.5px] text-muted-table">or</span>
-
-            <button
-              type="button"
-              disabled={uploading || !!videoStatus || remaining <= 0}
-              onClick={() => inputRef.current?.click()}
-              className="rounded-lg border border-border bg-white px-4 py-2 text-[12.5px] font-bold text-primary disabled:opacity-60"
-            >
-              {uploading
-                ? "Uploading…"
-                : count === 0
-                  ? "Upload photos"
-                  : `Add more photos (${remaining} left)`}
-            </button>
             {count > 0 ? (
               <button
                 type="button"
@@ -240,18 +223,6 @@ export function Product360Uploader({
                 Remove all
               </button>
             ) : null}
-            <input
-              ref={inputRef}
-              type="file"
-              accept="image/*"
-              multiple
-              className="hidden"
-              onChange={(e) => {
-                const files = Array.from(e.target.files ?? []);
-                if (files.length > 0) onAddFrames(files.slice(0, remaining));
-                e.target.value = "";
-              }}
-            />
           </div>
 
           {videoStatus ? (
@@ -304,7 +275,7 @@ export function Product360Uploader({
                     : "text-muted",
               )}
             >
-              {count} photo{count === 1 ? "" : "s"}
+              {count} frame{count === 1 ? "" : "s"}
               {count >= RECOMMENDED_360_FRAMES
                 ? " — smooth spin"
                 : count >= MIN_360_FRAMES
