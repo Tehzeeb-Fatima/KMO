@@ -1,6 +1,12 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { keepReview, listFlaggedReviews, logAdminAction, removeReview } from "@kmo/shared/api";
+import {
+  keepReview,
+  listFlaggedReviews,
+  listVendors,
+  logAdminAction,
+  removeReview,
+} from "@kmo/shared/api";
 import { ConfirmDialog } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "../lib/supabase";
@@ -8,10 +14,21 @@ import { supabase } from "../lib/supabase";
 export function ReviewsPage() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const [vendorFilter, setVendorFilter] = useState("");
   const { data: reviews, isLoading } = useQuery({
     queryKey: ["flagged-reviews"],
     queryFn: () => listFlaggedReviews(supabase),
   });
+  const { data: vendors } = useQuery({
+    queryKey: ["admin-vendors-for-filter"],
+    queryFn: () => listVendors(supabase),
+  });
+
+  const filtered = useMemo(() => {
+    if (!reviews) return [];
+    if (!vendorFilter) return reviews;
+    return reviews.filter((r) => r.products.vendor_id === vendorFilter);
+  }, [reviews, vendorFilter]);
 
   const keepMutation = useMutation({
     mutationFn: (id: string) => keepReview(supabase, id),
@@ -32,17 +49,39 @@ export function ReviewsPage() {
 
   if (isLoading) return <p className="text-sm text-muted">Loading…</p>;
 
-  if (!reviews || reviews.length === 0) {
+  const vendorSelect = (
+    <div className="mb-4 flex flex-wrap items-center gap-3">
+      <select
+        value={vendorFilter}
+        onChange={(e) => setVendorFilter(e.target.value)}
+        className="rounded-lg border border-border px-[14px] py-[10px] text-[13px] text-ink-dark"
+      >
+        <option value="">All vendors</option>
+        {vendors?.map((v) => (
+          <option key={v.id} value={v.id}>
+            {v.store_name}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+
+  if (filtered.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-border p-10 text-center text-sm text-muted">
-        No flagged reviews.
+      <div>
+        {vendorSelect}
+        <div className="rounded-xl border border-dashed border-border p-10 text-center text-sm text-muted">
+          No flagged reviews.
+        </div>
       </div>
     );
   }
 
   return (
+    <div>
+      {vendorSelect}
     <div className="flex flex-col gap-3.5">
-      {reviews.map((r) => (
+      {filtered.map((r) => (
         <div
           key={r.id}
           className="flex items-center justify-between gap-4 rounded-xl border border-border bg-surface p-[18px_20px]"
@@ -84,6 +123,7 @@ export function ReviewsPage() {
         onConfirm={() => removeMutation.mutate(pendingRemoveId!)}
         onCancel={() => setPendingRemoveId(null)}
       />
+    </div>
     </div>
   );
 }

@@ -71,13 +71,13 @@ export async function replyToReview(
 
 export interface FlaggedReviewRow extends ReviewRow {
   profiles: { full_name: string | null } | null;
-  products: { name: string };
+  products: { name: string; vendor_id: string };
 }
 
 export async function listFlaggedReviews(supabase: Client): Promise<FlaggedReviewRow[]> {
   const { data, error } = await supabase
     .from("reviews")
-    .select("*, profiles(full_name), products(name)")
+    .select("*, profiles(full_name), products(name, vendor_id)")
     .eq("is_flagged", true)
     .order("created_at", { ascending: false });
   if (error) throw error;
