@@ -59,6 +59,15 @@ function OrderConfirmationContent() {
       <h1 className="mt-5 max-w-[520px] text-[26px] font-extrabold leading-[1.35] tracking-[-0.03em] text-ink">
         Thank you! Your order is confirmed.
       </h1>
+      {searchParams.get("guest") === "1" ? (
+        <div className="mt-4 max-w-[440px] rounded-xl border border-border bg-surface px-5 py-4 text-left">
+          <p className="text-sm font-bold text-ink-dark">Please check your email</p>
+          <p className="mt-1 text-[13px] leading-[1.6] text-muted">
+            We sent a link to your email. Open it to set a password, then log in to track this order and your future
+            orders.
+          </p>
+        </div>
+      ) : null}
       <p className="mt-3 max-w-[440px] text-sm leading-[1.6] text-muted">
         {orders.length === 1
           ? `Order #${primary.order_number} has been placed. You'll pay Rs. ${total.toLocaleString()} on delivery. Expect it within 1–2 working days.`

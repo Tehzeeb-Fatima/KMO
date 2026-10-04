@@ -40,10 +40,6 @@ export function WishlistHeart({ productId }: { productId: string }) {
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
-        if (!user) {
-          router.push("/login");
-          return;
-        }
         toggle.mutate();
       }}
       className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow-sm"
@@ -97,10 +93,6 @@ export function AddToCartButton({
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
-        if (!user) {
-          router.push("/login");
-          return;
-        }
         add.mutate();
       }}
       className={`${base} bg-[#1F6B4F] text-white`}

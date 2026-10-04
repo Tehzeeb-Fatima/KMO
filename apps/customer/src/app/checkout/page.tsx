@@ -115,9 +115,8 @@ function CheckoutContent() {
 
       if (isGuest) {
         const trimmedEmail = email.trim();
-        if (trimmedEmail) {
-          await claimGuestAccount(supabase, trimmedEmail, `${window.location.origin}/reset-password`);
-        }
+        if (!trimmedEmail) throw new Error("Please enter your email to place the order.");
+        await claimGuestAccount(supabase, trimmedEmail, `${window.location.origin}/reset-password`);
       }
 
       return placeOrder(supabase, {
@@ -128,7 +127,8 @@ function CheckoutContent() {
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["cart"] });
-      router.push(`/order-confirmation?orders=${result.orders.map((o) => o.id).join(",")}`);
+      const guestParam = isGuest ? "&guest=1" : "";
+      router.push(`/order-confirmation?orders=${result.orders.map((o) => o.id).join(",")}${guestParam}`);
     },
     onError: (err: Error) => setError(err.message),
   });
@@ -207,20 +207,20 @@ function CheckoutContent() {
         <div className="flex flex-col gap-5">
           <section className="flex flex-col gap-3.5 rounded-xl border border-border bg-surface p-6">
             <h2 className="text-base font-bold tracking-[-0.02em] text-ink">
-              Contact email <span className="font-medium text-muted-table">(optional)</span>
+              Email <span className="font-medium text-danger">*</span>
             </h2>
             {isGuest ? (
               <>
                 <input
                   type="email"
+                  required
                   placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
                 />
                 <p className="text-[12px] text-muted">
-                  Add your email if you&rsquo;d like order updates and a link to set a password
-                  so you can track this order anytime. You can check out without it.
+                  We&rsquo;ll email you a link to set a password, so you can sign in and track this order anytime.
                 </p>
               </>
             ) : (
