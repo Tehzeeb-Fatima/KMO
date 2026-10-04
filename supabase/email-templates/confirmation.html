@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+  <body style="margin:0;padding:0;background:#f5f0ee;font-family:Arial,Helvetica,sans-serif;color:#2b1d33;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f5f0ee;padding:24px 0;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="560" cellspacing="0" cellpadding="0" style="background:#ffffff;border-radius:12px;max-width:560px;width:100%;">
+            <tr>
+              <td style="background:linear-gradient(135deg,#4a2266 0%,#8a3a7a 55%,#c4552f 100%);border-radius:12px 12px 0 0;padding:28px 32px;">
+                <p style="margin:0;font-size:12px;letter-spacing:0.18em;color:#f3d2c2;">KARACHI MART ONLINE</p>
+                <h1 style="margin:8px 0 0;font-size:24px;color:#ffffff;">Welcome to Karachi Mart!</h1>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:32px;">
+                <p style="margin:0 0 16px;font-size:15px;line-height:1.6;">Assalam o Alaikum,</p>
+                <p style="margin:0 0 16px;font-size:15px;line-height:1.6;">
+                  Thank you for creating an account with Karachi Mart Online. Please confirm your email address to activate your account and start shopping from Karachi's local vendors.
+                </p>
+                <table role="presentation" cellspacing="0" cellpadding="0" style="margin:24px 0;">
+                  <tr>
+                    <td align="center" style="border-radius:8px;background:#c4552f;">
+                      <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:14px 28px;font-size:15px;font-weight:bold;color:#ffffff;text-decoration:none;border-radius:8px;">Confirm my email</a>
+                    </td>
+                  </tr>
+                </table>
+                <p style="margin:0 0 8px;font-size:13px;line-height:1.6;color:#6b5a72;">
+                  If the button does not work, copy and paste this link into your browser:
+                </p>
+                <p style="margin:0 0 24px;font-size:12px;line-height:1.6;word-break:break-all;color:#8a3a7a;">{{ .ConfirmationURL }}</p>
+                <p style="margin:0;font-size:13px;line-height:1.6;color:#6b5a72;">
+                  If you did not create this account, you can safely ignore this email.
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:20px 32px;border-top:1px solid #f0e6e2;font-size:12px;color:#8a7a92;text-align:center;">
+                Karachi Mart Online · Pakistan's local marketplace<br />
+                This email was sent to {{ .Email }}
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

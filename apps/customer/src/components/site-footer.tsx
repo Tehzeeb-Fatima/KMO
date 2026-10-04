@@ -21,7 +21,7 @@ export function SiteFooter() {
       heading: t.footer.support,
       links: [
         { href: "/#contact-us", label: t.footer.contactUs },
-        { href: "/account/orders", label: t.footer.trackOrder },
+        { href: "/track-order", label: t.footer.trackOrder },
         { href: "/shipping-policy", label: t.footer.shippingReturns },
       ],
     },

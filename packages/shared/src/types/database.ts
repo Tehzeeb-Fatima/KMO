@@ -1183,6 +1183,20 @@ export interface Database {
     };
     Views: Record<string, never>;
     Functions: {
+      admin_vendor_owner_email: {
+        Args: { p_vendor_id: string };
+        Returns: string;
+      };
+      track_order: {
+        Args: { p_order_number: string; p_email: string };
+        Returns: {
+          order_number: string;
+          status: Database["public"]["Enums"]["order_status"];
+          total: number;
+          payment_method: string;
+          created_at: string;
+        }[];
+      };
       admin_list_users: {
         Args: never;
         Returns: {

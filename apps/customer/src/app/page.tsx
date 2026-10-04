@@ -94,6 +94,7 @@ export default function Home() {
 
   return (
     <main className="flex flex-1 flex-col bg-white">
+      <VerifyEmailBanner />
       <HomeBanner banners={banners} />
 
       {platformSettings?.show_hero_boxes !== false ? (
@@ -995,6 +996,44 @@ function Field({
         {optional ? <span className="font-medium text-muted-table"> {optionalLabel}</span> : null}
       </span>
       {children}
+    </div>
+  );
+}
+
+/** Shown on the homepage right after signup, until the customer verifies their email. */
+function VerifyEmailBanner() {
+  const [email, setEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      setEmail(sessionStorage.getItem("kmo_verify_email"));
+    } catch {
+      setEmail(null);
+    }
+  }, []);
+
+  if (!email) return null;
+
+  return (
+    <div className="flex items-start justify-between gap-4 bg-primary-tint px-4 py-3 text-sm text-ink-dark sm:px-10">
+      <p>
+        Account created. We sent a verification link to <span className="font-semibold">{email}</span>. Please open it to
+        activate your account and sign in.
+      </p>
+      <button
+        type="button"
+        onClick={() => {
+          try {
+            sessionStorage.removeItem("kmo_verify_email");
+          } catch {
+            // ignore
+          }
+          setEmail(null);
+        }}
+        className="shrink-0 font-bold text-primary"
+      >
+        Dismiss
+      </button>
     </div>
   );
 }

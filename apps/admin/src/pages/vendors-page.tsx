@@ -22,6 +22,7 @@ import { ConfirmDialog, StatusBadge, type StatusBadgeVariant } from "@kmo/shared
 import type { VendorVerificationStatus } from "@kmo/shared/types";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "../lib/supabase";
+import { VendorAccountSection } from "../components/vendor-account-section";
 
 const STATUS_META: Record<
   VendorVerificationStatus,
@@ -591,6 +592,8 @@ function VendorDetail({ vendorId, onBack }: { vendorId: string; onBack: () => vo
               <CategoryChecklist selected={categorySelection} onToggle={toggleCategory} />
             </div>
           </div>
+
+          <VendorAccountSection vendorId={vendorId} ownerId={vendor.owner_id} />
 
           <VendorMembershipSection vendorId={vendorId} membershipStartedAt={vendor.membership_started_at} />
 

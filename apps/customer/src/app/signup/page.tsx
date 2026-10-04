@@ -72,8 +72,14 @@ export default function SignupPage() {
     if (data?.session) {
       router.replace("/");
     } else {
-      // Email confirmation is required by the project's auth settings.
-      setCheckEmail(true);
+      // Email confirmation is required by the project's auth settings. Send the
+      // customer to the homepage; a banner there asks them to verify the email.
+      try {
+        sessionStorage.setItem("kmo_verify_email", email);
+      } catch {
+        // storage blocked: the homepage just won't show the banner
+      }
+      router.replace("/");
     }
   }
 
