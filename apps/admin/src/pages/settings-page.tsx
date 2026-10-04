@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getPlatformSettings,
+  listCategories,
   listVendors,
   logAdminAction,
   updatePlatformSettings,
@@ -26,6 +27,12 @@ export function SettingsPage() {
   const [agreementTitle, setAgreementTitle] = useState("");
   const [agreementBody, setAgreementBody] = useState("");
   const [vendorOfWeekId, setVendorOfWeekId] = useState("");
+  const [bottomCategoryId, setBottomCategoryId] = useState("");
+  const [bottomCategorySaved, setBottomCategorySaved] = useState(false);
+  const { data: allCategories } = useQuery({
+    queryKey: ["admin-categories-for-bottom"],
+    queryFn: () => listCategories(supabase),
+  });
   const [vendorOfWeekImage, setVendorOfWeekImage] = useState<string | null>(null);
   const [vendorOfWeekImageUploading, setVendorOfWeekImageUploading] = useState(false);
   const { data: approvedVendors } = useQuery({
@@ -36,6 +43,7 @@ export function SettingsPage() {
   useEffect(() => {
     if (settings) {
       setVendorOfWeekId(settings.vendor_of_week_id ?? "");
+      setBottomCategoryId(settings.bottom_category_id ?? "");
       setVendorOfWeekImage(settings.vendor_of_week_image_url ?? null);
       setCommission(String(settings.default_commission_rate));
       setCodCitywide((settings.delivery_zones ?? []).includes("citywide-cod"));
@@ -58,6 +66,25 @@ export function SettingsPage() {
       if (user) void logAdminAction(supabase, user.id, "settings.vendor_of_week", "platform_settings");
       setVendorOfWeekSaved(true);
       setTimeout(() => setVendorOfWeekSaved(false), 2500);
+    },
+  });
+
+  const toggleHeroBoxes = useMutation({
+    mutationFn: (next: boolean) => updatePlatformSettings(supabase, { show_hero_boxes: next }),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(["platform-settings"], updated);
+      if (user) void logAdminAction(supabase, user.id, "settings.hero_boxes", "platform_settings");
+    },
+  });
+
+  const saveBottomCategory = useMutation({
+    mutationFn: () =>
+      updatePlatformSettings(supabase, { bottom_category_id: bottomCategoryId || null }),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(["platform-settings"], updated);
+      if (user) void logAdminAction(supabase, user.id, "settings.bottom_category", "platform_settings");
+      setBottomCategorySaved(true);
+      setTimeout(() => setBottomCategorySaved(false), 2500);
     },
   });
 
@@ -130,6 +157,28 @@ export function SettingsPage() {
   return (
     <div className="flex max-w-[640px] flex-col gap-4">
       <div className="flex flex-col gap-3.5 rounded-xl border border-border bg-surface p-[22px_24px]">
+        <p className="text-[15px] font-bold text-ink">Homepage hero boxes</p>
+        <p className="text-xs text-muted">The three boxes under the homepage banner (headline, COD and vendor of the week).</p>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            role="switch"
+            aria-checked={settings?.show_hero_boxes ?? true}
+            onClick={() => toggleHeroBoxes.mutate(!(settings?.show_hero_boxes ?? true))}
+            className="flex h-[23px] w-[42px] shrink-0 items-center rounded-full p-[2px] transition-colors"
+            style={{
+              background: (settings?.show_hero_boxes ?? true) ? "var(--color-accent)" : "var(--color-border)",
+              justifyContent: (settings?.show_hero_boxes ?? true) ? "flex-end" : "flex-start",
+            }}
+          >
+            <span className="h-[19px] w-[19px] rounded-full bg-white" />
+          </button>
+          <span className="text-[13px] font-semibold text-ink-dark">
+            {(settings?.show_hero_boxes ?? true) ? "Shown" : "Hidden"}
+          </span>
+        </div>
+      </div>
+      <div className="flex flex-col gap-3.5 rounded-xl border border-border bg-surface p-[22px_24px]">
         <p className="text-[15px] font-bold text-ink">Vendor of the week</p>
         <p className="text-xs text-muted">
           The vendor featured in the homepage &ldquo;Vendor of the week&rdquo; card. If none is
@@ -197,6 +246,37 @@ export function SettingsPage() {
             {saveVendorOfWeek.isPending ? "Saving…" : "Save"}
           </button>
           {vendorOfWeekSaved ? <span className="text-[12px] font-bold text-success">Saved</span> : null}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-3.5 rounded-xl border border-border bg-surface p-[22px_24px]">
+        <p className="text-[15px] font-bold text-ink">Homepage bottom category</p>
+        <p className="text-xs text-muted">
+          Shows one category&rsquo;s products as a slider just below the customer testimonials. Leave
+          it on &ldquo;None&rdquo; to hide it.
+        </p>
+        <div className="flex flex-wrap items-center gap-3">
+          <select
+            value={bottomCategoryId}
+            onChange={(e) => setBottomCategoryId(e.target.value)}
+            className="min-w-[240px] rounded-lg border border-border px-3 py-2.5 text-[13px] text-ink-dark"
+          >
+            <option value="">None (hidden)</option>
+            {allCategories?.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            onClick={() => saveBottomCategory.mutate()}
+            disabled={saveBottomCategory.isPending}
+            className="rounded-[7px] bg-accent px-5 py-2.5 text-[13px] font-bold text-white disabled:opacity-60"
+          >
+            {saveBottomCategory.isPending ? "Saving…" : "Save"}
+          </button>
+          {bottomCategorySaved ? <span className="text-[12px] font-bold text-success">Saved</span> : null}
         </div>
       </div>
 

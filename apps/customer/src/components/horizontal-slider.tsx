@@ -21,7 +21,7 @@ export function HorizontalSlider({
 
   return (
     <div className={`relative ${className ?? ""}`}>
-      <div ref={ref} className="flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth pb-1 sm:gap-4">
+      <div ref={ref} className="-my-6 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth py-6 sm:gap-4">
         {Children.map(children, (child) => (
           <div className={`shrink-0 snap-start ${itemClassName}`}>{child}</div>
         ))}

@@ -39,6 +39,24 @@ export async function updateCategoryImage(
 }
 
 /** Upload a category thumbnail to the `category-media` bucket and return its public URL. */
+export async function updateCategoryIcon(
+  supabase: Client,
+  id: string,
+  icon: string,
+): Promise<void> {
+  const { error } = await supabase.from("categories").update({ icon }).eq("id", id);
+  if (error) throw error;
+}
+
+export async function updateCategoryHomepage(
+  supabase: Client,
+  id: string,
+  patch: { show_on_homepage: boolean; homepage_order: number },
+): Promise<void> {
+  const { error } = await supabase.from("categories").update(patch).eq("id", id);
+  if (error) throw error;
+}
+
 export async function uploadCategoryImage(
   supabase: Client,
   categoryId: string,

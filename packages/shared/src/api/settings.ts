@@ -28,6 +28,8 @@ export async function updatePlatformSettings(
       | "vendor_agreement_body"
       | "vendor_of_week_id"
       | "vendor_of_week_image_url"
+      | "bottom_category_id"
+      | "show_hero_boxes"
     >
   >,
 ): Promise<SettingsRow> {

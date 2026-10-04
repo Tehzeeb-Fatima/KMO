@@ -49,7 +49,7 @@
   See /design-reference/NOTES.md for where these values come from.
 */
 :root {
-  --background: var(--color-bg);
+  --background: #ffffff;
   --foreground: var(--color-ink);
   --card: var(--color-surface);
   --card-foreground: var(--color-ink);
@@ -81,7 +81,7 @@
 /* The mockups are a light-only design system; .dark just falls back to the
    same tokens so shadcn components don't break if dark mode is toggled. */
 .dark {
-  --background: var(--color-bg);
+  --background: #ffffff;
   --foreground: var(--color-ink);
   --card: var(--color-surface);
   --card-foreground: var(--color-ink);

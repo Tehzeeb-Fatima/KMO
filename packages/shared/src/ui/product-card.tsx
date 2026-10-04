@@ -84,10 +84,10 @@ export function ProductCard({
       ) : null}
 
       <div
-        className="relative mt-2.5 aspect-[16/10]"
+        className="relative mt-2.5 aspect-square bg-white"
         style={{
           background: imageUrl
-            ? `url(${imageUrl}) center/cover`
+            ? `#fff url(${imageUrl}) center/contain no-repeat`
             : "repeating-linear-gradient(135deg,#F3ECE8 0 8px,#E9DFD9 8px 16px)",
         }}
       >

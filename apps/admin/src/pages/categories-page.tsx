@@ -1,9 +1,12 @@
 import { useRef, useState, type ChangeEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { CATEGORY_ICONS, type CategoryIconKey } from "@kmo/shared/lib";
 import {
   createCategory,
   deleteCategory,
   listCategories,
+  updateCategoryIcon,
+  updateCategoryHomepage,
   uploadCategoryImage,
   updateCategoryImage,
 } from "@kmo/shared/api";
@@ -44,6 +47,20 @@ export function CategoriesPage() {
     },
   });
 
+  const iconMutation = useMutation({
+    mutationFn: (p: { id: string; icon: string }) => updateCategoryIcon(supabase, p.id, p.icon),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["categories"] }),
+  });
+
+  const homepageMutation = useMutation({
+    mutationFn: (p: { id: string; show_on_homepage: boolean; homepage_order: number }) =>
+      updateCategoryHomepage(supabase, p.id, {
+        show_on_homepage: p.show_on_homepage,
+        homepage_order: p.homepage_order,
+      }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["categories"] }),
+  });
+
   const imageMutation = useMutation({
     mutationFn: async ({ id, file }: { id: string; file: File }) => {
       const url = await uploadCategoryImage(supabase, id, file);
@@ -71,6 +88,10 @@ export function CategoriesPage() {
         </button>
       </div>
 
+      <p className="mb-2 text-[12px] text-muted">
+        Tick &ldquo;Homepage&rdquo; to show a product section for that category on the homepage. Lower
+        numbers appear first. Pick as many as you want.
+      </p>
       <div className="overflow-hidden rounded-xl border border-border bg-surface">
         {isLoading ? (
           <p className="p-5 text-sm text-muted">Loading…</p>
@@ -88,13 +109,72 @@ export function CategoriesPage() {
                 />
                 <span className="truncate font-bold text-ink-dark">{c.name}</span>
               </div>
-              <button
-                type="button"
-                onClick={() => setPendingDelete({ id: c.id, name: c.name })}
-                className="shrink-0 text-xs font-bold text-danger"
-              >
-                Remove
-              </button>
+              <div className="flex shrink-0 items-center gap-3">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white">
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={1.8}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    dangerouslySetInnerHTML={{
+                      __html: CATEGORY_ICONS[(c.icon as CategoryIconKey) in CATEGORY_ICONS ? (c.icon as CategoryIconKey) : "tag"].paths,
+                    }}
+                  />
+                </span>
+                <select
+                  aria-label="Category icon"
+                  value={c.icon ?? "tag"}
+                  onChange={(e) => iconMutation.mutate({ id: c.id, icon: e.target.value })}
+                  className="rounded-md border border-border px-2 py-1 text-[12px] text-ink-dark"
+                >
+                  {(Object.keys(CATEGORY_ICONS) as CategoryIconKey[]).map((key) => (
+                    <option key={key} value={key}>
+                      {CATEGORY_ICONS[key].label}
+                    </option>
+                  ))}
+                </select>
+                <label className="flex items-center gap-1.5 text-[12px] font-semibold text-ink-dark">
+                  <input
+                    type="checkbox"
+                    checked={c.show_on_homepage}
+                    onChange={(e) =>
+                      homepageMutation.mutate({
+                        id: c.id,
+                        show_on_homepage: e.target.checked,
+                        homepage_order: c.homepage_order,
+                      })
+                    }
+                  />
+                  Homepage
+                </label>
+                <input
+                  type="number"
+                  aria-label="Homepage order"
+                  defaultValue={c.homepage_order}
+                  key={`${c.id}-${c.homepage_order}`}
+                  onBlur={(e) => {
+                    const order = Number(e.target.value) || 0;
+                    if (order !== c.homepage_order) {
+                      homepageMutation.mutate({
+                        id: c.id,
+                        show_on_homepage: c.show_on_homepage,
+                        homepage_order: order,
+                      });
+                    }
+                  }}
+                  className="w-16 rounded-md border border-border px-2 py-1 text-[12px] outline-none focus:border-primary-light"
+                />
+                <button
+                  type="button"
+                  onClick={() => setPendingDelete({ id: c.id, name: c.name })}
+                  className="text-xs font-bold text-danger"
+                >
+                  Remove
+                </button>
+              </div>
             </div>
           ))
         )}

@@ -19,7 +19,7 @@ import {
   toPricingPromotions,
   type TopCategory,
 } from "@kmo/shared/api";
-import { cardPricing } from "@kmo/shared/lib";
+import { CATEGORY_ICONS, cardPricing, type CategoryIconKey } from "@kmo/shared/lib";
 import { Countdown, ProductCard } from "@kmo/shared/ui";
 import { supabase } from "@/lib/supabase";
 import { HorizontalSlider } from "@/components/horizontal-slider";
@@ -61,15 +61,12 @@ export default function Home() {
     queryFn: () => listActivePromotions(supabase, 100),
   });
   const pricingPromotions = toPricingPromotions(allActivePromotions ?? []);
-  const { data: topCategories } = useQuery({
-    queryKey: ["top-categories"],
-    queryFn: () => listTopCategories(supabase, 3),
-  });
 
   const { data: platformSettings } = useQuery({
     queryKey: ["platform-settings"],
     queryFn: () => getPlatformSettings(supabase),
   });
+
   const vendorOfWeek =
     (platformSettings?.vendor_of_week_id &&
       vendors?.find((v) => v.id === platformSettings.vendor_of_week_id)) ||
@@ -83,64 +80,72 @@ export default function Home() {
     enabled: !!vendorOfWeek,
   });
 
-  const sectionCategories: TopCategory[] = (() => {
-    const top = topCategories ?? [];
-    const topIds = new Set(top.map((c) => c.id));
-    const rest: TopCategory[] = (categories ?? [])
-      .filter((c) => !topIds.has(c.id))
-      .map((c) => ({ id: c.id, name: c.name, slug: c.slug, image_url: c.image_url, sold_count: 0, product_count: 0 }));
-    return [...top, ...rest].slice(0, 8);
-  })();
+  const sectionCategories: TopCategory[] = (categories ?? [])
+    .filter((c) => c.show_on_homepage)
+    .sort((a, b) => a.homepage_order - b.homepage_order)
+    .map((c) => ({
+      id: c.id,
+      name: c.name,
+      slug: c.slug,
+      image_url: c.image_url,
+      sold_count: 0,
+      product_count: 0,
+    }));
 
   return (
-    <main className="flex flex-1 flex-col bg-bg">
+    <main className="flex flex-1 flex-col bg-white">
       <HomeBanner banners={banners} />
 
-      {/* row 1 — hero, 3 panels */}
+      {platformSettings?.show_hero_boxes !== false ? (
       <section className="grid gap-4 px-4 pt-7 sm:px-10 lg:grid-cols-[1.6fr_1fr_1fr]">
-        {/* panel A — headline */}
-        <div className="flex min-h-[260px] flex-col justify-center gap-4 rounded-lg bg-primary p-8 transition-all duration-300 [transform-style:preserve-3d] hover:[transform:perspective(900px)_rotateX(4deg)_rotateY(-4deg)_translateY(-6px)] hover:shadow-[0_24px_40px_-18px_rgba(74,34,102,0.6)] sm:min-h-[300px] sm:p-[38px_34px]">
-          <p className="font-mono text-[10.5px] tracking-[0.18em] text-[#E09A76]">
+        <div
+          className="relative flex min-h-[260px] flex-col justify-center gap-4 overflow-hidden rounded-xl p-8 text-white transition-all duration-300 [transform-style:preserve-3d] hover:[transform:perspective(900px)_rotateX(4deg)_rotateY(-4deg)_translateY(-6px)] hover:shadow-[0_24px_40px_-18px_rgba(74,34,102,0.6)] sm:min-h-[300px] sm:p-[38px_34px]"
+          style={{ background: "linear-gradient(135deg,#4a2266 0%,#8a3a7a 55%,#c4552f 100%)" }}
+        >
+          <span className="pointer-events-none absolute -right-[70px] -top-[70px] h-[260px] w-[260px] rounded-full bg-white/10" />
+          <span className="pointer-events-none absolute -bottom-[60px] right-[60px] h-[160px] w-[160px] rounded-full bg-white/10" />
+          <p className="relative font-mono text-[10.5px] tracking-[0.18em] text-[#F3D2C2]">
             {t.home.badge}
           </p>
-          <h1 className="text-[32px] font-extrabold leading-[1.05] tracking-[-0.038em] text-white sm:text-[44px]">
+          <h1 className="relative text-[32px] font-extrabold leading-[1.05] tracking-[-0.038em] text-white sm:text-[44px]">
             {t.home.titleLine1}
             <br />
             {t.home.titleLine2}
           </h1>
-          <p className="max-w-[400px] text-[15px] leading-[1.6] text-[#D5C4E2]">
+          <p className="relative max-w-[400px] text-[15px] leading-[1.6] text-white/85">
             {t.home.subtitle}
           </p>
           <Link
             href="/search"
-            className="mt-1 w-fit rounded-[7px] bg-accent px-7 py-3.5 text-sm font-bold text-white"
+            className="relative mt-1 w-fit rounded-full bg-white px-7 py-3.5 text-sm font-bold text-primary"
           >
             {t.home.startShopping}
           </Link>
         </div>
 
-        {/* panel B — COD callout */}
-        <div className="flex flex-col justify-between gap-3 rounded-lg bg-accent p-[26px] transition-all duration-300 [transform-style:preserve-3d] hover:[transform:perspective(900px)_rotateX(4deg)_rotateY(-4deg)_translateY(-6px)] hover:shadow-[0_24px_40px_-18px_rgba(74,34,102,0.6)]">
+        <div className="flex min-h-[260px] flex-col justify-between gap-4 rounded-xl border border-[#e4d9ee] bg-white p-[26px] transition-all duration-300 [transform-style:preserve-3d] hover:[transform:perspective(900px)_rotateX(4deg)_rotateY(-4deg)_translateY(-6px)] hover:shadow-[0_24px_40px_-18px_rgba(74,34,102,0.5)] sm:min-h-[300px]">
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-accent-tint" />
-              <span className="font-mono text-[10px] tracking-[0.16em] text-[#F8E4DA]">
+              <span className="h-2 w-2 rounded-full bg-accent" />
+              <span className="font-mono text-[10px] tracking-[0.16em] text-accent">
                 {t.home.paymentBadge}
               </span>
             </div>
-            <h2 className="text-2xl font-extrabold leading-[1.15] tracking-[-0.03em] text-white">
+            <h2 className="text-2xl font-extrabold leading-[1.15] tracking-[-0.03em] text-ink-dark">
               {t.home.codTitle}
             </h2>
-            <p className="text-[13px] leading-[1.55] text-[#F8E4DA]">
+            <p className="text-[13px] leading-[1.55] text-muted">
               {t.home.codDesc}
             </p>
           </div>
-          <Link href="/faqs" className="text-[13px] font-bold text-white">
+          <Link
+            href="/faqs"
+            className="w-fit rounded-full bg-primary px-5 py-2.5 text-[13px] font-bold text-white"
+          >
             {t.home.howCodWorks}
           </Link>
         </div>
-
-        {/* panel C — vendor of the week */}
+              {/* panel C — vendor of the week */}
         <div className="flex flex-col justify-between gap-3 rounded-lg border-[1.5px] border-primary p-[26px] transition-all duration-300 [transform-style:preserve-3d] hover:[transform:perspective(900px)_rotateX(4deg)_rotateY(-4deg)_translateY(-6px)] hover:shadow-[0_24px_40px_-18px_rgba(74,34,102,0.6)]">
           <div className="flex flex-col gap-3">
             <p className="font-mono text-[10px] tracking-[0.16em] text-muted-table">
@@ -183,7 +188,8 @@ export default function Home() {
             </Link>
           ) : null}
         </div>
-      </section>
+</section>
+      ) : null}
 
       {/* browse categories */}
       {categories && categories.length > 0 ? (
@@ -196,13 +202,30 @@ export default function Home() {
               {t.home.allCategories}
             </Link>
           </div>
-          <HorizontalSlider itemClassName="w-[30%] sm:w-[calc((100%-6*1rem)/7)]">
+          <HorizontalSlider itemClassName="w-[112px]">
             {categories.map((c) => (
-              <Link key={c.id} href={`/search?category=${c.id}`} className="flex flex-col items-center gap-2 text-center">
+              <Link key={c.id} href={`/search?category=${c.id}`} className="group flex flex-col items-center gap-2 text-center">
                 <div
-                  className="aspect-square w-full rounded-full border-2 border-border-primary bg-primary-tint bg-cover bg-center"
+                  className={`flex aspect-square w-full items-center justify-center rounded-[22px] border border-border-primary bg-white bg-cover bg-center shadow-[0_10px_22px_-12px_rgba(74,34,102,0.45)] transition-all duration-500 [transform-style:preserve-3d] group-hover:[transform:perspective(700px)_rotateX(10deg)_rotateY(-8deg)_translateY(-8px)] group-hover:shadow-[0_26px_34px_-16px_rgba(74,34,102,0.55)]`}
                   style={c.image_url ? { backgroundImage: `url(${c.image_url})` } : undefined}
-                />
+                >
+                  {!c.image_url ? (
+                    <span className="flex aspect-square w-[58%] items-center justify-center rounded-full bg-gradient-to-br from-[#6b2fa0] to-[#4a2266] text-white shadow-[0_6px_14px_-6px_rgba(74,34,102,0.6)] transition-transform duration-500 group-hover:rotate-[-8deg] group-hover:scale-110">
+                      <svg
+                        viewBox="0 0 24 24"
+                        className="h-[46%] w-[46%]"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={1.8}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        dangerouslySetInnerHTML={{
+                          __html: CATEGORY_ICONS[(c.icon as CategoryIconKey) in CATEGORY_ICONS ? (c.icon as CategoryIconKey) : "tag"].paths,
+                        }}
+                      />
+                    </span>
+                  ) : null}
+                </div>
                 <span className="line-clamp-2 text-[12.5px] font-bold text-ink-dark">{c.name}</span>
               </Link>
             ))}
@@ -241,7 +264,7 @@ export default function Home() {
               <Link
                 key={v.id}
                 href={`/store/${v.slug}`}
-                className="overflow-hidden rounded-lg border border-border bg-surface"
+                className="overflow-hidden rounded-lg border border-border bg-surface transition-shadow duration-300 hover:shadow-[0_14px_28px_-12px_rgba(74,34,102,0.45)]"
               >
                 <div
                   className="h-[76px] bg-surface-alt bg-cover bg-center"
@@ -349,6 +372,24 @@ export default function Home() {
 
       {/* testimonials */}
       <Testimonials />
+
+      {(() => {
+        const bottom = categories?.find((c) => c.id === platformSettings?.bottom_category_id);
+        if (!bottom) return null;
+        return (
+          <TopCategorySection
+            category={{
+              id: bottom.id,
+              name: bottom.name,
+              slug: bottom.slug,
+              image_url: bottom.image_url,
+              sold_count: 0,
+              product_count: 0,
+            }}
+            pricingPromotions={pricingPromotions}
+          />
+        );
+      })()}
 
       {/* contact form */}
       <ContactSection />

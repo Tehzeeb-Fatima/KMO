@@ -213,6 +213,9 @@ export interface Database {
           parent_id: string | null;
           commission_rate: number | null;
           image_url: string | null;
+          show_on_homepage: boolean;
+          homepage_order: number;
+          icon: string | null;
           created_at: string;
         };
         Insert: {
@@ -222,12 +225,18 @@ export interface Database {
           parent_id?: string | null;
           commission_rate?: number | null;
           image_url?: string | null;
+          show_on_homepage?: boolean;
+          homepage_order?: number;
+          icon?: string | null;
           created_at?: string;
         };
         Update: {
           id?: string;
           name?: string;
           slug?: string;
+          icon?: string | null;
+          show_on_homepage?: boolean;
+          homepage_order?: number;
           parent_id?: string | null;
           commission_rate?: number | null;
           image_url?: string | null;
@@ -699,6 +708,8 @@ export interface Database {
           vendor_agreement_body: string;
           vendor_of_week_id: string | null;
           vendor_of_week_image_url: string | null;
+          bottom_category_id: string | null;
+          show_hero_boxes: boolean;
           updated_at: string;
         };
         Insert: {
@@ -712,6 +723,8 @@ export interface Database {
           vendor_agreement_body?: string;
           vendor_of_week_id?: string | null;
           vendor_of_week_image_url?: string | null;
+          bottom_category_id?: string | null;
+          show_hero_boxes?: boolean;
           updated_at?: string;
         };
         Update: {
@@ -725,6 +738,8 @@ export interface Database {
           vendor_agreement_body?: string;
           vendor_of_week_id?: string | null;
           vendor_of_week_image_url?: string | null;
+          bottom_category_id?: string | null;
+          show_hero_boxes?: boolean;
           updated_at?: string;
         };
         Relationships: [];
