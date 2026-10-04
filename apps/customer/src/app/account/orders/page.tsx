@@ -18,6 +18,7 @@ export default function OrdersPage() {
   );
 }
 
+
 function OrdersContent() {
   const { t } = useLanguage();
   const { data: orders, isLoading } = useQuery({
@@ -30,6 +31,7 @@ function OrdersContent() {
       <h1 className="mb-5 text-xl font-extrabold tracking-[-0.03em] text-ink sm:text-2xl">
         {t.account.yourOrders}
       </h1>
+
 
       {isLoading ? (
         <p className="text-sm text-muted">{t.account.loadingOrders}</p>

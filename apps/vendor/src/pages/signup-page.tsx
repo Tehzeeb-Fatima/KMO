@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { AuthLayout, Button, Input, PasswordInput, Turnstile } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
+import { signUpWithCaptcha } from "@kmo/shared/api";
 import { supabase } from "../lib/supabase";
 import kmoIcon from "../assets/kmo-icon.png";
 
@@ -32,12 +33,12 @@ export function SignupPage() {
       return;
     }
     setSubmitting(true);
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        captchaToken: captchaToken || undefined,
-        emailRedirectTo: `${window.location.origin}/login`,
+    try {
+      await signUpWithCaptcha(supabase, {
+        email,
+        password,
+        captchaToken,
+        redirectTo: `${window.location.origin}/login`,
         data: {
           full_name: fullName,
           phone,
@@ -46,14 +47,15 @@ export function SignupPage() {
           store_name: storeName,
           area: storeLocation,
         },
-      },
-    });
-    setSubmitting(false);
-    setCaptchaResetKey((k) => k + 1);
-    if (error) {
-      setError(error.message);
+      });
+    } catch (err) {
+      setSubmitting(false);
+      setCaptchaResetKey((k) => k + 1);
+      setError(err instanceof Error ? err.message : "Sign up failed. Please try again.");
       return;
     }
+    setSubmitting(false);
+    setCaptchaResetKey((k) => k + 1);
     setSubmitted(true);
   }
 

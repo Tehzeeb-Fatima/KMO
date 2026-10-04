@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  claimGuestAccount,
   createAddress,
   listActivePromotions,
   listAddresses,
@@ -115,20 +116,7 @@ function CheckoutContent() {
       if (isGuest) {
         const trimmedEmail = email.trim();
         if (trimmedEmail) {
-          const { error: linkError } = await supabase.auth.updateUser(
-            {
-              email: trimmedEmail,
-              data: { pending_order_note: "Order placed as a guest — set a password to track it anytime." },
-            },
-            { emailRedirectTo: `${window.location.origin}/account/orders` },
-          );
-          if (linkError) {
-            throw new Error(
-              linkError.message.toLowerCase().includes("already")
-                ? "This email is already registered. Please sign in first, then check out."
-                : linkError.message,
-            );
-          }
+          await claimGuestAccount(supabase, trimmedEmail, `${window.location.origin}/reset-password`);
         }
       }
 

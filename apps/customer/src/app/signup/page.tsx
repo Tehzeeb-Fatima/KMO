@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AuthLayout, Button, Input, PasswordInput, Turnstile } from "@kmo/shared/ui";
+import { signUpWithCaptcha } from "@kmo/shared/api";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/i18n/language-context";
@@ -46,28 +47,29 @@ export default function SignupPage() {
     }
 
     setSubmitting(true);
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        captchaToken: captchaToken || undefined,
-        emailRedirectTo: `${window.location.origin}/`,
+    let data: Awaited<ReturnType<typeof signUpWithCaptcha>>;
+    try {
+      data = await signUpWithCaptcha(supabase, {
+        email,
+        password,
+        captchaToken,
+        redirectTo: `${window.location.origin}/`,
         data: {
           full_name: fullName,
           phone,
           role: "customer",
         },
-      },
-    });
+      });
+    } catch (err) {
+      setSubmitting(false);
+      setCaptchaResetKey((k) => k + 1);
+      setError(err instanceof Error ? err.message : "Sign up failed. Please try again.");
+      return;
+    }
     setSubmitting(false);
     setCaptchaResetKey((k) => k + 1);
 
-    if (error) {
-      setError(error.message);
-      return;
-    }
-
-    if (data.session) {
+    if (data?.session) {
       router.replace("/");
     } else {
       // Email confirmation is required by the project's auth settings.
