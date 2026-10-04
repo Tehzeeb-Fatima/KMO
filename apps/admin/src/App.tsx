@@ -1,5 +1,5 @@
 import { Route, Routes } from "react-router-dom";
-import { RequireAuth } from "./components/require-auth";
+import { ModuleRoute, RequireAuth } from "./components/require-auth";
 import { RedirectToLogin } from "./components/redirect-to-login";
 import { DashboardLayout } from "./layouts/dashboard-layout";
 import { VendorsPage } from "./pages/vendors-page";
@@ -18,6 +18,7 @@ import { ProductsModerationPage } from "./pages/products-page";
 import { NotFoundPage } from "./pages/not-found-page";
 import { AuditLogPage } from "./pages/audit-log-page";
 import { ContactMessagesPage } from "./pages/contact-messages-page";
+import { UsersPage } from "./pages/users-page";
 
 export default function App() {
   return (
@@ -26,26 +27,27 @@ export default function App() {
       <Route
         path="/*"
         element={
-          <RequireAuth allowedRoles={["admin"]}>
+          <RequireAuth allowedRoles={["admin", "staff"]}>
             <DashboardLayout />
           </RequireAuth>
         }
       >
         <Route index element={<OverviewPage />} />
-        <Route path="vendors" element={<VendorsPage />} />
-        <Route path="orders" element={<OrdersPage />} />
-        <Route path="products" element={<ProductsModerationPage />} />
-        <Route path="customers" element={<CustomersPage />} />
-        <Route path="payouts" element={<PayoutsPage />} />
-        <Route path="categories" element={<CategoriesPage />} />
-        <Route path="couriers" element={<CouriersPage />} />
-        <Route path="promotions" element={<PromotionsPage />} />
-        <Route path="banners" element={<BannersPage />} />
-        <Route path="returns" element={<ReturnsPage />} />
-        <Route path="reviews" element={<ReviewsPage />} />
-        <Route path="contact-messages" element={<ContactMessagesPage />} />
-        <Route path="audit-log" element={<AuditLogPage />} />
-        <Route path="settings" element={<SettingsPage />} />
+        <Route path="vendors" element={<ModuleRoute module="vendors"><VendorsPage /></ModuleRoute>} />
+        <Route path="orders" element={<ModuleRoute module="orders"><OrdersPage /></ModuleRoute>} />
+        <Route path="products" element={<ModuleRoute module="products"><ProductsModerationPage /></ModuleRoute>} />
+        <Route path="customers" element={<ModuleRoute module="customers"><CustomersPage /></ModuleRoute>} />
+        <Route path="users" element={<ModuleRoute module="users"><UsersPage /></ModuleRoute>} />
+        <Route path="payouts" element={<ModuleRoute module="payouts"><PayoutsPage /></ModuleRoute>} />
+        <Route path="categories" element={<ModuleRoute module="categories"><CategoriesPage /></ModuleRoute>} />
+        <Route path="couriers" element={<ModuleRoute module="couriers"><CouriersPage /></ModuleRoute>} />
+        <Route path="promotions" element={<ModuleRoute module="promotions"><PromotionsPage /></ModuleRoute>} />
+        <Route path="banners" element={<ModuleRoute module="banners"><BannersPage /></ModuleRoute>} />
+        <Route path="returns" element={<ModuleRoute module="returns"><ReturnsPage /></ModuleRoute>} />
+        <Route path="reviews" element={<ModuleRoute module="reviews"><ReviewsPage /></ModuleRoute>} />
+        <Route path="contact-messages" element={<ModuleRoute module="contact"><ContactMessagesPage /></ModuleRoute>} />
+        <Route path="audit-log" element={<ModuleRoute module="audit-log"><AuditLogPage /></ModuleRoute>} />
+        <Route path="settings" element={<ModuleRoute module="settings"><SettingsPage /></ModuleRoute>} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

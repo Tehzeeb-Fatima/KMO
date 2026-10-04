@@ -7,7 +7,7 @@ import {
   markAllNotificationsRead,
   markNotificationRead,
 } from "@kmo/shared/api";
-import { ADMIN_NAV_ITEMS } from "../dashboard-nav";
+import { ADMIN_NAV_ITEMS, visibleNavItems } from "../dashboard-nav";
 import kmoIcon from "../assets/kmo-icon.png";
 import { supabase } from "../lib/supabase";
 
@@ -83,7 +83,7 @@ export function DashboardLayout() {
   return (
     <DashboardShell
       logoSrc={kmoIcon}
-      navItems={ADMIN_NAV_ITEMS}
+      navItems={visibleNavItems(profile)}
       activeKey={activeItem.key}
       title={meta.title}
       subtitle={meta.subtitle}

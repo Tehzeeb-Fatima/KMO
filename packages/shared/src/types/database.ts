@@ -5,7 +5,7 @@
  */
 export type Json = string | number | boolean | null | { [key: string]: Json } | Json[];
 
-export type UserRole = "customer" | "vendor" | "admin";
+export type UserRole = "customer" | "vendor" | "admin" | "staff";
 export type VendorVerificationStatus = "pending" | "approved" | "rejected" | "suspended";
 
 export type WeekDay = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
@@ -59,6 +59,7 @@ export interface Database {
           phone: string | null;
           role: UserRole;
           pending_vendor: boolean;
+          admin_modules: string[];
           created_at: string;
         };
         Insert: {
@@ -67,6 +68,7 @@ export interface Database {
           phone?: string | null;
           role?: UserRole;
           pending_vendor?: boolean;
+          admin_modules?: string[];
           created_at?: string;
         };
         Update: {
@@ -75,6 +77,7 @@ export interface Database {
           phone?: string | null;
           role?: UserRole;
           pending_vendor?: boolean;
+          admin_modules?: string[];
           created_at?: string;
         };
         Relationships: [];
@@ -1180,7 +1183,23 @@ export interface Database {
     };
     Views: Record<string, never>;
     Functions: {
-      top_categories: {
+      admin_list_users: {
+        Args: never;
+        Returns: {
+          id: string;
+          email: string | null;
+          full_name: string | null;
+          phone: string | null;
+          role: UserRole;
+          pending_vendor: boolean;
+          admin_modules: string[];
+          created_at: string;
+        }[];
+      };
+      admin_set_user_role: {
+        Args: { target_id: string; new_role: UserRole; modules?: string[] | null };
+        Returns: undefined;
+      };      top_categories: {
         Args: { limit_count?: number };
         Returns: {
           id: string;

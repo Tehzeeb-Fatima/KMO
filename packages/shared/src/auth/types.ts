@@ -1,4 +1,4 @@
-export type UserRole = "customer" | "vendor" | "admin";
+export type UserRole = "customer" | "vendor" | "admin" | "staff";
 
 export interface Profile {
   id: string;
@@ -6,5 +6,6 @@ export interface Profile {
   phone: string | null;
   role: UserRole;
   pending_vendor: boolean;
+  admin_modules: string[];
   created_at: string;
 }
