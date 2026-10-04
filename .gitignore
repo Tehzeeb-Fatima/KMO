@@ -30,3 +30,5 @@ pnpm-debug.log*
 
 # supabase CLI local cache
 supabase/.temp/
+
+supabase/functions/supabase/.temp/
