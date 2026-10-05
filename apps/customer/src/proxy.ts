@@ -4,7 +4,9 @@ import { NextResponse, type NextRequest } from "next/server";
 // Paths that must always work, even while the site is in maintenance mode —
 // the admin needs /login to sign in and unlock the rest of the site, and
 // /maintenance itself must never redirect to itself.
-const ALWAYS_ALLOWED = ["/maintenance", "/login", "/offline"];
+// /reset-password is where invited vendors set their first password, so it
+// can't be blocked either.
+const ALWAYS_ALLOWED = ["/maintenance", "/login", "/offline", "/reset-password"];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;

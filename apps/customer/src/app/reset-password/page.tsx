@@ -6,7 +6,15 @@ import { useRouter } from "next/navigation";
 import { AuthLayout, Button, Input, PasswordInput } from "@kmo/shared/ui";
 import { supabase } from "@/lib/supabase";
 
-type Mode = "request" | "set-password" | "done";
+type Mode = "request" | "verifying" | "set-password" | "done";
+
+const VENDOR_URL = process.env.NEXT_PUBLIC_VENDOR_URL ?? "https://vendor.karachimartonline.com";
+const ADMIN_URL = process.env.NEXT_PUBLIC_ADMIN_URL ?? "https://admin.karachimartonline.com";
+
+// Captured at module load, before the Supabase client (initialised by the
+// import above) strips the auth fragment from the URL.
+const INITIAL_HASH = typeof window !== "undefined" ? window.location.hash : "";
+const ARRIVED_WITH_SET_PASSWORD_LINK = /type=(invite|recovery)/.test(INITIAL_HASH);
 
 /**
  * Two purposes, one URL: visiting directly (e.g. from the login page's
@@ -31,6 +39,28 @@ export default function ResetPasswordPage() {
     } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") setMode("set-password");
     });
+
+    // Invite / recovery emails link here as ?token_hash=…&type=invite. Verifying
+    // the hash signs the user in, then they choose their password. (Older
+    // links carry the session in the #fragment instead — handled below.)
+    const params = new URLSearchParams(window.location.search);
+    const tokenHash = params.get("token_hash");
+    const type = params.get("type");
+    if (tokenHash && (type === "invite" || type === "recovery")) {
+      setMode("verifying");
+      supabase.auth.verifyOtp({ token_hash: tokenHash, type }).then(({ error }) => {
+        window.history.replaceState(null, "", "/reset-password");
+        if (error) {
+          setError("This link has expired or was already used. Enter your email to get a new one.");
+          setMode("request");
+        } else {
+          setMode("set-password");
+        }
+      });
+    } else if (ARRIVED_WITH_SET_PASSWORD_LINK) {
+      setMode("set-password");
+    }
+
     return () => subscription.unsubscribe();
   }, []);
 
@@ -57,13 +87,29 @@ export default function ResetPasswordPage() {
       return;
     }
     setSubmitting(true);
-    const { error } = await supabase.auth.updateUser({ password });
-    setSubmitting(false);
+    const { data, error } = await supabase.auth.updateUser({ password });
     if (error) {
+      setSubmitting(false);
       setError(error.message);
       return;
     }
-    router.replace("/account");
+    // Vendors and admins work in their own dashboards, not the shopper account page.
+    const { data: profile } = await supabase.from("profiles").select("role").eq("id", data.user.id).maybeSingle();
+    if (profile?.role === "vendor") {
+      window.location.href = VENDOR_URL;
+    } else if (profile?.role === "admin") {
+      window.location.href = ADMIN_URL;
+    } else {
+      router.replace("/account");
+    }
+  }
+
+  if (mode === "verifying") {
+    return (
+      <AuthLayout logoSrc="/kmo-icon.png" title="Checking your link…" subtitle="One moment.">
+        <span />
+      </AuthLayout>
+    );
   }
 
   if (mode === "done") {
