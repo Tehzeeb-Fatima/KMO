@@ -836,19 +836,19 @@ function ContactSection() {
             <div className="flex items-center gap-2.5">
               <span className="h-[7px] w-[7px] shrink-0 rounded-full bg-accent" />
               <a
-                href="mailto:support@karachimart.pk"
+                href="mailto:info@karachimartonline.com"
                 className="text-[13.5px] text-ink-dark hover:text-primary hover:underline"
               >
-                support@karachimart.pk
+                info@karachimartonline.com
               </a>
             </div>
             <div className="flex items-center gap-2.5">
               <span className="h-[7px] w-[7px] shrink-0 rounded-full bg-accent" />
               <a
-                href="tel:021111566566"
+                href="tel:+923712104790"
                 className="text-[13.5px] text-ink-dark hover:text-primary hover:underline"
               >
-                021 111 KMO KMO
+                +92 371 2104790
               </a>
             </div>
             <div className="flex items-center gap-2.5">
