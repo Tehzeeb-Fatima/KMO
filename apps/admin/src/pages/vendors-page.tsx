@@ -846,7 +846,25 @@ function AddVendorForm({ onBack }: { onBack: () => void }) {
           category_ids: Array.from(categoryIds),
         },
       });
-      if (invokeError) throw invokeError;
+      if (invokeError) {
+        // supabase-js only says "non-2xx status code"; the function's real
+        // reason is in the response body.
+        let message = invokeError.message;
+        const res = (invokeError as { context?: Response }).context;
+        if (res && typeof res.json === "function") {
+          try {
+            const body = (await res.json()) as { error?: string };
+            if (body?.error) message = body.error;
+          } catch {
+            // body wasn't JSON — keep the generic message
+          }
+        }
+        if (/already been registered|already registered|already exists/i.test(message)) {
+          message =
+            "This email already has a login account (e.g. from a vendor that was deleted earlier), so it can't be used for a new vendor. Use a different email.";
+        }
+        throw new Error(message);
+      }
       if (data?.error) throw new Error(data.error);
       return data as { vendor_id: string; slug: string; email: string };
     },
