@@ -97,7 +97,7 @@ function OrdersList({
                 key={o.id}
                 type="button"
                 onClick={() => onOpen(o.id)}
-                className="grid grid-cols-[1fr_1.5fr_1fr_1fr_1fr] items-center border-t border-[#F5F0EE] px-5 py-4 text-left"
+                className="grid w-full grid-cols-[1fr_1.5fr_1fr_1fr_1fr] items-center border-t border-[#F5F0EE] px-5 py-4 text-left hover:bg-surface-alt"
               >
                 <span className="text-[13px] font-bold text-primary">#{o.order_number}</span>
                 <span className="flex flex-col text-[12.5px]">
