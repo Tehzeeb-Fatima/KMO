@@ -448,8 +448,16 @@ function ProductForm({
     return acc;
   }, {});
 
+  const [savedNotice, setSavedNotice] = useState<string | null>(null);
+
   const saveMutation = useMutation({
     mutationFn: async () => {
+      if (!name.trim()) throw new Error("Enter a product name.");
+      if (!(Number(price) > 0)) throw new Error("Enter a price greater than 0.");
+      if (categoryIds.size === 0) throw new Error("Pick at least one category.");
+      if (compareAtPrice && Number(compareAtPrice) > 0 && Number(compareAtPrice) <= Number(price)) {
+        throw new Error("Original price must be higher than the selling price, or leave it empty.");
+      }
       // 360° is optional, but a set that's switched on needs enough frames to
       // actually spin — and every colour set that has photos must clear the bar.
       if (has360) {
@@ -509,14 +517,19 @@ function ProductForm({
       // Extra categories beyond the primary one (category_id already covers
       // the first). Only the remainder needs the junction table.
       await setProductCategories(supabase, savedId!, categoryIdList.slice(1));
-      return savedId;
+      return { wasNew: !currentProductId };
     },
-    onSuccess: () => {
+    onSuccess: ({ wasNew }) => {
       setError360(null);
       queryClient.invalidateQueries({ queryKey: ["my-products", vendorId] });
-      onBack();
+      // A brand-new product stays open: images, variants and 360° can only be
+      // added once it exists, so bouncing back to the list here strands the vendor.
+      if (wasNew) {
+        setSavedNotice("Product saved — now add images and variants below, then save again.");
+      } else {
+        onBack();
+      }
     },
-    onError: (err: Error) => setError360(err.message),
   });
 
   const add360FramesMutation = useMutation({
@@ -1018,6 +1031,12 @@ function ProductForm({
           >
             {saveMutation.isPending ? "Saving…" : "Save product"}
           </button>
+          {saveMutation.isError ? (
+            <p className="text-[12.5px] font-semibold text-danger">{saveMutation.error.message}</p>
+          ) : null}
+          {savedNotice && !saveMutation.isError ? (
+            <p className="text-[12.5px] font-semibold text-success">{savedNotice}</p>
+          ) : null}
           <button
             type="button"
             onClick={onBack}
