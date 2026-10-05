@@ -851,10 +851,6 @@ function ContactSection() {
                 +92 371 2104790
               </a>
             </div>
-            <div className="flex items-center gap-2.5">
-              <span className="h-[7px] w-[7px] shrink-0 rounded-full bg-accent" />
-              <span className="text-[13.5px] text-ink-dark">{t.contact.hours}</span>
-            </div>
           </div>
         </div>
 
