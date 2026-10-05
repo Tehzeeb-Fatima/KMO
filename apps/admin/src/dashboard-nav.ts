@@ -13,6 +13,7 @@ export const ADMIN_NAV_ITEMS: DashboardNavItem[] = [
   { key: "couriers", label: "Couriers", to: "/couriers" },
   { key: "promotions", label: "Promotions", to: "/promotions" },
   { key: "banners", label: "Banners", to: "/banners" },
+  { key: "testimonials", label: "Testimonials", to: "/testimonials" },
   { key: "returns", label: "Returns", to: "/returns" },
   { key: "reviews", label: "Reviews", to: "/reviews" },
   { key: "contact", label: "Contact requests", to: "/contact-messages" },

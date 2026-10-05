@@ -10,6 +10,7 @@ import {
   listTopCategories,
   getPlatformSettings,
   listActiveBanners,
+  listActiveTestimonials,
   type BannerRow,
   listVendors,
   listRecentReviews,
@@ -339,7 +340,7 @@ export default function Home() {
       ) : null}
 
       {/* testimonials */}
-      <Testimonials />
+      <Testimonials enabled={platformSettings?.show_testimonials === true} />
 
       {(() => {
         const bottom = categories?.find((c) => c.id === platformSettings?.bottom_category_id);
@@ -757,29 +758,17 @@ function FeaturedProducts({
   );
 }
 
-const TESTIMONIALS = [
-  {
-    quote:
-      "I run a small stitching business from home in Gulshan — KMO gave me a real storefront without having to build a website or chase a developer. Orders come in on my phone and I pack them the same evening.",
-    name: "Ayesha R.",
-    area: "Gulshan-e-Iqbal, Karachi",
-  },
-  {
-    quote:
-      "Cash on delivery is the only reason my family started ordering online at all. No card details, no advance payment — you pay the rider once the box is in your hands.",
-    name: "Bilal K.",
-    area: "North Nazimabad, Karachi",
-  },
-  {
-    quote:
-      "As a vendor, knowing every seller on the platform is verified made it worth joining. Customers trust the badge, and that trust turns into repeat orders.",
-    name: "Sana M.",
-    area: "Tariq Road, Karachi",
-  },
-];
-
-function Testimonials() {
+function Testimonials({ enabled }: { enabled: boolean }) {
   const { t } = useLanguage();
+  const { data: testimonials } = useQuery({
+    queryKey: ["active-testimonials"],
+    queryFn: () => listActiveTestimonials(supabase),
+    enabled,
+  });
+
+  // Hidden until an admin switches the section on and adds at least one.
+  if (!enabled || !testimonials || testimonials.length === 0) return null;
+
   return (
     <section className="mt-8 bg-accent-tint px-4 pb-9 pt-9 sm:px-10">
       <div className="mb-6">
@@ -789,9 +778,9 @@ function Testimonials() {
         <p className="text-[13.5px] text-muted">{t.home.realFeedback}</p>
       </div>
       <div className="grid gap-[18px] sm:grid-cols-3">
-        {TESTIMONIALS.map((t) => (
+        {testimonials.map((t) => (
           <div
-            key={t.name}
+            key={t.id}
             className="flex flex-col gap-3.5 rounded-xl border border-[#F2DDD3] bg-surface p-6"
           >
             <span className="font-serif text-[28px] font-extrabold leading-none text-accent">
@@ -804,7 +793,7 @@ function Testimonials() {
               </span>
               <div>
                 <p className="text-[13.5px] font-bold text-ink-dark">{t.name}</p>
-                <p className="text-[11.5px] text-danger">{t.area}</p>
+                {t.area ? <p className="text-[11.5px] text-danger">{t.area}</p> : null}
               </div>
             </div>
           </div>

@@ -699,6 +699,36 @@ export interface Database {
         };
         Relationships: [];
       };
+      testimonials: {
+        Row: {
+          id: string;
+          name: string;
+          area: string | null;
+          quote: string;
+          sort_order: number;
+          is_active: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          area?: string | null;
+          quote: string;
+          sort_order?: number;
+          is_active?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          area?: string | null;
+          quote?: string;
+          sort_order?: number;
+          is_active?: boolean;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       platform_settings: {
         Row: {
           id: boolean;
@@ -713,6 +743,7 @@ export interface Database {
           vendor_of_week_image_url: string | null;
           bottom_category_id: string | null;
           show_hero_boxes: boolean;
+          show_testimonials: boolean;
           updated_at: string;
         };
         Insert: {
@@ -728,6 +759,7 @@ export interface Database {
           vendor_of_week_image_url?: string | null;
           bottom_category_id?: string | null;
           show_hero_boxes?: boolean;
+          show_testimonials?: boolean;
           updated_at?: string;
         };
         Update: {
@@ -743,6 +775,7 @@ export interface Database {
           vendor_of_week_image_url?: string | null;
           bottom_category_id?: string | null;
           show_hero_boxes?: boolean;
+          show_testimonials?: boolean;
           updated_at?: string;
         };
         Relationships: [];

@@ -12,6 +12,7 @@ import { CategoriesPage } from "./pages/categories-page";
 import { CouriersPage } from "./pages/couriers-page";
 import { PromotionsPage } from "./pages/promotions-page";
 import { BannersPage } from "./pages/banners-page";
+import { TestimonialsPage } from "./pages/testimonials-page";
 import { OverviewPage } from "./pages/overview-page";
 import { CustomersPage } from "./pages/customers-page";
 import { ProductsModerationPage } from "./pages/products-page";
@@ -43,6 +44,7 @@ export default function App() {
         <Route path="couriers" element={<ModuleRoute module="couriers"><CouriersPage /></ModuleRoute>} />
         <Route path="promotions" element={<ModuleRoute module="promotions"><PromotionsPage /></ModuleRoute>} />
         <Route path="banners" element={<ModuleRoute module="banners"><BannersPage /></ModuleRoute>} />
+        <Route path="testimonials" element={<ModuleRoute module="testimonials"><TestimonialsPage /></ModuleRoute>} />
         <Route path="returns" element={<ModuleRoute module="returns"><ReturnsPage /></ModuleRoute>} />
         <Route path="reviews" element={<ModuleRoute module="reviews"><ReviewsPage /></ModuleRoute>} />
         <Route path="contact-messages" element={<ModuleRoute module="contact"><ContactMessagesPage /></ModuleRoute>} />

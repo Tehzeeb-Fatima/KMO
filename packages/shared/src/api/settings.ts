@@ -30,6 +30,7 @@ export async function updatePlatformSettings(
       | "vendor_of_week_image_url"
       | "bottom_category_id"
       | "show_hero_boxes"
+      | "show_testimonials"
     >
   >,
 ): Promise<SettingsRow> {
