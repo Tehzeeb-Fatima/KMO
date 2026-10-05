@@ -8,6 +8,8 @@ import { NextResponse, type NextRequest } from "next/server";
 // can't be blocked either.
 const ALWAYS_ALLOWED = ["/maintenance", "/login", "/offline", "/reset-password"];
 
+const PREVIEW_COOKIE = "kmo_preview";
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   if (ALWAYS_ALLOWED.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
@@ -49,6 +51,32 @@ export async function proxy(request: NextRequest) {
 
     if (!settings?.maintenance_mode) {
       return response;
+    }
+
+    // Secret preview link (?preview=<token>): remembers the visitor in a cookie
+    // so vendors/testers can browse the real site while it's in maintenance.
+    const previewParam = request.nextUrl.searchParams.get("preview");
+    if (previewParam) {
+      const { data: valid } = await supabase.rpc("is_valid_preview_token", { candidate: previewParam });
+      if (valid === true) {
+        const clean = request.nextUrl.clone();
+        clean.searchParams.delete("preview");
+        const redirect = NextResponse.redirect(clean);
+        for (const c of response.cookies.getAll()) redirect.cookies.set(c);
+        redirect.cookies.set(PREVIEW_COOKIE, previewParam, {
+          httpOnly: true,
+          secure: true,
+          sameSite: "lax",
+          path: "/",
+          maxAge: 60 * 60 * 24 * 30,
+        });
+        return redirect;
+      }
+    }
+    const previewCookie = request.cookies.get(PREVIEW_COOKIE)?.value;
+    if (previewCookie) {
+      const { data: valid } = await supabase.rpc("is_valid_preview_token", { candidate: previewCookie });
+      if (valid === true) return response;
     }
 
     // Maintenance is on — let the super admin through, everyone else gets

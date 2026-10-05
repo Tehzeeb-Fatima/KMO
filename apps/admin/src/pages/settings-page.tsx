@@ -2,15 +2,19 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getPlatformSettings,
+  getPreviewToken,
   listCategories,
   listVendors,
   logAdminAction,
+  regeneratePreviewToken,
   updatePlatformSettings,
   uploadPromotionImage,
 } from "@kmo/shared/api";
 import { ConfirmDialog } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "../lib/supabase";
+
+const CUSTOMER_URL = import.meta.env.VITE_CUSTOMER_URL ?? "https://karachimartonline.com";
 
 export function SettingsPage() {
   const queryClient = useQueryClient();
@@ -151,6 +155,22 @@ export function SettingsPage() {
         });
       }
       setPendingMaintenanceToggle(null);
+    },
+  });
+
+  const { data: previewToken } = useQuery({
+    queryKey: ["preview-token"],
+    queryFn: () => getPreviewToken(supabase),
+  });
+  const previewLink = previewToken ? `${CUSTOMER_URL}/?preview=${previewToken}` : "";
+  const [copied, setCopied] = useState(false);
+  const [confirmRegenerate, setConfirmRegenerate] = useState(false);
+  const regenerateMutation = useMutation({
+    mutationFn: () => regeneratePreviewToken(supabase),
+    onSuccess: (token) => {
+      queryClient.setQueryData(["preview-token"], token);
+      if (user) void logAdminAction(supabase, user.id, "settings.preview_link_regenerated", "platform_settings");
+      setConfirmRegenerate(false);
     },
   });
 
@@ -424,6 +444,54 @@ export function SettingsPage() {
           {settings?.maintenance_mode ? "MAINTENANCE — ACTIVE" : "LIVE"}
         </span>
       </div>
+
+      <div className="flex flex-col gap-3 rounded-xl border border-border bg-surface p-[22px_24px]">
+        <div className="flex flex-col gap-[3px]">
+          <p className="text-[15px] font-bold text-ink">Preview link</p>
+          <p className="text-xs text-muted">
+            Share this with vendors or testers to let them browse the full site while maintenance
+            mode is on. Anyone with the link gets in for 30 days — make a new link to cut off
+            everyone who has the old one.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            readOnly
+            value={previewLink || "Loading…"}
+            onFocus={(e) => e.currentTarget.select()}
+            className="min-w-0 flex-1 rounded-lg border border-border bg-surface-alt px-3 py-2.5 font-mono text-[12px] text-ink-dark outline-none"
+          />
+          <button
+            type="button"
+            disabled={!previewLink}
+            onClick={async () => {
+              await navigator.clipboard.writeText(previewLink);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 2000);
+            }}
+            className="rounded-lg bg-accent px-4 py-2.5 text-[12.5px] font-bold text-white disabled:opacity-60"
+          >
+            {copied ? "Copied!" : "Copy link"}
+          </button>
+          <button
+            type="button"
+            onClick={() => setConfirmRegenerate(true)}
+            className="rounded-lg border border-border bg-white px-4 py-2.5 text-[12.5px] font-bold text-primary"
+          >
+            New link
+          </button>
+        </div>
+      </div>
+
+      <ConfirmDialog
+        open={confirmRegenerate}
+        title="Make a new preview link?"
+        message="The current link stops working straight away, including for everyone you've already shared it with."
+        confirmLabel="Make new link"
+        loading={regenerateMutation.isPending}
+        onConfirm={() => regenerateMutation.mutate()}
+        onCancel={() => setConfirmRegenerate(false)}
+      />
 
       <div className="flex flex-col gap-3 rounded-xl border border-border bg-surface p-[22px_24px]">
         <p className="text-[15px] font-bold text-ink">Admin roles</p>

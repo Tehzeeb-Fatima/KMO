@@ -21,6 +21,7 @@ export * from "./couriers";
 export * from "./promotions";
 export * from "./banners";
 export * from "./testimonials";
+export * from "./preview-link";
 export * from "./vendor-membership";
 export * from "./users";
 export * from "./auth-flows";

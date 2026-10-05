@@ -1216,6 +1216,18 @@ export interface Database {
     };
     Views: Record<string, never>;
     Functions: {
+      is_valid_preview_token: {
+        Args: { candidate: string };
+        Returns: boolean;
+      };
+      get_preview_token: {
+        Args: never;
+        Returns: string | null;
+      };
+      regenerate_preview_token: {
+        Args: never;
+        Returns: string;
+      };
       admin_vendor_owner_email: {
         Args: { p_vendor_id: string };
         Returns: string;
