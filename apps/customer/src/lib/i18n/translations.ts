@@ -42,7 +42,7 @@ export const translations = {
       codAvailable: "Cash on delivery available citywide",
     },
     home: {
-      heroLiveBadge: "KARACHI, WE'RE LIVE! 🛍️",
+      heroLiveBadge: "KARACHI, WE'RE LIVE!",
       heroLiveTitle: "Your new online marketplace is here.",
       heroLiveDesc: "Discover fashion, beauty, electronics, home essentials, groceries & more — all in one place.",
       heroLiveCta: "Start Shopping →",
@@ -432,7 +432,7 @@ export const translations = {
       codAvailable: "شہر بھر میں کیش آن ڈیلیوری دستیاب ہے",
     },
     home: {
-      heroLiveBadge: "کراچی، ہم لائیو ہیں! 🛍️",
+      heroLiveBadge: "کراچی، ہم لائیو ہیں!",
       heroLiveTitle: "آپ کا نیا آن لائن مارکیٹ پلیس آ گیا ہے۔",
       heroLiveDesc: "فیشن، بیوٹی، الیکٹرانکس، گھریلو اشیاء، گروسری اور بہت کچھ — سب ایک ہی جگہ۔",
       heroLiveCta: "خریداری شروع کریں ←",
