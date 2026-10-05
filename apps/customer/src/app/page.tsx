@@ -26,6 +26,8 @@ import { HorizontalSlider } from "@/components/horizontal-slider";
 import { AddToCartButton, WishlistHeart } from "@/components/product-card-actions";
 import { useLanguage } from "@/lib/i18n/language-context";
 
+const VENDOR_URL = process.env.NEXT_PUBLIC_VENDOR_URL ?? "https://vendor.karachimartonline.com";
+
 export default function Home() {
   const { t } = useLanguage();
   const { data: categories } = useQuery({
@@ -67,19 +69,6 @@ export default function Home() {
     queryFn: () => getPlatformSettings(supabase),
   });
 
-  const vendorOfWeek =
-    (platformSettings?.vendor_of_week_id &&
-      vendors?.find((v) => v.id === platformSettings.vendor_of_week_id)) ||
-    vendors?.[0];
-  const { data: vendorOfWeekProductCount } = useQuery({
-    queryKey: ["vendor-product-count", vendorOfWeek?.id],
-    queryFn: async () => {
-      const list = await listPublishedProducts(supabase, { vendorId: vendorOfWeek!.id });
-      return list.length;
-    },
-    enabled: !!vendorOfWeek,
-  });
-
   const sectionCategories: TopCategory[] = (categories ?? [])
     .filter((c) => c.show_on_homepage)
     .sort((a, b) => a.homepage_order - b.homepage_order)
@@ -106,21 +95,19 @@ export default function Home() {
           <span className="pointer-events-none absolute -right-[70px] -top-[70px] h-[260px] w-[260px] rounded-full bg-white/10" />
           <span className="pointer-events-none absolute -bottom-[60px] right-[60px] h-[160px] w-[160px] rounded-full bg-white/10" />
           <p className="relative font-mono text-[10.5px] tracking-[0.18em] text-[#F3D2C2]">
-            {t.home.badge}
+            {t.home.heroLiveBadge}
           </p>
           <h1 className="relative text-[32px] font-extrabold leading-[1.05] tracking-[-0.038em] text-white sm:text-[44px]">
-            {t.home.titleLine1}
-            <br />
-            {t.home.titleLine2}
+            {t.home.heroLiveTitle}
           </h1>
-          <p className="relative max-w-[400px] text-[15px] leading-[1.6] text-white/85">
-            {t.home.subtitle}
+          <p className="relative max-w-[420px] text-[15px] leading-[1.6] text-white/85">
+            {t.home.heroLiveDesc}
           </p>
           <Link
             href="/search"
             className="relative mt-1 w-fit rounded-full bg-white px-7 py-3.5 text-sm font-bold text-primary"
           >
-            {t.home.startShopping}
+            {t.home.heroLiveCta}
           </Link>
         </div>
 
@@ -129,65 +116,45 @@ export default function Home() {
             <div className="flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-accent" />
               <span className="font-mono text-[10px] tracking-[0.16em] text-accent">
-                {t.home.paymentBadge}
+                {t.home.heroWelcomeBadge}
               </span>
             </div>
             <h2 className="text-2xl font-extrabold leading-[1.15] tracking-[-0.03em] text-ink-dark">
-              {t.home.codTitle}
+              {t.home.heroWelcomeTitle}
             </h2>
             <p className="text-[13px] leading-[1.55] text-muted">
-              {t.home.codDesc}
+              {t.home.heroWelcomeDesc}
             </p>
           </div>
           <Link
-            href="/faqs"
+            href="/search"
             className="w-fit rounded-full bg-primary px-5 py-2.5 text-[13px] font-bold text-white"
           >
-            {t.home.howCodWorks}
+            {t.home.heroWelcomeCta}
           </Link>
         </div>
-              {/* panel C — vendor of the week */}
-        <div className="flex flex-col justify-between gap-3 rounded-lg border-[1.5px] border-primary p-[26px] transition-all duration-300 [transform-style:preserve-3d] hover:[transform:perspective(900px)_rotateX(4deg)_rotateY(-4deg)_translateY(-6px)] hover:shadow-[0_24px_40px_-18px_rgba(74,34,102,0.6)]">
+        {/* panel C — sell on KMO */}
+        <div className="flex min-h-[260px] flex-col justify-between gap-4 rounded-xl border-[1.5px] border-primary p-[26px] transition-all duration-300 [transform-style:preserve-3d] hover:[transform:perspective(900px)_rotateX(4deg)_rotateY(-4deg)_translateY(-6px)] hover:shadow-[0_24px_40px_-18px_rgba(74,34,102,0.6)] sm:min-h-[300px]">
           <div className="flex flex-col gap-3">
-            <p className="font-mono text-[10px] tracking-[0.16em] text-muted-table">
-              {t.home.vendorOfWeek}
+            <div className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-primary" />
+              <span className="font-mono text-[10px] tracking-[0.16em] text-primary">
+                {t.home.heroSellBadge}
+              </span>
+            </div>
+            <h2 className="text-2xl font-extrabold leading-[1.15] tracking-[-0.03em] text-ink-dark">
+              {t.home.heroSellTitle}
+            </h2>
+            <p className="text-[13px] leading-[1.55] text-muted">
+              {t.home.heroSellDesc}
             </p>
-            {vendorOfWeek ? (
-              <>
-                <div className="flex items-center gap-2.5">
-                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[9px] bg-primary text-[13px] font-extrabold text-white">
-                    {vendorOfWeek.store_name.charAt(0)}
-                  </span>
-                  <div className="min-w-0">
-                    <p className="truncate text-[14.5px] font-bold tracking-[-0.015em] text-ink-dark">
-                      {vendorOfWeek.store_name}
-                    </p>
-                    <p className="text-[11.5px] text-muted">
-                      {typeof vendorOfWeekProductCount === "number"
-                        ? `${vendorOfWeekProductCount} ${t.home.productsSuffix}`
-                        : t.home.newToKmo}
-                    </p>
-                  </div>
-                </div>
-                {platformSettings?.vendor_of_week_id === vendorOfWeek.id &&
-                platformSettings.vendor_of_week_image_url ? (
-                  <div
-                    className="h-[120px] rounded-md bg-cover bg-center"
-                    style={{ backgroundImage: `url(${platformSettings.vendor_of_week_image_url})` }}
-                  />
-                ) : (
-                  <div className="h-[82px] rounded-md bg-surface-alt" />
-                )}
-              </>
-            ) : (
-              <p className="text-sm text-muted">{t.home.newVendorsWeekly}</p>
-            )}
           </div>
-          {vendorOfWeek ? (
-            <Link href={`/store/${vendorOfWeek.slug}`} className="text-[13px] font-bold text-accent">
-              {t.home.visitStore}
-            </Link>
-          ) : null}
+          <a
+            href={`${VENDOR_URL}/signup`}
+            className="w-fit rounded-full bg-accent px-5 py-2.5 text-[13px] font-bold text-white"
+          >
+            {t.home.heroSellCta}
+          </a>
         </div>
 </section>
       ) : null}
