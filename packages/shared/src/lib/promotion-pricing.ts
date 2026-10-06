@@ -9,6 +9,9 @@ export interface PromotionForPricing {
   id: string;
   vendor_id: string | null;
   category_id: string | null;
+  /** category_id plus its sub-categories, when known — a promo on a main
+   *  category also covers products listed in its sub-categories. */
+  category_ids?: string[];
   discount_type: "percentage" | "fixed";
   discount_value: number;
   vendor_funded_percent: number;
@@ -41,7 +44,10 @@ function matchesItem(
 ): boolean {
   if (promo.product_ids.length > 0) return promo.product_ids.includes(item.productId);
   if (promo.vendor_id && promo.vendor_id !== vendorId) return false;
-  if (promo.category_id && promo.category_id !== item.categoryId) return false;
+  if (promo.category_id) {
+    const ids = promo.category_ids?.length ? promo.category_ids : [promo.category_id];
+    if (!item.categoryId || !ids.includes(item.categoryId)) return false;
+  }
   return true;
 }
 

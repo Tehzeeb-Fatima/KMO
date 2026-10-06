@@ -151,7 +151,7 @@ Deno.serve(async (req: Request) => {
   const { data: activePromotionsRaw } = await admin
     .from("promotions")
     .select(
-      "id, vendor_id, category_id, discount_type, discount_value, funded_by, vendor_funded_percent, max_discount_amount, min_order_amount, promotion_products(product_id)",
+      "id, vendor_id, category_id, discount_type, discount_value, funded_by, vendor_funded_percent, max_discount_amount, min_order_amount, promotion_products(product_id), categories(subcategories:categories!parent_id(id))",
     )
     .eq("is_active", true)
     .lte("starts_at", nowIso)
@@ -161,6 +161,15 @@ Deno.serve(async (req: Request) => {
     product_ids: (p.promotion_products as unknown as { product_id: string }[]).map(
       (pp) => pp.product_id,
     ),
+    // A promo on a main category also covers its sub-categories.
+    category_ids: p.category_id
+      ? [
+          p.category_id,
+          ...((p.categories as unknown as { subcategories: { id: string }[] } | null)?.subcategories ?? []).map(
+            (c) => c.id,
+          ),
+        ]
+      : [],
   }));
 
   function promotionUnitDiscount(
@@ -201,6 +210,7 @@ Deno.serve(async (req: Request) => {
       max_discount_amount: number | null;
       min_order_amount: number | null;
       product_ids: string[];
+      category_ids: string[];
     } | null = null;
     let bestPromoDiscount = 0;
     for (const promo of activePromotions) {
@@ -216,7 +226,10 @@ Deno.serve(async (req: Request) => {
         };
         if (productScoped) {
           if (!promo.product_ids.includes(product.id)) continue;
-        } else if (promo.category_id && promo.category_id !== product.category_id) {
+        } else if (
+          promo.category_id &&
+          (!product.category_id || !promo.category_ids.includes(product.category_id))
+        ) {
           continue;
         }
         const variant = item.product_variants as unknown as { price_override: number | null } | null;

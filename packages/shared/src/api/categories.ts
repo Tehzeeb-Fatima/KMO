@@ -8,10 +8,11 @@ export async function createCategory(
   supabase: Client,
   name: string,
   slug: string,
+  parentId: string | null = null,
 ): Promise<CategoryRow> {
   const { data, error } = await supabase
     .from("categories")
-    .insert({ name, slug })
+    .insert({ name, slug, parent_id: parentId })
     .select("*")
     .single();
   if (error) throw error;

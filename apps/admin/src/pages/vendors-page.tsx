@@ -21,6 +21,7 @@ import {
 import { ConfirmDialog, StatusBadge, type StatusBadgeVariant } from "@kmo/shared/ui";
 import type { VendorVerificationStatus } from "@kmo/shared/types";
 import { useAuth } from "@kmo/shared/auth";
+import { mainCategories } from "@kmo/shared/lib";
 import { supabase } from "../lib/supabase";
 import { VendorAccountSection } from "../components/vendor-account-section";
 
@@ -454,7 +455,7 @@ function CategoryChecklist({
 
   return (
     <div className="flex flex-wrap gap-2">
-      {categories.map((c) => {
+      {mainCategories(categories).map((c) => {
         const isSelected = selected.has(c.id);
         return (
           <button

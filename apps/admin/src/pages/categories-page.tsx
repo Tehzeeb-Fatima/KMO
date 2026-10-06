@@ -1,6 +1,6 @@
 import { useRef, useState, type ChangeEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CATEGORY_ICONS, type CategoryIconKey } from "@kmo/shared/lib";
+import { CATEGORY_ICONS, groupCategories, type CategoryIconKey } from "@kmo/shared/lib";
 import {
   createCategory,
   deleteCategory,
@@ -38,7 +38,18 @@ export function CategoriesPage() {
     },
   });
 
-  const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null);
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const [subName, setSubName] = useState("");
+  const addSubMutation = useMutation({
+    mutationFn: (p: { parentId: string; parentSlug: string }) =>
+      createCategory(supabase, subName.trim(), `${p.parentSlug}-${slugify(subName)}`, p.parentId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      setSubName("");
+    },
+  });
+
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string; subCount: number } | null>(null);
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteCategory(supabase, id),
     onSuccess: () => {
@@ -73,7 +84,7 @@ export function CategoriesPage() {
     <div className="max-w-[640px]">
       <div className="mb-4 flex gap-2">
         <input
-          placeholder="New category name"
+          placeholder="New main category name"
           value={name}
           onChange={(e) => setName(e.target.value)}
           className="flex-1 rounded-lg border border-border px-[14px] py-[10px] text-[13px] outline-none focus:border-primary-light"
@@ -84,7 +95,7 @@ export function CategoriesPage() {
           onClick={() => addMutation.mutate()}
           className="rounded-lg bg-accent px-[18px] py-[10px] text-[13px] font-bold text-white disabled:opacity-60"
         >
-          + Add category
+          + Add main category
         </button>
       </div>
 
@@ -96,18 +107,28 @@ export function CategoriesPage() {
         {isLoading ? (
           <p className="p-5 text-sm text-muted">Loading…</p>
         ) : (
-          categories?.map((c) => (
-            <div
-              key={c.id}
-              className="flex flex-wrap items-center justify-between gap-3 border-t border-[#F5F0EE] px-4 py-3.5 text-[13px] first:border-t-0 sm:px-5"
-            >
+          groupCategories(categories ?? []).map(({ parent: c, children }) => (
+            <div key={c.id} className="border-t border-[#F5F0EE] first:border-t-0">
+            <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3.5 text-[13px] sm:px-5">
               <div className="flex min-w-0 items-center gap-3">
                 <CategoryImageBox
                   imageUrl={c.image_url}
                   uploading={imageMutation.isPending && imageMutation.variables?.id === c.id}
                   onChange={(file) => imageMutation.mutate({ id: c.id, file })}
                 />
-                <span className="truncate font-bold text-ink-dark">{c.name}</span>
+                <div className="min-w-0">
+                  <p className="truncate font-bold text-ink-dark">{c.name}</p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setExpanded(expanded === c.id ? null : c.id);
+                      setSubName("");
+                    }}
+                    className="text-[11.5px] font-semibold text-accent"
+                  >
+                    {children.length} sub-categor{children.length === 1 ? "y" : "ies"} {expanded === c.id ? "▴" : "▾"}
+                  </button>
+                </div>
               </div>
               <div className="flex flex-wrap items-center gap-3">
                 <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white">
@@ -169,12 +190,50 @@ export function CategoriesPage() {
                 />
                 <button
                   type="button"
-                  onClick={() => setPendingDelete({ id: c.id, name: c.name })}
+                  onClick={() => setPendingDelete({ id: c.id, name: c.name, subCount: children.length })}
                   className="text-xs font-bold text-danger"
                 >
                   Remove
                 </button>
               </div>
+            </div>
+            {expanded === c.id ? (
+              <div className="border-t border-[#F5F0EE] bg-surface-alt px-4 py-3 sm:px-5">
+                <div className="flex flex-col gap-1.5">
+                  {children.map((sub) => (
+                    <div key={sub.id} className="flex items-center justify-between gap-3 text-[13px]">
+                      <span className="min-w-0 truncate text-ink-dark">↳ {sub.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => setPendingDelete({ id: sub.id, name: sub.name, subCount: 0 })}
+                        className="shrink-0 text-xs font-bold text-danger"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3 flex gap-2">
+                  <input
+                    placeholder={`New sub-category in ${c.name}`}
+                    value={subName}
+                    onChange={(e) => setSubName(e.target.value)}
+                    className="min-w-0 flex-1 rounded-lg border border-border bg-white px-3 py-2 text-[13px] outline-none focus:border-primary-light"
+                  />
+                  <button
+                    type="button"
+                    disabled={!subName.trim() || addSubMutation.isPending}
+                    onClick={() => addSubMutation.mutate({ parentId: c.id, parentSlug: c.slug })}
+                    className="shrink-0 rounded-lg bg-accent px-3.5 py-2 text-[12.5px] font-bold text-white disabled:opacity-60"
+                  >
+                    + Add
+                  </button>
+                </div>
+                {addSubMutation.error ? (
+                  <p className="mt-1.5 text-[12px] text-danger">{(addSubMutation.error as Error).message}</p>
+                ) : null}
+              </div>
+            ) : null}
             </div>
           ))
         )}
@@ -183,7 +242,11 @@ export function CategoriesPage() {
       <ConfirmDialog
         open={!!pendingDelete}
         title={`Remove "${pendingDelete?.name}"?`}
-        message="Vendors assigned to this category and products in it will lose that category."
+        message={
+          pendingDelete?.subCount
+            ? `Its ${pendingDelete.subCount} sub-categories will be removed too. Vendors assigned to it and products in it will lose that category.`
+            : "Products in this category will lose that category."
+        }
         confirmLabel="Remove"
         loading={deleteMutation.isPending}
         onConfirm={() => deleteMutation.mutate(pendingDelete!.id)}

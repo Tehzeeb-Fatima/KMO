@@ -9,12 +9,12 @@ type PromotionUpdate = Database["public"]["Tables"]["promotions"]["Update"];
 
 export interface PromotionWithLinks extends PromotionRow {
   vendors: { store_name: string; slug: string } | null;
-  categories: { name: string; slug: string } | null;
+  categories: { name: string; slug: string; subcategories: { id: string }[] } | null;
   promotion_products: { product_id: string }[];
 }
 
 const PROMOTION_SELECT =
-  "*, vendors(store_name, slug), categories(name, slug), promotion_products(product_id)";
+  "*, vendors(store_name, slug), categories(name, slug, subcategories:categories!parent_id(id)), promotion_products(product_id)";
 
 /** Live deals for the storefront: active, and inside their time window. */
 export async function listActivePromotions(
@@ -103,6 +103,9 @@ export function toPricingPromotions(promotions: PromotionWithLinks[]): Promotion
     id: p.id,
     vendor_id: p.vendor_id,
     category_id: p.category_id,
+    category_ids: p.category_id
+      ? [p.category_id, ...(p.categories?.subcategories ?? []).map((c) => c.id)]
+      : [],
     discount_type: p.discount_type,
     discount_value: p.discount_value,
     vendor_funded_percent: p.vendor_funded_percent,

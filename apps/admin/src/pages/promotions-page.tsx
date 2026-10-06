@@ -16,6 +16,7 @@ import {
 } from "@kmo/shared/api";
 import { ConfirmDialog, Countdown } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
+import { categoryOptions } from "@kmo/shared/lib";
 import { supabase } from "../lib/supabase";
 
 /** `datetime-local` wants "YYYY-MM-DDTHH:mm" in local time, not an ISO string. */
@@ -453,9 +454,9 @@ function PromotionForm({
                   className="rounded-lg border border-border px-3 py-2.5 text-[13px] text-ink-dark"
                 >
                   <option value="">All categories</option>
-                  {categories?.map((c) => (
+                  {categoryOptions(categories ?? []).map((c) => (
                     <option key={c.id} value={c.id}>
-                      {c.name}
+                      {c.label}
                     </option>
                   ))}
                 </select>

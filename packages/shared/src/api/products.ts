@@ -247,7 +247,15 @@ export async function listPublishedProducts(
     .eq("status", "published");
 
   if (filter?.productIds) query = query.in("id", filter.productIds);
-  if (filter?.categoryId) query = query.eq("category_id", filter.categoryId);
+  if (filter?.categoryId) {
+    // A main category also shows everything listed in its sub-categories.
+    const { data: subs, error: subsError } = await supabase
+      .from("categories")
+      .select("id")
+      .eq("parent_id", filter.categoryId);
+    if (subsError) throw subsError;
+    query = query.in("category_id", [filter.categoryId, ...(subs ?? []).map((c) => c.id)]);
+  }
   if (filter?.vendorId) query = query.eq("vendor_id", filter.vendorId);
   if (typeof filter?.minPrice === "number") query = query.gte("price", filter.minPrice);
   if (typeof filter?.maxPrice === "number") query = query.lte("price", filter.maxPrice);
@@ -311,7 +319,11 @@ export async function getProductsByIds(
 }
 
 export async function listCategories(supabase: Client): Promise<CategoryRow[]> {
-  const { data, error } = await supabase.from("categories").select("*").order("name");
+  const { data, error } = await supabase
+    .from("categories")
+    .select("*")
+    .order("sort_order")
+    .order("name");
   if (error) throw error;
   return data;
 }

@@ -219,6 +219,7 @@ export interface Database {
           show_on_homepage: boolean;
           homepage_order: number;
           icon: string | null;
+          sort_order: number;
           created_at: string;
         };
         Insert: {
@@ -231,6 +232,7 @@ export interface Database {
           show_on_homepage?: boolean;
           homepage_order?: number;
           icon?: string | null;
+          sort_order?: number;
           created_at?: string;
         };
         Update: {

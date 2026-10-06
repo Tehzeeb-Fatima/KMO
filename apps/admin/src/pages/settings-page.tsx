@@ -12,6 +12,7 @@ import {
 } from "@kmo/shared/api";
 import { ConfirmDialog } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
+import { categoryOptions } from "@kmo/shared/lib";
 import { supabase } from "../lib/supabase";
 
 const CUSTOMER_URL = import.meta.env.VITE_CUSTOMER_URL ?? "https://karachimartonline.com";
@@ -282,9 +283,9 @@ export function SettingsPage() {
             className="min-w-[240px] rounded-lg border border-border px-3 py-2.5 text-[13px] text-ink-dark"
           >
             <option value="">None (hidden)</option>
-            {allCategories?.map((c) => (
+            {categoryOptions(allCategories ?? []).map((c) => (
               <option key={c.id} value={c.id}>
-                {c.name}
+                {c.label}
               </option>
             ))}
           </select>

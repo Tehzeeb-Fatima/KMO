@@ -6,16 +6,16 @@ import {
   createProduct,
   createProductVariant,
   getMyVendor,
+  listCategories,
   listMyProducts,
-  listProductCategories,
   listVendorCategories,
   removeProductImage,
   removeProductVariant,
-  setProductCategories,
   updateProduct,
   uploadProductImage,
 } from "@kmo/shared/api";
 import type { ProductStatus } from "@kmo/shared/types";
+import { categoryPath } from "@kmo/shared/lib";
 import { ConfirmDialog } from "@kmo/shared/ui";
 import { supabase } from "../lib/supabase";
 
@@ -90,15 +90,27 @@ function ProductsList({
     enabled: !!vendorId,
   });
 
+  const { data: allCategories } = useQuery({
+    queryKey: ["categories"],
+    queryFn: () => listCategories(supabase),
+  });
+
   const filtered = useMemo(() => {
     if (!products) return [];
+    const parentOf = new Map((allCategories ?? []).map((c) => [c.id, c.parent_id]));
     return products.filter((p) => {
       if (statusFilter !== "all" && p.status !== statusFilter) return false;
-      if (categoryFilter && p.category_id !== categoryFilter) return false;
+      if (
+        categoryFilter &&
+        p.category_id !== categoryFilter &&
+        parentOf.get(p.category_id ?? "") !== categoryFilter
+      ) {
+        return false;
+      }
       if (search.trim() && !p.name.toLowerCase().includes(search.toLowerCase())) return false;
       return true;
     });
-  }, [products, statusFilter, categoryFilter, search]);
+  }, [products, allCategories, statusFilter, categoryFilter, search]);
 
   function toggleSelected(id: string) {
     setSelected((prev) => {
@@ -175,11 +187,19 @@ function ProductsList({
           className="min-w-0 flex-1 rounded-lg border border-border px-[14px] py-[10px] text-[13px] text-ink-dark sm:flex-none"
         >
           <option value="">All categories</option>
-          {vendorCategories?.map((c) => (
+          {vendorCategories?.map((c) => [
             <option key={c.id} value={c.id}>
               {c.name}
-            </option>
-          ))}
+            </option>,
+            ...(allCategories ?? [])
+              .filter((sub) => sub.parent_id === c.id)
+              .map((sub) => (
+                <option key={sub.id} value={sub.id}>
+                  {"   ↳ "}
+                  {sub.name}
+                </option>
+              )),
+          ])}
         </select>
         <div className="hidden flex-1 sm:block" />
         {selected.size > 0 ? (
@@ -400,17 +420,34 @@ function ProductForm({
   });
   const product = productId ? existing?.find((p) => p.id === productId) : null;
 
-  const { data: existingExtraCategories } = useQuery({
-    queryKey: ["product-categories", productId],
-    queryFn: () => listProductCategories(supabase, productId!),
-    enabled: !!productId,
+  const { data: allCategories } = useQuery({
+    queryKey: ["categories"],
+    queryFn: () => listCategories(supabase),
   });
+
+  // Each category assigned to this store, with the sub-categories under it
+  // (e.g. Women's Fashion → Lingerie, Kurtis, ...). The vendor taps one.
+  const categoryGroups = useMemo(
+    () =>
+      (categories ?? [])
+        .slice()
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map((parent) => ({
+          parent,
+          children: parent.parent_id
+            ? []
+            : (allCategories ?? [])
+                .filter((c) => c.parent_id === parent.id)
+                .sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name)),
+        })),
+    [categories, allCategories],
+  );
 
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [compareAtPrice, setCompareAtPrice] = useState("");
   const [stock, setStock] = useState("");
-  const [categoryIds, setCategoryIds] = useState<Set<string>>(new Set());
+  const [categoryId, setCategoryId] = useState("");
   const [description, setDescription] = useState("");
   const [published, setPublished] = useState(true);
   const [images, setImages] = useState<FormImage[]>([]);
@@ -438,7 +475,7 @@ function ProductForm({
     setPrice(String(product.price));
     setCompareAtPrice(product.compare_at_price ? String(product.compare_at_price) : "");
     setStock(String(product.stock_quantity));
-    setCategoryIds(new Set(product.category_id ? [product.category_id] : []));
+    setCategoryId(product.category_id ?? "");
     setDescription(product.description ?? "");
     setPublished(product.status === "published" || product.status === "pending");
     setImages(
@@ -464,12 +501,6 @@ function ProductForm({
     setSeoDescription(product.seo_description ?? "");
   }, [product]);
 
-  useEffect(() => {
-    if (!existingExtraCategories || !product) return;
-    setCategoryIds((prev) => new Set([...prev, ...existingExtraCategories]));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [existingExtraCategories]);
-
   // Free the local previews of photos picked but not saved.
   useEffect(
     () => () => {
@@ -478,15 +509,6 @@ function ProductForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
-
-  function toggleCategory(id: string) {
-    setCategoryIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   function handlePickPhotos(e: ChangeEvent<HTMLInputElement>) {
@@ -534,20 +556,19 @@ function ProductForm({
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!name.trim()) throw new Error("Enter a product name.");
-      if (categoryIds.size === 0) throw new Error("Pick a category.");
+      if (!categoryId) throw new Error("Pick a category.");
       if (!(Number(price) > 0)) throw new Error("Enter a price greater than 0.");
       if (compareAtPrice && Number(compareAtPrice) > 0 && Number(compareAtPrice) <= Number(price)) {
         throw new Error("Original price must be higher than the selling price, or leave it empty.");
       }
       if (images.length === 0) throw new Error("Add at least one photo.");
 
-      const categoryIdList = Array.from(categoryIds);
       const payload = {
         name: name.trim(),
         price: Number(price) || 0,
         compare_at_price: compareAtPrice ? Number(compareAtPrice) : null,
         stock_quantity: hasVariants ? variantStockTotal : Number(stock) || 0,
-        category_id: categoryIdList[0] ?? null,
+        category_id: categoryId,
         description,
         // Vendors submit for review: new or unpublished products go to
         // 'pending' for admin approval; an already-live product stays live.
@@ -578,7 +599,6 @@ function ProductForm({
         });
         id = created.id;
       }
-      await setProductCategories(supabase, id, categoryIdList.slice(1));
 
       for (const imageId of removedImageIds) await removeProductImage(supabase, imageId);
       for (const variantId of removedVariantIds) await removeProductVariant(supabase, variantId);
@@ -630,27 +650,48 @@ function ProductForm({
             </FormField>
 
             <FormField label="Category">
-              {categories && categories.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {categories.map((c) => {
-                    const selected = categoryIds.has(c.id);
-                    return (
-                      <button
-                        key={c.id}
-                        type="button"
-                        onClick={() => toggleCategory(c.id)}
-                        className="rounded-full px-3.5 py-2 text-[12.5px] font-semibold"
-                        style={
-                          selected
-                            ? { background: "var(--color-primary)", color: "#fff" }
-                            : { background: "#fff", border: "1px solid var(--color-border)", color: "var(--color-ink-secondary)" }
-                        }
-                      >
-                        {selected ? "✓ " : ""}
-                        {c.name}
-                      </button>
-                    );
-                  })}
+              {categoryGroups.length > 0 ? (
+                <div className="flex flex-col gap-3.5">
+                  <p className="text-[12px] text-muted">Tap the one that fits your product best.</p>
+                  {categoryGroups.map((g) => (
+                    <div key={g.parent.id}>
+                      {g.children.length > 0 ? (
+                        <p className="mb-2 text-[12.5px] font-bold text-ink-dark">{g.parent.name}</p>
+                      ) : null}
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          ...g.children.map((c) => ({ id: c.id, label: c.name })),
+                          {
+                            id: g.parent.id,
+                            label: g.children.length > 0 ? `Other ${g.parent.name}` : g.parent.name,
+                          },
+                        ].map((c) => {
+                          const selected = categoryId === c.id;
+                          return (
+                            <button
+                              key={c.id}
+                              type="button"
+                              onClick={() => setCategoryId(c.id)}
+                              className="rounded-full px-3.5 py-2 text-[12.5px] font-semibold"
+                              style={
+                                selected
+                                  ? { background: "var(--color-primary)", color: "#fff" }
+                                  : { background: "#fff", border: "1px solid var(--color-border)", color: "var(--color-ink-secondary)" }
+                              }
+                            >
+                              {selected ? "✓ " : ""}
+                              {c.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                  {categoryId && allCategories ? (
+                    <p className="text-[12px] font-semibold text-success-dark">
+                      Selected: {categoryPath(allCategories, categoryId)}
+                    </p>
+                  ) : null}
                 </div>
               ) : (
                 <p className="text-[12px] text-danger">

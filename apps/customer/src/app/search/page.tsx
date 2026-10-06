@@ -11,7 +11,7 @@ import {
   promotionProductFilter,
   toPricingPromotions,
 } from "@kmo/shared/api";
-import { cardPricing } from "@kmo/shared/lib";
+import { cardPricing, mainCategories } from "@kmo/shared/lib";
 import { ProductCard } from "@kmo/shared/ui";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/i18n/language-context";
@@ -72,6 +72,15 @@ function SearchPageContent() {
     queryKey: ["categories"],
     queryFn: () => listCategories(supabase),
   });
+
+  // The main category being browsed (directly or via one of its
+  // sub-categories) and its sub-categories, for the sub-category chips.
+  const selectedCategory = categories?.find((c) => c.id === category);
+  const activeMainId = selectedCategory ? (selectedCategory.parent_id ?? selectedCategory.id) : "";
+  const activeMain = categories?.find((c) => c.id === activeMainId);
+  const activeSubs = (categories ?? [])
+    .filter((c) => activeMainId && c.parent_id === activeMainId)
+    .sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name));
 
   const { data: activePromotions } = useQuery({
     queryKey: ["active-promotions-search"],
@@ -134,20 +143,40 @@ function SearchPageContent() {
           >
             {t.search.allCategories}
           </button>
-          {categories?.map((c) => (
-            <button
-              key={c.id}
-              type="button"
-              onClick={() => updateParams({ category: c.id, promo: null })}
-              className="rounded-md px-2.5 py-1.5 text-left text-[13px]"
-              style={
-                category === c.id
-                  ? { background: "var(--color-primary-tint)", color: "var(--color-primary)", fontWeight: 700 }
-                  : { color: "var(--color-ink-secondary)" }
-              }
-            >
-              {c.name}
-            </button>
+          {mainCategories(categories ?? []).map((c) => (
+            <div key={c.id} className="flex flex-col gap-1">
+              <button
+                type="button"
+                onClick={() => updateParams({ category: c.id, promo: null })}
+                className="rounded-md px-2.5 py-1.5 text-left text-[13px]"
+                style={
+                  category === c.id
+                    ? { background: "var(--color-primary-tint)", color: "var(--color-primary)", fontWeight: 700 }
+                    : activeMainId === c.id
+                      ? { color: "var(--color-primary)", fontWeight: 700 }
+                      : { color: "var(--color-ink-secondary)" }
+                }
+              >
+                {c.name}
+              </button>
+              {activeMainId === c.id
+                ? activeSubs.map((sub) => (
+                    <button
+                      key={sub.id}
+                      type="button"
+                      onClick={() => updateParams({ category: sub.id, promo: null })}
+                      className="ml-3 rounded-md px-2.5 py-1 text-left text-[12.5px]"
+                      style={
+                        category === sub.id
+                          ? { background: "var(--color-primary-tint)", color: "var(--color-primary)", fontWeight: 700 }
+                          : { color: "var(--color-ink-secondary)" }
+                      }
+                    >
+                      {sub.name}
+                    </button>
+                  ))
+                : null}
+            </div>
           ))}
         </div>
       </div>
@@ -204,6 +233,32 @@ function SearchPageContent() {
               </h2>
               {activePromo.subtitle ? (
                 <p className="text-[13.5px] text-muted">{activePromo.subtitle}</p>
+              ) : null}
+            </div>
+          ) : null}
+          {!activePromo && activeMain ? (
+            <div className="mb-4">
+              <h2 className="mb-2.5 text-xl font-bold tracking-[-0.025em] text-ink sm:text-[21px]">
+                {activeMain.name}
+              </h2>
+              {activeSubs.length > 0 ? (
+                <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
+                  {[{ id: activeMain.id, name: t.search.allInCategory }, ...activeSubs].map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => updateParams({ category: c.id, promo: null })}
+                      className="shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold"
+                      style={
+                        category === c.id
+                          ? { background: "var(--color-accent)", color: "#fff" }
+                          : { background: "#fff", border: "1px solid var(--color-border)", color: "var(--color-ink-secondary)" }
+                      }
+                    >
+                      {c.name}
+                    </button>
+                  ))}
+                </div>
               ) : null}
             </div>
           ) : null}

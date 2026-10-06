@@ -20,7 +20,7 @@ import {
   toPricingPromotions,
   type TopCategory,
 } from "@kmo/shared/api";
-import { CATEGORY_ICONS, cardPricing, type CategoryIconKey } from "@kmo/shared/lib";
+import { CATEGORY_ICONS, cardPricing, mainCategories, type CategoryIconKey } from "@kmo/shared/lib";
 import { Countdown, ProductCard } from "@kmo/shared/ui";
 import { supabase } from "@/lib/supabase";
 import { HorizontalSlider } from "@/components/horizontal-slider";
@@ -172,7 +172,7 @@ export default function Home() {
             </Link>
           </div>
           <HorizontalSlider itemClassName="w-[112px]">
-            {categories.map((c) => (
+            {mainCategories(categories).map((c) => (
               <Link key={c.id} href={`/search?category=${c.id}`} className="group flex flex-col items-center gap-2 text-center">
                 <div
                   className={`flex aspect-square w-full items-center justify-center rounded-[22px] border border-border-primary bg-white bg-cover bg-center shadow-[0_10px_22px_-12px_rgba(74,34,102,0.45)] transition-all duration-500 [transform-style:preserve-3d] group-hover:[transform:perspective(700px)_rotateX(10deg)_rotateY(-8deg)_translateY(-8px)] group-hover:shadow-[0_26px_34px_-16px_rgba(74,34,102,0.55)]`}

@@ -4,6 +4,7 @@ import {
   addProductImage,
   createProduct,
   createProductVariant,
+  listCategories,
   listProductCategories,
   listVendorCategories,
   listVendors,
@@ -57,6 +58,25 @@ export function AdminProductForm({
     enabled: !!vendorId,
   });
 
+  const { data: allCategories } = useQuery({
+    queryKey: ["categories"],
+    queryFn: () => listCategories(supabase),
+  });
+
+  // The vendor's assigned categories, each with its sub-categories.
+  const categoryGroups = (categories ?? [])
+    .slice()
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map((parent) => ({
+      parent,
+      children: parent.parent_id
+        ? []
+        : (allCategories ?? [])
+            .filter((c) => c.parent_id === parent.id)
+            .sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name)),
+    }));
+  const pickableIds = categoryGroups.flatMap((g) => [g.parent.id, ...g.children.map((c) => c.id)]);
+
   const { data: existingExtraCategories } = useQuery({
     queryKey: ["product-categories", product?.id],
     queryFn: () => listProductCategories(supabase, product!.id),
@@ -98,14 +118,14 @@ export function AdminProductForm({
   // Switching vendors mid-form invalidates whatever categories were picked
   // for the previous vendor.
   useEffect(() => {
-    if (!categories) return;
+    if (!categories || !allCategories) return;
     setCategoryIds((prev) => {
-      const validIds = new Set(categories.map((c) => c.id));
+      const validIds = new Set(pickableIds);
       const next = new Set(Array.from(prev).filter((id) => validIds.has(id)));
       return next.size === prev.size ? prev : next;
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [categories]);
+  }, [categories, allCategories]);
 
   useEffect(() => {
     if (!existingExtraCategories) return;
@@ -313,28 +333,43 @@ export function AdminProductForm({
               <p className="text-[11.5px] text-muted">Choose a vendor first.</p>
             ) : categories && categories.length > 0 ? (
               <>
-                <div className="flex flex-wrap gap-2">
-                  {categories.map((c) => {
-                    const selected = categoryIds.has(c.id);
-                    return (
-                      <button
-                        key={c.id}
-                        type="button"
-                        onClick={() => toggleCategory(c.id)}
-                        className="rounded-full px-3 py-1.5 text-[12.5px] font-semibold"
-                        style={
-                          selected
-                            ? { background: "var(--color-primary)", color: "#fff" }
-                            : { background: "#fff", border: "1px solid var(--color-border)", color: "var(--color-ink-secondary)" }
-                        }
-                      >
-                        {c.name}
-                      </button>
-                    );
-                  })}
+                <div className="flex flex-col gap-3">
+                  {categoryGroups.map((g) => (
+                    <div key={g.parent.id}>
+                      {g.children.length > 0 ? (
+                        <p className="mb-1.5 text-[12px] font-bold text-ink-dark">{g.parent.name}</p>
+                      ) : null}
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          ...g.children.map((c) => ({ id: c.id, label: c.name })),
+                          {
+                            id: g.parent.id,
+                            label: g.children.length > 0 ? `Other ${g.parent.name}` : g.parent.name,
+                          },
+                        ].map((c) => {
+                          const selected = categoryIds.has(c.id);
+                          return (
+                            <button
+                              key={c.id}
+                              type="button"
+                              onClick={() => toggleCategory(c.id)}
+                              className="rounded-full px-3 py-1.5 text-[12.5px] font-semibold"
+                              style={
+                                selected
+                                  ? { background: "var(--color-primary)", color: "#fff" }
+                                  : { background: "#fff", border: "1px solid var(--color-border)", color: "var(--color-ink-secondary)" }
+                              }
+                            >
+                              {c.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
                 </div>
                 <p className="text-[11px] text-muted">
-                  Pick as many as apply — the product will show up under all of them.
+                  The first one picked is the main category; pick more if the product fits several.
                 </p>
               </>
             ) : (

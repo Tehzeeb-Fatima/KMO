@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { ShoppingCart, User } from "lucide-react";
 import { listCartItems, listCategories } from "@kmo/shared/api";
+import { mainCategories } from "@kmo/shared/lib";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/i18n/language-context";
@@ -148,7 +149,7 @@ export function SiteHeader() {
       {/* row 2 — terracotta category strip */}
       {categories && categories.length > 0 ? (
         <div className="flex gap-0.5 overflow-x-auto bg-accent px-4 sm:px-10">
-          {categories.map((c) => (
+          {mainCategories(categories).map((c) => (
             <Link
               key={c.id}
               href={`/search?category=${c.id}`}
