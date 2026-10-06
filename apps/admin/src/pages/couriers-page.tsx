@@ -70,7 +70,7 @@ export function CouriersPage() {
           </button>
         </div>
 
-        <div className="overflow-hidden rounded-xl border border-border bg-surface">
+        <div className="overflow-x-auto rounded-xl border border-border bg-surface">
           {isLoading ? (
             <p className="p-5 text-sm text-muted">Loading…</p>
           ) : !couriers || couriers.length === 0 ? (
@@ -299,8 +299,8 @@ function SlabTable({
         </button>
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-border">
-        <div className="grid grid-cols-[1fr_1fr_1fr_1fr_60px] bg-surface-alt px-3.5 py-2.5 font-mono text-[10px] uppercase tracking-[0.08em] text-muted-table">
+      <div className="overflow-x-auto rounded-lg border border-border">
+        <div className="grid min-w-[460px] grid-cols-[1fr_1fr_1fr_1fr_60px] bg-surface-alt px-3.5 py-2.5 font-mono text-[10px] uppercase tracking-[0.08em] text-muted-table">
           <span>City</span>
           <span>Weight (kg)</span>
           <span>Fee</span>
@@ -315,7 +315,7 @@ function SlabTable({
           slabs.map((s) => (
             <div
               key={s.id}
-              className="grid grid-cols-[1fr_1fr_1fr_1fr_60px] items-center border-t border-[#F5F0EE] px-3.5 py-2.5 text-[12.5px]"
+              className="grid min-w-[460px] grid-cols-[1fr_1fr_1fr_1fr_60px] items-center border-t border-[#F5F0EE] px-3.5 py-2.5 text-[12.5px]"
             >
               <span className="font-bold text-ink-dark">{s.city}</span>
               <span className="text-muted">

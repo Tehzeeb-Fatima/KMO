@@ -159,12 +159,12 @@ function VendorsList({
 
   return (
     <div>
-      <div className="mb-[18px] flex items-center gap-3">
+      <div className="mb-[18px] flex flex-wrap items-center gap-2.5 sm:gap-3">
         <input
           placeholder="Search vendors by name or area…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="max-w-[340px] flex-1 rounded-lg border border-border px-[14px] py-[10px] text-[13px] outline-none focus:border-primary-light"
+          className="w-full rounded-lg border border-border px-[14px] py-[10px] text-[13px] outline-none focus:border-primary-light sm:w-auto sm:max-w-[340px] sm:flex-1"
         />
         <select
           value={statusFilter}
@@ -240,8 +240,8 @@ function VendorsList({
         </p>
       ) : null}
 
-      <div className="overflow-hidden rounded-xl border border-border bg-surface">
-        <div className="grid grid-cols-[32px_2fr_1.4fr_1fr_1fr_190px] items-center border-b border-border bg-surface-alt px-5 py-3 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
+      <div className="overflow-x-auto rounded-xl border border-border bg-surface">
+        <div className="grid min-w-[780px] grid-cols-[32px_2fr_1.4fr_1fr_1fr_190px] items-center border-b border-border bg-surface-alt px-5 py-3 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
           <input
             type="checkbox"
             aria-label="Select all visible vendors"
@@ -266,7 +266,7 @@ function VendorsList({
             return (
               <div
                 key={v.id}
-                className="grid grid-cols-[32px_2fr_1.4fr_1fr_1fr_190px] items-center border-b border-[#F5F0EE] px-5 py-4 last:border-b-0"
+                className="grid min-w-[780px] grid-cols-[32px_2fr_1.4fr_1fr_1fr_190px] items-center border-b border-[#F5F0EE] px-5 py-4 last:border-b-0"
               >
                 <input
                   type="checkbox"
@@ -552,7 +552,7 @@ function VendorDetail({ vendorId, onBack }: { vendorId: string; onBack: () => vo
         ← Back to vendors
       </button>
 
-      <div className="grid grid-cols-[minmax(0,1fr)_320px] gap-5">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="flex flex-col gap-5">
           <div className="flex gap-[18px] rounded-lg border border-border bg-surface p-6">
             <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[14px] bg-primary text-lg font-extrabold text-white">
@@ -928,7 +928,7 @@ function AddVendorForm({ onBack }: { onBack: () => void }) {
             className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
           />
         </Field>
-        <div className="grid grid-cols-2 gap-3.5">
+        <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
           <Field label="Store name">
             <input
               value={storeName}

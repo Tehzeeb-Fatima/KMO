@@ -71,11 +71,11 @@ export function ShippingPage() {
       </div>
 
       {selectedId ? (
-        <div className="overflow-hidden rounded-xl border border-border bg-surface">
+        <div className="overflow-x-auto rounded-xl border border-border bg-surface">
           <div className="border-b border-border px-5 py-4 text-[15px] font-bold text-ink">
             Your shipping rates
           </div>
-          <div className="grid grid-cols-[1fr_1fr_1fr_1fr] bg-surface-alt px-5 py-3 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
+          <div className="grid min-w-[480px] grid-cols-[1fr_1fr_1fr_1fr] bg-surface-alt px-5 py-3 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
             <span>City</span>
             <span>Weight (kg)</span>
             <span>Fee</span>
@@ -89,7 +89,7 @@ export function ShippingPage() {
             rateSlabs.map((s) => (
               <div
                 key={s.id}
-                className="grid grid-cols-[1fr_1fr_1fr_1fr] items-center border-t border-[#F5F0EE] px-5 py-3 text-[12.5px]"
+                className="grid min-w-[480px] grid-cols-[1fr_1fr_1fr_1fr] items-center border-t border-[#F5F0EE] px-5 py-3 text-[12.5px]"
               >
                 <span className="font-bold text-ink-dark">{s.city}</span>
                 <span className="text-muted">

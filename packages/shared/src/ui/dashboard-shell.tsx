@@ -1,5 +1,5 @@
 import * as React from "react";
-import { ChevronDown, LogOut } from "lucide-react";
+import { ChevronDown, LogOut, Menu } from "lucide-react";
 import { cn } from "../lib/utils";
 
 export interface DashboardNavItem {
@@ -63,6 +63,9 @@ export function DashboardShell({
 }) {
   const [collapsed, setCollapsed] = React.useState(false);
   const [menuOpen, setMenuOpen] = React.useState(false);
+  // Phones get the sidebar as a slide-in drawer instead of a fixed column.
+  const [drawerOpen, setDrawerOpen] = React.useState(false);
+  const narrow = collapsed && !drawerOpen;
   const menuRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
@@ -78,10 +81,20 @@ export function DashboardShell({
 
   return (
     <div className="flex min-h-screen bg-bg">
+      {drawerOpen ? (
+        <div
+          className="fixed inset-0 z-40 bg-black/40 lg:hidden"
+          onClick={() => setDrawerOpen(false)}
+          aria-hidden
+        />
+      ) : null}
       <aside
         className={cn(
-          "flex shrink-0 flex-col bg-sidebar text-white transition-[width]",
-          collapsed ? "w-[68px]" : "w-[232px]",
+          "flex-col bg-sidebar text-white transition-[width]",
+          drawerOpen
+            ? "fixed inset-y-0 left-0 z-50 flex w-[260px] overflow-y-auto"
+            : "hidden shrink-0 lg:flex",
+          !drawerOpen && (collapsed ? "lg:w-[68px]" : "lg:w-[232px]"),
         )}
       >
         <a
@@ -98,14 +111,14 @@ export function DashboardShell({
               {brand.slice(0, 2).toUpperCase()}
             </span>
           )}
-          {!collapsed && (
+          {!narrow && (
             <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-sidebar-muted">
               Karachi Mart
             </span>
           )}
         </a>
 
-        <nav className="flex flex-1 flex-col gap-1 px-3">
+        <nav className="flex flex-1 flex-col gap-1 px-3" onClick={() => setDrawerOpen(false)}>
           {navItems.map((item) => {
             const active = item.key === activeKey;
             return (
@@ -115,7 +128,7 @@ export function DashboardShell({
                 className={cn(
                   "flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium text-white/80 transition-colors hover:bg-sidebar-primary/60",
                   active && "bg-sidebar-primary text-white",
-                  collapsed && "justify-center px-0",
+                  narrow && "justify-center px-0",
                 )}
               >
                 <span
@@ -126,7 +139,7 @@ export function DashboardShell({
                 >
                   {item.label.charAt(0)}
                 </span>
-                {!collapsed && <span className="truncate">{item.label}</span>}
+                {!narrow && <span className="truncate">{item.label}</span>}
               </LinkComponent>
             );
           })}
@@ -139,36 +152,46 @@ export function DashboardShell({
             title="Sign out"
             className={cn(
               "mx-3 mt-4 flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium text-white/80 hover:bg-sidebar-primary/60",
-              collapsed && "justify-center px-0",
+              narrow && "justify-center px-0",
             )}
           >
             <LogOut className="h-[18px] w-[18px] shrink-0" strokeWidth={2} />
-            {!collapsed && <span>Sign out</span>}
+            {!narrow && <span>Sign out</span>}
           </button>
         ) : null}
 
         <button
           type="button"
           onClick={() => setCollapsed((c) => !c)}
-          className="mx-3 mb-4 mt-1 rounded-lg px-3 py-2 text-left text-xs font-medium text-sidebar-muted hover:bg-sidebar-primary/40"
+          className="mx-3 mb-4 mt-1 hidden rounded-lg px-3 py-2 text-left text-xs font-medium text-sidebar-muted hover:bg-sidebar-primary/40 lg:block"
         >
-          {collapsed ? "→" : "← Collapse"}
+          {narrow ? "→" : "← Collapse"}
         </button>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="relative z-20 flex items-center justify-between border-b border-border bg-surface px-8 py-[18px]">
-          <div>
-            <h1 className="text-[19px] font-extrabold tracking-[-0.025em] text-ink">
-              {title}
-            </h1>
-            {subtitle ? (
-              <p className="text-[12.5px] text-muted">{subtitle}</p>
-            ) : null}
+        <header className="relative z-20 flex items-center justify-between gap-3 border-b border-border bg-surface px-4 py-3.5 sm:px-8 sm:py-[18px]">
+          <div className="flex min-w-0 items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setDrawerOpen(true)}
+              aria-label="Open menu"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border text-ink lg:hidden"
+            >
+              <Menu className="h-5 w-5" strokeWidth={2} />
+            </button>
+            <div className="min-w-0">
+              <h1 className="truncate text-[17px] font-extrabold tracking-[-0.025em] text-ink sm:text-[19px]">
+                {title}
+              </h1>
+              {subtitle ? (
+                <p className="hidden truncate text-[12.5px] text-muted sm:block">{subtitle}</p>
+              ) : null}
+            </div>
           </div>
-          <div className="relative flex items-center gap-3" ref={menuRef}>
+          <div className="relative flex shrink-0 items-center gap-2 sm:gap-3" ref={menuRef}>
             {avatarLabel ? (
-              <span className="text-sm text-muted">{avatarLabel}</span>
+              <span className="hidden text-sm text-muted sm:inline">{avatarLabel}</span>
             ) : null}
             {headerRight}
             <button
@@ -205,7 +228,7 @@ export function DashboardShell({
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto px-8 py-7">{children}</main>
+        <main className="min-w-0 flex-1 overflow-x-hidden px-4 py-5 sm:px-8 sm:py-7">{children}</main>
       </div>
     </div>
   );

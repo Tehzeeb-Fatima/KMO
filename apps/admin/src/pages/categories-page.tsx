@@ -99,7 +99,7 @@ export function CategoriesPage() {
           categories?.map((c) => (
             <div
               key={c.id}
-              className="flex items-center justify-between gap-3 border-t border-[#F5F0EE] px-5 py-3.5 text-[13px] first:border-t-0"
+              className="flex flex-wrap items-center justify-between gap-3 border-t border-[#F5F0EE] px-4 py-3.5 text-[13px] first:border-t-0 sm:px-5"
             >
               <div className="flex min-w-0 items-center gap-3">
                 <CategoryImageBox
@@ -109,7 +109,7 @@ export function CategoriesPage() {
                 />
                 <span className="truncate font-bold text-ink-dark">{c.name}</span>
               </div>
-              <div className="flex shrink-0 items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
                 <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white">
                   <svg
                     viewBox="0 0 24 24"

@@ -80,8 +80,8 @@ export function PayoutsPage() {
         />
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-border bg-surface">
-        <div className="grid grid-cols-[2fr_1fr_1fr_1fr_120px] bg-surface-alt px-5 py-3.5 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
+      <div className="overflow-x-auto rounded-xl border border-border bg-surface">
+        <div className="grid min-w-[640px] grid-cols-[2fr_1fr_1fr_1fr_120px] bg-surface-alt px-5 py-3.5 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
           <span>Vendor</span>
           <span>Last payout</span>
           <span>Status</span>
@@ -99,7 +99,7 @@ export function PayoutsPage() {
             return (
               <div
                 key={v.id}
-                className="grid grid-cols-[2fr_1fr_1fr_1fr_120px] items-center border-t border-[#F5F0EE] px-5 py-4 text-[13px]"
+                className="grid min-w-[640px] grid-cols-[2fr_1fr_1fr_1fr_120px] items-center border-t border-[#F5F0EE] px-5 py-4 text-[13px]"
               >
                 <span className="font-bold text-ink-dark">{v.store_name}</span>
                 <span className="text-ink-dark">

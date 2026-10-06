@@ -33,8 +33,8 @@ function CouponsList({ vendorId, onAdd }: { vendorId: string; onAdd: () => void 
         </button>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-border bg-surface">
-        <div className="grid grid-cols-[1fr_1.6fr_1fr_1fr_1fr_1fr] bg-surface-alt px-5 py-3.5 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
+      <div className="overflow-x-auto rounded-xl border border-border bg-surface">
+        <div className="grid min-w-[680px] grid-cols-[1fr_1.6fr_1fr_1fr_1fr_1fr] bg-surface-alt px-5 py-3.5 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
           <span>Code</span>
           <span>Description</span>
           <span>Type</span>
@@ -52,7 +52,7 @@ function CouponsList({ vendorId, onAdd }: { vendorId: string; onAdd: () => void 
             return (
               <div
                 key={c.id}
-                className="grid grid-cols-[1fr_1.6fr_1fr_1fr_1fr_1fr] items-center border-t border-[#F5F0EE] px-5 py-4"
+                className="grid min-w-[680px] grid-cols-[1fr_1.6fr_1fr_1fr_1fr_1fr] items-center border-t border-[#F5F0EE] px-5 py-4"
               >
                 <span className="font-mono text-[12.5px] font-bold text-primary">{c.code}</span>
                 <span className="text-[12.5px] text-ink-dark">{c.description}</span>
@@ -126,7 +126,7 @@ function AddCoupon({ vendorId, onBack }: { vendorId: string; onBack: () => void 
             className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
           />
         </Field>
-        <div className="grid grid-cols-2 gap-3.5">
+        <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
           <Field label="Discount type">
             <select
               value={discountType}

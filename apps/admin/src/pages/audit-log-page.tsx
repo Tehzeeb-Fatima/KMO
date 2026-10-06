@@ -9,8 +9,8 @@ export function AuditLogPage() {
   });
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-surface">
-      <div className="grid grid-cols-[1fr_1.5fr_1fr_1fr] bg-surface-alt px-5 py-3.5 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
+    <div className="overflow-x-auto rounded-xl border border-border bg-surface">
+      <div className="grid min-w-[600px] grid-cols-[1fr_1.5fr_1fr_1fr] bg-surface-alt px-5 py-3.5 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
         <span>Admin</span>
         <span>Action</span>
         <span>Target</span>
@@ -24,7 +24,7 @@ export function AuditLogPage() {
         logs.map((log) => (
           <div
             key={log.id}
-            className="grid grid-cols-[1fr_1.5fr_1fr_1fr] items-center border-t border-[#F5F0EE] px-5 py-3.5 text-[13px]"
+            className="grid min-w-[600px] grid-cols-[1fr_1.5fr_1fr_1fr] items-center border-t border-[#F5F0EE] px-5 py-3.5 text-[13px]"
           >
             <span className="font-bold text-ink-dark">{log.profiles?.full_name ?? "Admin"}</span>
             <span className="font-mono text-[12px] text-primary">{log.action}</span>

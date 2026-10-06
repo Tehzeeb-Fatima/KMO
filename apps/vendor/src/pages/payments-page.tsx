@@ -114,8 +114,8 @@ export function PaymentsPage() {
         {requested ? <span className="text-xs text-success">Request sent — an admin will review it.</span> : null}
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-border bg-surface">
-        <div className="grid grid-cols-4 bg-surface-alt px-5 py-3.5 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
+      <div className="overflow-x-auto rounded-xl border border-border bg-surface">
+        <div className="grid min-w-[520px] grid-cols-4 bg-surface-alt px-5 py-3.5 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
           <span>Payout date</span>
           <span>Amount</span>
           <span>Commission</span>
@@ -127,7 +127,7 @@ export function PaymentsPage() {
           <p className="p-5 text-sm text-muted">No payouts yet.</p>
         ) : (
           payouts.map((p) => (
-            <div key={p.id} className="grid grid-cols-4 items-center border-t border-[#F5F0EE] px-5 py-4 text-[13px]">
+            <div key={p.id} className="grid min-w-[520px] grid-cols-4 items-center border-t border-[#F5F0EE] px-5 py-4 text-[13px]">
               <span className="text-ink-dark">
                 {p.payout_date
                   ? new Date(p.payout_date).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })

@@ -136,6 +136,14 @@ function ProductsList({
 
   return (
     <div>
+      <button
+        type="button"
+        onClick={() => onOpen("new")}
+        className="mb-4 w-full rounded-lg bg-accent px-[18px] py-3 text-[14px] font-bold text-white sm:hidden"
+      >
+        + Add product
+      </button>
+
       <div className="mb-3.5 flex flex-wrap gap-2">
         {STATUS_TABS.map((tab) => (
           <button
@@ -154,17 +162,17 @@ function ProductsList({
         ))}
       </div>
 
-      <div className="mb-[18px] flex items-center gap-3">
+      <div className="mb-[18px] flex flex-wrap items-center gap-2.5 sm:gap-3">
         <input
           placeholder="Search your products…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="max-w-[300px] flex-1 rounded-lg border border-border px-[14px] py-[10px] text-[13px] outline-none focus:border-primary-light"
+          className="w-full rounded-lg border border-border px-[14px] py-[10px] text-[13px] outline-none focus:border-primary-light sm:w-auto sm:max-w-[300px] sm:flex-1"
         />
         <select
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
-          className="rounded-lg border border-border px-[14px] py-[10px] text-[13px] text-ink-dark"
+          className="min-w-0 flex-1 rounded-lg border border-border px-[14px] py-[10px] text-[13px] text-ink-dark sm:flex-none"
         >
           <option value="">All categories</option>
           {vendorCategories?.map((c) => (
@@ -173,7 +181,7 @@ function ProductsList({
             </option>
           ))}
         </select>
-        <div className="flex-1" />
+        <div className="hidden flex-1 sm:block" />
         {selected.size > 0 ? (
           <button
             type="button"
@@ -186,13 +194,72 @@ function ProductsList({
         <button
           type="button"
           onClick={() => onOpen("new")}
-          className="rounded-lg bg-accent px-[18px] py-[10px] text-[13px] font-bold text-white"
+          className="hidden rounded-lg bg-accent px-[18px] py-[10px] text-[13px] font-bold text-white sm:block"
         >
           + Add product
         </button>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-border bg-surface">
+      {/* phones: one card per product */}
+      <div className="flex flex-col gap-3 sm:hidden">
+        {isLoading ? (
+          <p className="text-sm text-muted">Loading products…</p>
+        ) : filtered.length === 0 ? (
+          <p className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted">
+            No products yet — tap &ldquo;+ Add product&rdquo; to list your first one.
+          </p>
+        ) : (
+          filtered.map((p) => {
+            const badge = STATUS_BADGE[p.status];
+            const thumb = p.product_images?.[0]?.url;
+            return (
+              <div key={p.id} className="flex gap-3 rounded-xl border border-border bg-surface p-3">
+                <span
+                  className="h-[72px] w-[72px] shrink-0 rounded-lg bg-cover bg-center"
+                  style={{
+                    background: thumb
+                      ? `url(${thumb}) center/cover`
+                      : "repeating-linear-gradient(135deg,#F3ECE8 0 6px,#E9DFD9 6px 12px)",
+                  }}
+                />
+                <div className="flex min-w-0 flex-1 flex-col gap-1">
+                  <span className="line-clamp-2 text-[13.5px] font-semibold text-ink-dark">{p.name}</span>
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12.5px]">
+                    <span className="font-bold text-ink-dark">Rs. {p.price.toLocaleString()}</span>
+                    <span style={{ color: stockColor(p.stock_quantity, p.low_stock_threshold) }}>
+                      {stockLabel(p.stock_quantity)}
+                    </span>
+                    <span
+                      className="inline-flex rounded-full px-2 py-0.5 text-[11px] font-bold"
+                      style={{ background: badge.bg, color: badge.color }}
+                    >
+                      {badge.label}
+                    </span>
+                  </div>
+                  <div className="mt-1 flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => onOpen(p.id)}
+                      className="rounded-md border border-border bg-white px-3.5 py-1.5 text-[12px] font-bold text-primary"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPendingDeleteId(p.id)}
+                      className="rounded-md border border-border bg-white px-3.5 py-1.5 text-[12px] font-bold text-danger"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      <div className="hidden overflow-x-auto rounded-xl border border-border bg-surface sm:block">
         <div className="min-w-[680px]">
         <div className="grid grid-cols-[32px_2fr_1fr_1fr_1fr_150px] items-center bg-surface-alt px-5 py-3.5 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
           <input

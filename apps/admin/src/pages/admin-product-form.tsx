@@ -473,7 +473,7 @@ export function AdminProductForm({
                   </div>
                 ) : null}
 
-                <div className="grid grid-cols-[1fr_1fr_90px_auto] items-end gap-2">
+                <div className="grid grid-cols-2 items-end gap-2 sm:grid-cols-[1fr_1fr_90px_auto]">
                   <FormField label="Option name">
                     <input
                       placeholder="Color"

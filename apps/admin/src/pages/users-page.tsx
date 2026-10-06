@@ -87,8 +87,8 @@ export function UsersPage() {
         only sees the sections you choose.
       </p>
 
-      <div className="overflow-hidden rounded-xl border border-border bg-surface">
-        <div className="grid grid-cols-[1.3fr_1.4fr_1.2fr_1fr] bg-surface-alt px-5 py-3.5 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
+      <div className="overflow-x-auto rounded-xl border border-border bg-surface">
+        <div className="grid min-w-[620px] grid-cols-[1.3fr_1.4fr_1.2fr_1fr] bg-surface-alt px-5 py-3.5 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
           <span>Name</span>
           <span>Email</span>
           <span>Role</span>
@@ -109,7 +109,7 @@ export function UsersPage() {
               modules: u.admin_modules ?? [],
             };
             return (
-              <div key={u.id} className="grid grid-cols-[1.3fr_1.4fr_1.2fr_1fr] items-center border-t border-[#F5F0EE] px-5 py-4 text-[13px]">
+              <div key={u.id} className="grid min-w-[620px] grid-cols-[1.3fr_1.4fr_1.2fr_1fr] items-center border-t border-[#F5F0EE] px-5 py-4 text-[13px]">
                 <span className="font-bold text-ink-dark">
                   {u.full_name ?? "User"}
                   {isSelf ? <span className="ml-2 text-xs font-normal text-muted">(you)</span> : null}

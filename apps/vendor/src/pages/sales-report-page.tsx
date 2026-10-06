@@ -11,8 +11,8 @@ export function SalesReportPage() {
   });
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-surface">
-      <div className="grid grid-cols-4 bg-surface-alt px-5 py-3.5 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
+    <div className="overflow-x-auto rounded-xl border border-border bg-surface">
+      <div className="grid min-w-[520px] grid-cols-4 bg-surface-alt px-5 py-3.5 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
         <span>Period</span>
         <span>Orders</span>
         <span>Revenue</span>
@@ -24,7 +24,7 @@ export function SalesReportPage() {
         <p className="p-5 text-sm text-muted">No sales yet.</p>
       ) : (
         report.map((r) => (
-          <div key={r.period} className="grid grid-cols-4 items-center border-t border-[#F5F0EE] px-5 py-4 text-[13px]">
+          <div key={r.period} className="grid min-w-[520px] grid-cols-4 items-center border-t border-[#F5F0EE] px-5 py-4 text-[13px]">
             <span className="font-bold text-ink-dark">{r.period}</span>
             <span className="text-ink-dark">{r.orders}</span>
             <span className="text-ink-dark">Rs. {r.revenue.toLocaleString()}</span>

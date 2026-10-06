@@ -90,7 +90,7 @@ export function SiteHeader() {
           </button>
         </form>
 
-        <div className="flex flex-1 items-center justify-end gap-[26px]">
+        <div className="flex flex-1 items-center justify-end gap-4 sm:gap-[26px]">
           <div className="hidden shrink-0 items-center gap-2 md:flex">
             <span className="h-[7px] w-[7px] rounded-full bg-accent" />
             <span className="leading-[1.25]">
@@ -129,10 +129,6 @@ export function SiteHeader() {
         <span className="text-[11.5px] text-muted-table">
           {t.header.deliverTo} <span className="font-bold text-ink-dark">{t.header.city}</span>
         </span>
-      </div>
-
-      <div className="flex items-center justify-end bg-surface px-4 pb-2 sm:hidden">
-        <LanguageSwitcher />
       </div>
 
       <form onSubmit={handleSearch} className="bg-surface px-4 pb-3 sm:hidden">
