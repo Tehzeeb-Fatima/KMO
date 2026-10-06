@@ -128,7 +128,13 @@ export default function Home() {
           <HeroPhotoFan className="hidden h-[250px] sm:block" photos={heroPhotos} showLabels />
         </div>
 
-        <div className="flex min-h-[260px] flex-col justify-between gap-4 rounded-xl border border-[#e4d9ee] bg-white p-[26px] transition-all duration-300 [transform-style:preserve-3d] hover:[transform:perspective(900px)_rotateX(4deg)_rotateY(-4deg)_translateY(-6px)] hover:shadow-[0_24px_40px_-18px_rgba(74,34,102,0.5)] sm:min-h-[300px]">
+        <div
+          className="flex min-h-[260px] flex-col justify-between gap-4 rounded-xl border border-[#e4d9ee] bg-white bg-cover bg-center p-[26px] transition-all duration-300 [transform-style:preserve-3d] hover:[transform:perspective(900px)_rotateX(4deg)_rotateY(-4deg)_translateY(-6px)] hover:shadow-[0_24px_40px_-18px_rgba(74,34,102,0.5)] sm:min-h-[300px]"
+          style={{
+            backgroundImage:
+              "linear-gradient(165deg, rgba(255,255,255,0.97) 0%, rgba(255,255,255,0.93) 45%, rgba(246,240,251,0.4) 75%, rgba(74,34,102,0.12) 100%), url(/hero/welcome.jpg)",
+          }}
+        >
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-accent" />
@@ -151,7 +157,13 @@ export default function Home() {
           </Link>
         </div>
         {/* panel C — sell on KMO */}
-        <div className="flex min-h-[260px] flex-col justify-between gap-4 rounded-xl border-[1.5px] border-primary p-[26px] transition-all duration-300 [transform-style:preserve-3d] hover:[transform:perspective(900px)_rotateX(4deg)_rotateY(-4deg)_translateY(-6px)] hover:shadow-[0_24px_40px_-18px_rgba(74,34,102,0.6)] sm:min-h-[300px]">
+        <div
+          className="flex min-h-[260px] flex-col justify-between gap-4 rounded-xl border-[1.5px] border-primary bg-white bg-cover bg-center p-[26px] transition-all duration-300 [transform-style:preserve-3d] hover:[transform:perspective(900px)_rotateX(4deg)_rotateY(-4deg)_translateY(-6px)] hover:shadow-[0_24px_40px_-18px_rgba(74,34,102,0.6)] sm:min-h-[300px]"
+          style={{
+            backgroundImage:
+              "linear-gradient(165deg, rgba(255,255,255,0.97) 0%, rgba(255,255,255,0.93) 45%, rgba(253,241,235,0.4) 75%, rgba(196,85,47,0.14) 100%), url(/hero/sell.jpg)",
+          }}
+        >
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-primary" />
