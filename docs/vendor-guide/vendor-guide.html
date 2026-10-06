@@ -1,0 +1,529 @@
+<title>Apna Store Kaise Chalayein</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one narrow reading column; each step pairs plain instructions with a real phone screenshot (side by side on wide screens, stacked on phones). */
+:root {
+  --plum: #4a2266;
+  --plum-soft: #efe8f5;
+  --clay: #c4552f;
+  --clay-soft: #fbefe9;
+  --ink: #241a2e;
+  --muted: #6d6177;
+  --line: #e7dfe6;
+  --page: #f6f3f8;
+  --card: #ffffff;
+  --ok: #2e7a4f;
+  --ok-soft: #eaf5ee;
+  --warn: #a8640c;
+  --warn-soft: #fdf3e4;
+  --shadow: 0 18px 36px -22px rgba(74, 34, 102, .45);
+  --body: "Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --plum: #c9a6e6; --plum-soft: #2c2236; --clay: #ee8a63; --clay-soft: #3a2620;
+    --ink: #f1ebf5; --muted: #b3a7bd; --line: #3a3142; --page: #17121c; --card: #211a28;
+    --ok: #7fcf9d; --ok-soft: #1d3326; --warn: #f0b765; --warn-soft: #3a2c16;
+    --shadow: 0 18px 36px -22px rgba(0, 0, 0, .8);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --plum: #c9a6e6; --plum-soft: #2c2236; --clay: #ee8a63; --clay-soft: #3a2620;
+  --ink: #f1ebf5; --muted: #b3a7bd; --line: #3a3142; --page: #17121c; --card: #211a28;
+  --ok: #7fcf9d; --ok-soft: #1d3326; --warn: #f0b765; --warn-soft: #3a2c16;
+  --shadow: 0 18px 36px -22px rgba(0, 0, 0, .8);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--page);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.6;
+  padding-inline: 16px;
+  padding-block: 0 56px;
+}
+.wrap { max-width: 920px; margin: 0 auto; display: flex; flex-direction: column; gap: 56px; }
+h1, h2, h3 { text-wrap: balance; margin: 0; line-height: 1.2; }
+p { margin: 0; }
+strong { font-weight: 700; }
+
+/* cover */
+.cover { padding-top: 40px; display: flex; flex-direction: column; gap: 18px; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--clay); font-weight: 700; }
+.cover h1 { font-size: clamp(34px, 7vw, 54px); font-weight: 800; letter-spacing: -.03em; color: var(--plum); }
+.cover .lead { font-size: 18px; color: var(--muted); max-width: 60ch; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 6px; }
+.fact { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.fact .k { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.fact .v { font-weight: 700; overflow-wrap: anywhere; }
+
+.toc { display: flex; flex-wrap: wrap; gap: 8px; }
+.toc a { text-decoration: none; color: var(--plum); background: var(--plum-soft); border-radius: 999px; padding: 7px 14px; font-weight: 600; font-size: 14px; }
+.toc a:focus-visible, a:focus-visible { outline: 3px solid var(--clay); outline-offset: 2px; }
+
+/* chapters */
+.chapter { display: flex; flex-direction: column; gap: 26px; scroll-margin-top: 16px; }
+.chapter-head { display: flex; flex-direction: column; gap: 8px; border-top: 2px solid var(--plum); padding-top: 18px; }
+.chapter-head h2 { font-size: clamp(26px, 5vw, 34px); font-weight: 800; letter-spacing: -.02em; }
+.chapter-head p { color: var(--muted); max-width: 62ch; }
+
+.step { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 28px; align-items: start; }
+.step.noshot { grid-template-columns: minmax(0, 1fr); }
+.step-text { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.step-no { font-family: var(--mono); font-size: 12px; font-weight: 700; letter-spacing: .12em; color: var(--clay); text-transform: uppercase; }
+.step h3 { font-size: 21px; font-weight: 700; }
+.step ol, .step ul { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 6px; }
+.btn { display: inline-block; font-weight: 700; color: #fff; background: var(--clay); border-radius: 7px; padding: 0 8px; font-size: .92em; white-space: nowrap; }
+.chip { display: inline-block; font-weight: 600; color: var(--plum); border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 0 9px; font-size: .92em; white-space: nowrap; }
+
+.shot { margin: 0; justify-self: center; width: 100%; max-width: 300px; }
+.shot img { display: block; width: 100%; height: auto; border-radius: 22px; border: 6px solid var(--ink); box-shadow: var(--shadow); background: #fff; }
+.shot.part img { border-width: 1px; border-color: var(--line); border-radius: 14px; }
+.shot figcaption { font-size: 13px; color: var(--muted); text-align: center; margin-top: 10px; }
+
+.wide { margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.wide img { display: block; width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--line); background: #fff; }
+.wide figcaption { font-size: 13px; color: var(--muted); }
+.dim { color: var(--muted); font-size: .9em; }
+.tip, .warn { border-radius: 12px; padding: 12px 14px; font-size: 15px; }
+.tip { background: var(--ok-soft); color: var(--ink); border-left: 4px solid var(--ok); }
+.warn { background: var(--warn-soft); color: var(--ink); border-left: 4px solid var(--warn); }
+.tip b, .warn b { display: block; margin-bottom: 2px; }
+
+.status-table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; font-size: 15px; }
+.status-table th, .status-table td { text-align: left; padding: 11px 14px; border-top: 1px solid var(--line); vertical-align: top; }
+.status-table th { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); border-top: 0; background: var(--plum-soft); }
+.table-wrap { overflow-x: auto; }
+.pill { display: inline-block; border-radius: 999px; padding: 1px 10px; font-weight: 700; font-size: 13px; white-space: nowrap; }
+.pill.live { background: var(--ok-soft); color: var(--ok); }
+.pill.pending { background: var(--warn-soft); color: var(--warn); }
+.pill.draft { background: var(--plum-soft); color: var(--plum); }
+.pill.arch { background: var(--clay-soft); color: var(--clay); }
+
+.faq { display: flex; flex-direction: column; gap: 10px; }
+.faq details { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; }
+.faq summary { font-weight: 700; cursor: pointer; }
+.faq details p { margin-top: 8px; color: var(--muted); }
+
+.help { background: var(--plum); color: #fff; border-radius: 18px; padding: 24px; display: flex; flex-direction: column; gap: 10px; }
+:root[data-theme="dark"] .help { color: #17121c; }
+.help h2 { font-size: 26px; font-weight: 800; }
+.help .contact { display: flex; flex-wrap: wrap; gap: 10px 24px; font-weight: 700; font-size: 18px; }
+.help .contact span { user-select: all; overflow-wrap: anywhere; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .help { color: #17121c; } }
+
+@media (max-width: 720px) {
+  .step { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .shot { max-width: 280px; }
+}
+@media print {
+  body { background: #fff; padding-block: 0; }
+  .toc { display: none; }
+  .step { break-inside: avoid; }
+  .chapter-head { break-after: avoid; }
+  .faq details { break-inside: avoid; }
+}
+</style>
+
+<div class="wrap">
+
+  <header class="cover">
+    <p class="eyebrow">Karachi Mart Online · Vendor guide</p>
+    <h1>Apna store kaise chalayein</h1>
+    <p class="lead">Is guide mein photos ke saath step by step bataya gaya hai: login kaise karein, product kaise add karein, aur order aaye to kya karein. Sab kuch mobile phone se ho jata hai.</p>
+    <div class="facts">
+      <div class="fact"><span class="k">Dashboard ka address</span><span class="v">vendor.karachimartonline.com</span></div>
+      <div class="fact"><span class="k">Help ke liye</span><span class="v">+92 371 2104790</span></div>
+      <div class="fact"><span class="k">Email</span><span class="v">info@karachimartonline.com</span></div>
+    </div>
+    <nav class="toc" aria-label="Guide ke hisse">
+      <a href="#login">1. Login</a>
+      <a href="#menu">2. Dashboard</a>
+      <a href="#product">3. Naya product add karein</a>
+      <a href="#manage">4. Product edit karein</a>
+      <a href="#orders">5. Orders</a>
+      <a href="#courier">6. Courier</a>
+      <a href="#store">7. Store settings</a>
+      <a href="#banner">Banner &amp; logo size</a>
+      <a href="#payments">8. Payments</a>
+      <a href="#faq">FAQs</a>
+    </nav>
+  </header>
+
+  <!-- 1. login -->
+  <section class="chapter" id="login">
+    <div class="chapter-head">
+      <h2>1. First time login</h2>
+      <p>KMO team aap ka account banati hai aur aap ko 1 email bhejti hai. Us email ke link se aap apna password khud set karte hain.</p>
+    </div>
+
+    <div class="step noshot">
+      <div class="step-text">
+        <p class="step-no">Step 1</p>
+        <h3>Email se password set karein</h3>
+        <ol>
+          <li>Apni Gmail open karein. <strong>Karachi Mart Online</strong> ki email search karein.</li>
+          <li>Email mein button par tap karein. 1 page open hoga.</li>
+          <li>New password 2 dafa type karein aur save karein. Aap direct apne dashboard mein pohanch jayenge.</li>
+        </ol>
+        <div class="warn"><b>Email nahi mili?</b>Gmail mein <strong>Spam</strong> aur <strong>Promotions</strong> folder check karein. Link 24 hours tak valid hai. Expire ho jaye to KMO team ko call karein, woh new link bhej denge.</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-text">
+        <p class="step-no">Step 2</p>
+        <h3>Next time login</h3>
+        <ol>
+          <li>Phone ke browser (Chrome) mein <strong>vendor.karachimartonline.com</strong> open karein.</li>
+          <li><strong>Email</strong> aur <strong>Password</strong> type karein.</li>
+          <li><span class="btn">Sign in</span> par tap karein.</li>
+        </ol>
+        <div class="tip"><b>Password bhool gaye?</b><span class="chip">Forgot password?</span> par tap karein aur apni email type karein. New password set karne ka link email par aa jayega.</div>
+        <div class="tip"><b>Easy tip</b>Chrome mein page open karke ⋮ menu se <strong>Add to Home screen</strong> kar lein. Phir dashboard app ki tarah 1 tap se open hoga.</div>
+      </div>
+      <figure class="shot"><img src="shots/01-login.png" alt="Login page jismein Email, Password aur Sign in button hai" width="390" height="844"><figcaption>Login page</figcaption></figure>
+    </div>
+  </section>
+
+  <!-- 2. dashboard -->
+  <section class="chapter" id="menu">
+    <div class="chapter-head">
+      <h2>2. Dashboard aur menu</h2>
+      <p>Login ke baad sab se pehle <strong>Overview</strong> open hota hai. Yahan is month ki sale aur new orders show hote hain.</p>
+    </div>
+    <div class="step">
+      <div class="step-text">
+        <p class="step-no">Overview</p>
+        <h3>Aap ke store ki summary</h3>
+        <ul>
+          <li><strong>Sales this month</strong>: is month kitne Rupees ki sale hui.</li>
+          <li><strong>Pending orders</strong>: woh orders jin par abhi aap ko kaam karna hai.</li>
+          <li><strong>Recent orders</strong>: new orders ki list. Kisi order par tap karein to us ki details open hongi.</li>
+        </ul>
+      </div>
+      <figure class="shot"><img src="shots/02-overview.png" alt="Overview page par sales, orders aur recent orders" width="390" height="844"><figcaption>Overview</figcaption></figure>
+    </div>
+    <div class="step">
+      <div class="step-text">
+        <p class="step-no">Menu</p>
+        <h3>☰ button se har page par jayein</h3>
+        <p>Upar left side par 3 lines wala <strong>☰</strong> button par tap karein. Menu open ho jayega. Sab se important pages:</p>
+        <ul>
+          <li><strong>Products</strong>: product add aur edit karna</li>
+          <li><strong>Orders</strong>: customer ke orders</li>
+          <li><strong>Payments</strong>: aap ki payments</li>
+          <li><strong>Store settings</strong>: store ka name, logo aur banner</li>
+        </ul>
+        <p>Neeche <strong>Sign out</strong> se logout kar sakte hain.</p>
+      </div>
+      <figure class="shot"><img src="shots/03-menu.png" alt="Khula hua menu jismein Products, Orders, Payments wagera hain" width="390" height="844"><figcaption>Menu</figcaption></figure>
+    </div>
+  </section>
+
+  <!-- 3. add product -->
+  <section class="chapter" id="product">
+    <div class="chapter-head">
+      <h2>3. Naya product kaise add karein</h2>
+      <p>Product ka form 4 parts mein hai. Upar se neeche fill karte jayein aur end mein 1 dafa <strong>Save product</strong> par tap karein. Bas.</p>
+    </div>
+
+    <div class="step">
+      <div class="step-text">
+        <p class="step-no">Step 1</p>
+        <h3>Products open karein aur "+ Add product" par tap karein</h3>
+        <ol>
+          <li>Menu ☰ se <strong>Products</strong> open karein.</li>
+          <li>Upar wale bare orange button <span class="btn">+ Add product</span> par tap karein.</li>
+        </ol>
+        <p>Isi page par aap ke saare products ki list hoti hai. Har product ke saath <span class="chip">Edit</span> aur <span class="chip">Delete</span> hai.</p>
+      </div>
+      <figure class="shot"><img src="shots/04-products.png" alt="Products page jismein upar + Add product button hai" width="390" height="844"><figcaption>Products page</figcaption></figure>
+    </div>
+
+    <div class="step">
+      <div class="step-text">
+        <p class="step-no">Step 2 · Product details</p>
+        <h3>Name, category aur price</h3>
+        <ol>
+          <li><strong>Product name</strong>: product ka clear aur simple name likhein, jaise "Printed Cotton Kurti".</li>
+          <li><strong>Category</strong>: jo button aap ke product se match karta ho, us par 1 tap karein. Woh purple ho jayega aur neeche <strong>Selected</strong> likha aa jayega.</li>
+          <li><strong>Selling price</strong>: jis price par sell karna hai (sirf number, jaise 2200).</li>
+          <li><strong>Original price</strong>: sirf tab likhein jab sale lagani ho. Website par yeh price cut (line ke saath) show hoti hai. Optional hai.</li>
+          <li><strong>Description</strong>: fabric, size details, aur box mein kya kya hai.</li>
+        </ol>
+        <div class="tip"><b>Category nahi mil rahi?</b>Har group ke end mein <span class="chip">Other ...</span> ka button hai. Agar aap ka poora group hi show nahi ho raha, to KMO team ko batayein.</div>
+      </div>
+      <figure class="shot part"><img src="shots/06-details.png" alt="Product details form: naam, category buttons, price aur description" width="716" height="2684"><figcaption>Part 1: Product details</figcaption></figure>
+    </div>
+
+    <div class="step">
+      <div class="step-text">
+        <p class="step-no">Step 3 · Photos</p>
+        <h3>Photos lagayein</h3>
+        <ol>
+          <li><span class="chip">+ Add photos</span> wale box par tap karein.</li>
+          <li>Gallery se 1 ya zyada photos select karein, ya camera se new photo lein.</li>
+          <li>Pehli photo <strong>Main</strong> hoti hai. Customer sab se pehle wohi dekhta hai. Kisi aur photo ko main banana ho to us par <span class="chip">Make main</span> tap karein.</li>
+          <li>Galat photo remove karni ho to corner wala <strong>×</strong> tap karein.</li>
+        </ol>
+        <div class="tip"><b>Achhi photo ke liye</b>Daylight mein, plain white wall ya bedsheet ke saamne photo lein. Product poora show ho. Kam se kam 1 photo zaroori hai.</div>
+      </div>
+      <figure class="shot part"><img src="shots/07-photos.png" alt="3 photos lagi hui, pehli par Main likha hai" width="716" height="718"><figcaption>Part 2: Photos</figcaption></figure>
+    </div>
+
+    <div class="step">
+      <div class="step-text">
+        <p class="step-no">Step 4 · Sizes &amp; colours</p>
+        <h3>Size ya colour (agar hon)</h3>
+        <p>Agar product different sizes ya colours mein hai, to har 1 alag se add karein:</p>
+        <ol>
+          <li><span class="chip">Size</span>, <span class="chip">Colour</span> ya <span class="chip">Other</span> mein se select karein.</li>
+          <li>Pehle box mein size/colour type karein, jaise <strong>Medium</strong> ya <strong>Red</strong>.</li>
+          <li><strong>Quantity</strong> mein type karein ke yeh wala aap ke paas kitne pieces hain.</li>
+          <li><span class="btn">+ Add</span> par tap karein. Yeh upar list mein aa jayega. Next size isi tarah add karein.</li>
+        </ol>
+        <p>Agar product 1 hi tarah ka hai (koi size ya colour nahi), to yeh part skip kar dein.</p>
+      </div>
+      <figure class="shot part"><img src="shots/08-sizes.png" alt="Small, Medium aur Large size apni quantity ke saath list mein" width="716" height="966"><figcaption>Part 3: Sizes &amp; colours</figcaption></figure>
+    </div>
+
+    <div class="step">
+      <div class="step-text">
+        <p class="step-no">Step 5 · Stock aur save</p>
+        <h3>Stock check karein aur Save karein</h3>
+        <ul>
+          <li><strong>Stock</strong>: agar aap ne sizes daale hain to yeh automatic total ho jata hai (5 + 8 + 4 = 17). Sizes nahi daale to yahan total quantity likhein.</li>
+          <li><strong>More details</strong>: brand, weight wagera. Optional hai, skip kar sakte hain.</li>
+          <li><strong>Send for approval</strong>: isay ON (orange) rehne dein.</li>
+        </ul>
+        <p>End mein <span class="btn">Save product</span> par tap karein aur photos upload hone tak wait karein.</p>
+        <div class="warn"><b>Kuch miss ho gaya?</b>Agar name, category, price ya photo reh gayi ho to Save ke upar red colour mein message aayega ke kya fill karna hai. Woh fill karke dobara Save karein.</div>
+      </div>
+      <figure class="shot"><img src="shots/10-save.png" alt="Form ka last part: Stock, Visibility aur Save product button" width="390" height="844"><figcaption>Form ka last part</figcaption></figure>
+    </div>
+
+    <div class="step">
+      <div class="step-text">
+        <p class="step-no">Step 6 · Approval</p>
+        <h3>Product "Pending" mein chala jata hai</h3>
+        <p>Save ke baad product list mein <span class="pill pending">Pending</span> likha aata hai. Iska matlab hai KMO team usay check kar rahi hai. Approve hote hi woh <span class="pill live">Live</span> ho jata hai aur website par customers ko show hone lagta hai.</p>
+        <p>Aap ko kuch nahi karna, bas wait karein. Approval ki notification bell icon 🔔 mein aa jati hai.</p>
+      </div>
+      <figure class="shot"><img src="shots/11-pending.png" alt="Products list jismein naya product Pending aur purana Live hai" width="390" height="844"><figcaption>Naya product Pending, purana Live</figcaption></figure>
+    </div>
+  </section>
+
+  <!-- 4. manage -->
+  <section class="chapter" id="manage">
+    <div class="chapter-head">
+      <h2>4. Product edit karein</h2>
+      <p>Price badalni ho, stock khatam ho gaya ho, ya nayi photo lagani ho: sab <strong>Products</strong> page se hota hai.</p>
+    </div>
+    <div class="step noshot">
+      <div class="step-text">
+        <ul>
+          <li><strong>Price ya stock badalna:</strong> product ke saath <span class="chip">Edit</span> par tap karein, number change karein, phir <span class="btn">Save product</span>.</li>
+          <li><strong>1 size khatam ho gaya:</strong> Edit mein us size ke saath <strong>Remove</strong> tap karein, ya us ki sahi quantity dobara add karein.</li>
+          <li><strong>Product remove karna:</strong> <span class="chip">Delete</span> par tap karein. Confirm karne ke liye 1 dafa aur poocha jayega.</li>
+          <li><strong>Product search karna:</strong> upar <strong>Search your products</strong> mein name type karein, ya category select karein.</li>
+        </ul>
+        <div class="table-wrap">
+          <table class="status-table">
+            <thead><tr><th>Status</th><th>Matlab</th></tr></thead>
+            <tbody>
+              <tr><td><span class="pill live">Live</span></td><td>Website par hai, customers buy kar sakte hain.</td></tr>
+              <tr><td><span class="pill pending">Pending</span></td><td>KMO team check kar rahi hai. Abhi website par nahi.</td></tr>
+              <tr><td><span class="pill draft">Draft</span></td><td>Aap ne save kiya lekin approval ke liye nahi bheja ("Send for approval" off tha).</td></tr>
+              <tr><td><span class="pill arch">Archived</span></td><td>Product remove kar diya gaya hai.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. orders -->
+  <section class="chapter" id="orders">
+    <div class="chapter-head">
+      <h2>5. Order aaye to kya karein</h2>
+      <p>Naya order aate hi bell icon 🔔 par notification aati hai aur order <strong>Orders</strong> page par <span class="pill pending">Pending</span> mein show hota hai.</p>
+    </div>
+    <div class="step">
+      <div class="step-text">
+        <p class="step-no">Step 1</p>
+        <h3>Orders page open karein</h3>
+        <ol>
+          <li>Menu ☰ se <strong>Orders</strong> open karein.</li>
+          <li>Upar <span class="chip">Pending</span> par tap karein to sirf new orders show honge.</li>
+          <li>Order number (jaise <strong>#KMO-…</strong>) par tap karein.</li>
+        </ol>
+      </div>
+      <figure class="shot"><img src="shots/12-orders.png" alt="Orders page par 1 naya order" width="390" height="844"><figcaption>Orders page</figcaption></figure>
+    </div>
+    <div class="step">
+      <div class="step-text">
+        <p class="step-no">Step 2</p>
+        <h3>Order check karein aur status update karein</h3>
+        <p><strong>Items</strong> mein likha hota hai ke kya bhejna hai, kaun sa size aur kitne pieces.</p>
+        <p>Har step par neeche list se next status select karein aur <span class="btn">Update status</span> par tap karein:</p>
+        <ol>
+          <li><strong>Confirm order</strong>: order check kar liya, stock available hai.</li>
+          <li><strong>Mark as processing</strong>: pack kar rahe hain.</li>
+          <li><strong>Mark as ready to ship</strong>: parcel ready hai.</li>
+          <li><strong>Mark as shipped</strong>: rider/courier ko de diya.</li>
+          <li><strong>Mark as delivered</strong>: customer ko mil gaya.</li>
+        </ol>
+        <div class="tip"><b>Kyun zaroori hai?</b>Har update KMO team ko show hota hai, aur customer apne account mein order ka status dekhta hai. Status time par update karne se delivery late nahi hoti aur customer satisfied rehta hai.</div>
+        <div class="warn"><b>Stock khatam hai?</b>Agar order complete nahi ho sakta to <strong>Cancel order</strong> par tap karein, lekin pehle KMO team ko inform kar dein.</div>
+      </div>
+      <figure class="shot"><img src="shots/13-order.png" alt="Order details, Update status aur Cancel order button" width="390" height="844"><figcaption>Order details</figcaption></figure>
+    </div>
+  </section>
+
+  <!-- 6. courier -->
+  <section class="chapter" id="courier">
+    <div class="chapter-head">
+      <h2>6. Courier select karein</h2>
+      <p>Aap ke orders kis courier se jayenge, yeh <strong>Shipping</strong> page par select hota hai. Yeh kaam sirf 1 dafa karna hai.</p>
+    </div>
+    <div class="step">
+      <div class="step-text">
+        <ol>
+          <li>Menu ☰ se <strong>Shipping</strong> open karein.</li>
+          <li><strong>Preferred courier</strong> mein apna courier select karein, jaise <span class="chip">Leopards</span>, <span class="chip">TRAX</span>, <span class="chip">PostEx</span> ya <span class="chip">Courier Fast Service</span>.</li>
+          <li>Tap karte hi save ho jata hai. Selected courier par orange border aa jata hai.</li>
+          <li>Neeche <strong>Your shipping rates</strong> mein us courier ke rates show hote hain: city, weight (kg), fee aur GST/tax.</li>
+        </ol>
+        <div class="tip"><b>Kaun sa courier chunein?</b>Jo courier aap ke area se parcel pickup karta ho aur jis se aap pehle kaam kar chuke hon. Courier badalna ho to bas doosre courier par tap kar dein.</div>
+        <div class="warn"><b>"No rates set up yet" likha aa raha hai?</b>Courier ke rates KMO team set karti hai. Yeh message aaye to KMO team ko call karein, woh aap ke liye rates add kar degi.</div>
+      </div>
+      <figure class="shot"><img src="shots/17-shipping.png" alt="Shipping page: Preferred courier list mein Leopards selected" width="390" height="844"><figcaption>Shipping page</figcaption></figure>
+    </div>
+  </section>
+
+  <!-- 7. store settings -->
+  <section class="chapter" id="store">
+    <div class="chapter-head">
+      <h2>7. Apna store setup karein</h2>
+      <p>Logo aur banner wala store customers ko zyada professional aur trusted lagta hai. Yeh kaam sirf 1 dafa karna hai.</p>
+    </div>
+    <div class="step">
+      <div class="step-text">
+        <ol>
+          <li>Menu ☰ se <strong>Store settings</strong> open karein.</li>
+          <li><span class="chip">+ Logo</span>: apne store ka logo lagayein (square photo behtar hai).</li>
+          <li><span class="chip">+ Upload banner</span>: 1 wide photo, jaise apne products ki.</li>
+          <li><strong>Location</strong> mein apna area likhein, jaise Gulshan-e-Iqbal.</li>
+          <li><strong>Store description</strong> mein 2 lines likhein ke aap kya bechte hain.</li>
+          <li>Sab se neeche <span class="btn">Save settings</span> par tap karein.</li>
+        </ol>
+        <p><strong>Vacation mode</strong>: holiday par ja rahe hon to isay ON karke Save karein. Aap ke store page par holiday ka notice lag jata hai. Long holiday ho to KMO team ko bhi bata dein.</p>
+      </div>
+      <figure class="shot"><img src="shots/15-settings.png" alt="Store settings: banner, logo, store name, location, description" width="390" height="844"><figcaption>Store settings</figcaption></figure>
+    </div>
+  </section>
+
+  <!-- 7b. banner and logo -->
+  <section class="chapter" id="banner">
+    <div class="chapter-head">
+      <h2>Banner aur logo: kaisi photo upload karein?</h2>
+      <p>Store settings mein jo banner aur logo aap lagate hain, woh 2 jagah show hote hain: <strong>homepage</strong> ke "Featured vendors" card par, aur aap ke <strong>store page</strong> par.</p>
+    </div>
+    <div class="table-wrap">
+      <table class="status-table">
+        <thead><tr><th>Photo</th><th>Size</th><th>Type</th></tr></thead>
+        <tbody>
+              <tr><td><b>Banner</b> (+ Upload banner)</td><td>1600 × 400 px<br><span class="dim">kam se kam 1200 × 300</span></td><td>Wide (landscape), JPG ya PNG, 2 MB se kam</td></tr>
+              <tr><td><b>Logo</b> (+ Logo)</td><td>500 × 500 px</td><td>Square, JPG ya PNG, 2 MB se kam</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <figure class="wide"><img src="shots/18-banner-guide.png" alt="Banner diagram: beech ka hara hissa safe hai, upar neeche aur sides kat sakti hain, logo neeche left corner mein" width="1668" height="520"><figcaption>Banner ka safe hissa: important cheez hare dabbe ke andar rakhein</figcaption></figure>
+    <div class="step noshot">
+      <div class="step-text">
+        <ul>
+          <li><b>Important cheez beech mein rakhein.</b> Har screen par banner upar-neeche aur sides se thora kat jata hai (diagram mein laal hissa).</li>
+          <li><b>Neeche left corner</b> mein aap ka logo aata hai. Wahan koi important cheez na rakhein.</li>
+          <li><b>Banner par text ya phone number na likhein.</b> Mobile par banner chhota ho jata hai aur text parha nahi jata.</li>
+          <li>Saaf, roshan aur apne products wali photo lagayein. Dhundli ya screenshot wali photo na lagayein.</li>
+          <li><b>Logo:</b> simple rakhein aur kinaron par thori khaali jagah chhorein, kyunke corners gol ho jate hain.</li>
+        </ul>
+      </div>
+    </div>
+    <figure class="wide"><img src="shots/19-banner-home.png" alt="Homepage par Featured vendor card, upar banner ki patli patti" width="430" height="212"><figcaption>Homepage: Featured vendors card par banner patli patti ki tarah</figcaption></figure>
+    <figure class="wide"><img src="shots/20-banner-store.png" alt="Store page par bara banner aur neeche left par logo" width="1286" height="310"><figcaption>Store page: bara banner, neeche left par logo</figcaption></figure>
+  </section>
+
+  <!-- 8. payments -->
+  <section class="chapter" id="payments">
+    <div class="chapter-head">
+      <h2>8. Payments</h2>
+      <p>Delivered orders ki payment yahan jama hoti hai.</p>
+    </div>
+    <div class="step">
+      <div class="step-text">
+        <ul>
+          <li><strong>Available balance</strong>: jo amount aap withdraw kar sakte hain.</li>
+          <li><strong>Paid to date</strong>: ab tak aap ko kitni payment mil chuki hai.</li>
+          <li><strong>Request a withdrawal</strong>: amount likhein (khaali chhor dein to full balance) aur <span class="btn">Send request to admin</span> par tap karein. KMO team payment bhej degi.</li>
+        </ul>
+        <div class="tip"><b>Commission</b>KMO aap ki sale par koi commission nahi leta. Membership free trial ke baad Rs. 499 monthly hai. Details isi page par <strong>Read the full vendor agreement</strong> mein hai.</div>
+      </div>
+      <figure class="shot"><img src="shots/16-payments.png" alt="Payments page: balance, membership aur withdrawal request" width="390" height="844"><figcaption>Payments</figcaption></figure>
+    </div>
+  </section>
+
+  <!-- faq -->
+  <section class="chapter" id="faq">
+    <div class="chapter-head">
+      <h2>FAQs: common questions</h2>
+    </div>
+    <div class="faq">
+      <details open>
+        <summary>Mera product website par show kyun nahi ho raha?</summary>
+        <p>Products page par us ka status check karein. Pending ho to KMO team ki approval ka wait hai. Draft ho to Edit karke "Send for approval" ON karein aur Save karein.</p>
+      </details>
+      <details>
+        <summary>Photo upload nahi ho rahi.</summary>
+        <p>JPG, PNG ya WEBP photo select karein. Internet slow ho to Save ke baad page close na karein, upload complete hone dein.</p>
+      </details>
+      <details>
+        <summary>Save kiya, red colour mein message aa gaya.</summary>
+        <p>Woh batata hai ke kya miss hua hai: name, category, price ya kam se kam 1 photo. Woh fill karke dobara Save karein.</p>
+      </details>
+      <details>
+        <summary>Mujhe apni category nahi mil rahi.</summary>
+        <p>Har group ke end mein "Other ..." ka button hai. Agar aap ka poora group show nahi ho raha (jaise aap jewellery bhi bechte hain), to KMO team ko call karein. Woh aap ke store mein add kar degi.</p>
+      </details>
+      <details>
+        <summary>Parcel kis courier se jayega?</summary>
+        <p>Jo courier aap ne Shipping page par "Preferred courier" mein select kiya hai. Abhi tak select nahi kiya to Menu ☰ → Shipping se select kar lein.</p>
+      </details>
+      <details>
+        <summary>Phone par menu nahi mil raha.</summary>
+        <p>Upar left corner mein ☰ (3 lines) wala button tap karein.</p>
+      </details>
+      <details>
+        <summary>Kya computer se bhi chala sakte hain?</summary>
+        <p>Ji haan. Computer par bhi vendor.karachimartonline.com open karein. Wahan menu hamesha left side par khula rehta hai.</p>
+      </details>
+    </div>
+  </section>
+
+  <section class="help" aria-label="Help">
+    <h2>Koi bhi problem ho, hum se baat karein</h2>
+    <p>Call ya WhatsApp karein. Hum aap ko step by step guide kar denge.</p>
+    <div class="contact">
+      <span>📞 +92 371 2104790</span>
+      <span>✉ info@karachimartonline.com</span>
+    </div>
+  </section>
+
+</div>

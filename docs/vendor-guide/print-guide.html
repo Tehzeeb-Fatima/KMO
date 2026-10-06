@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>KMO Vendor Guide</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Fixed A4 pages: every page is exactly 210x297mm so nothing gets split or cropped by the printer. */
+:root {
+  --plum: #4a2266; --plum-soft: #efe8f5; --clay: #c4552f; --clay-soft: #fbefe9;
+  --ink: #241a2e; --muted: #6d6177; --line: #e7dfe6; --page: #ffffff;
+  --ok: #2e7a4f; --ok-soft: #eaf5ee; --warn: #a8640c; --warn-soft: #fdf3e4;
+  --body: "Plus Jakarta Sans", "Segoe UI", Arial, sans-serif;
+  --mono: "JetBrains Mono", Consolas, monospace;
+}
+@page { size: A4; margin: 0; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: #d9d3de; }
+body { font-family: var(--body); color: var(--ink); font-size: 10.5pt; line-height: 1.5; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.page {
+  width: 210mm; height: 297mm; padding: 14mm 14mm 12mm; background: var(--page);
+  display: flex; flex-direction: column; gap: 5mm; overflow: hidden; position: relative;
+  break-after: page; margin: 0 auto 8mm;
+}
+.page:last-child { break-after: auto; }
+@media print { html, body { background: #fff; } .page { margin: 0; } }
+.foot { margin-top: auto; display: flex; justify-content: space-between; font-family: var(--mono); font-size: 7.5pt; color: var(--muted); border-top: 0.3mm solid var(--line); padding-top: 2.5mm; }
+h1, h2, h3, p { margin: 0; }
+.kicker { font-family: var(--mono); font-size: 8pt; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--clay); }
+h2 { font-size: 21pt; font-weight: 800; letter-spacing: -.02em; color: var(--ink); line-height: 1.15; }
+h3 { font-size: 13pt; font-weight: 700; line-height: 1.25; }
+.intro { color: var(--muted); font-size: 10.5pt; }
+.head { display: flex; flex-direction: column; gap: 1.5mm; border-top: 0.8mm solid var(--plum); padding-top: 4mm; }
+ol, ul { margin: 0; padding-left: 5mm; display: flex; flex-direction: column; gap: 1.2mm; }
+.btn { display: inline-block; font-weight: 700; color: #fff; background: var(--clay); border-radius: 1.5mm; padding: 0 1.6mm; white-space: nowrap; }
+.chip { display: inline-block; font-weight: 600; color: var(--plum); border: 0.3mm solid var(--line); border-radius: 10mm; padding: 0 2mm; white-space: nowrap; }
+.tip, .warn { border-radius: 2.5mm; padding: 2.5mm 3.5mm; font-size: 9.5pt; }
+.tip { background: var(--ok-soft); border-left: 1mm solid var(--ok); }
+.warn { background: var(--warn-soft); border-left: 1mm solid var(--warn); }
+.tip b, .warn b { display: block; }
+.pill { display: inline-block; border-radius: 10mm; padding: 0 2.4mm; font-weight: 700; font-size: 9pt; white-space: nowrap; }
+.live { background: var(--ok-soft); color: var(--ok); } .pending { background: var(--warn-soft); color: var(--warn); }
+.draft { background: var(--plum-soft); color: var(--plum); } .arch { background: var(--clay-soft); color: var(--clay); }
+
+.row { display: grid; grid-template-columns: 1fr auto; gap: 7mm; align-items: start; }
+.col { display: flex; flex-direction: column; gap: 3mm; min-width: 0; }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8mm; justify-items: center; }
+figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 2mm; }
+figcaption { font-size: 8.5pt; color: var(--muted); text-align: center; }
+.phone { display: block; border: 1.8mm solid #241a2e; border-radius: 6mm; background: #fff; }
+.part { display: block; border: 0.3mm solid var(--line); border-radius: 3mm; background: #fff; }
+
+/* cover */
+.cover { justify-content: flex-start; gap: 7mm; }
+.band { background: var(--plum); color: #fff; border-radius: 5mm; padding: 14mm 12mm; display: flex; flex-direction: column; gap: 4mm; }
+.band .kicker { color: #f3c7b3; }
+.band h1 { font-size: 36pt; font-weight: 800; letter-spacing: -.03em; line-height: 1.05; }
+.band p { font-size: 12pt; color: #e9def2; max-width: 150mm; }
+.facts { display: grid; grid-template-columns: 1.25fr .8fr 1.25fr; gap: 3mm; }
+.fact { border: 0.3mm solid var(--line); border-radius: 3mm; padding: 3.5mm 4mm; display: flex; flex-direction: column; gap: 0.5mm; }
+.fact .k { font-family: var(--mono); font-size: 7pt; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.fact .v { font-weight: 700; font-size: 9.2pt; white-space: nowrap; }
+.toc { display: flex; flex-direction: column; border-top: 0.3mm solid var(--line); }
+.toc div { display: flex; justify-content: space-between; padding: 3mm 0; border-bottom: 0.3mm solid var(--line); font-size: 11.5pt; font-weight: 600; }
+.toc span:last-child { font-family: var(--mono); color: var(--muted); font-weight: 500; }
+table { width: 100%; border-collapse: collapse; font-size: 10pt; }
+th, td { text-align: left; padding: 2.6mm 3mm; border-top: 0.3mm solid var(--line); vertical-align: top; }
+th { font-family: var(--mono); font-size: 7.5pt; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); background: var(--plum-soft); border-top: 0; }
+.dim { color: var(--muted); font-size: .9em; }
+.wideimg { display: block; width: 100%; border: 0.3mm solid var(--line); border-radius: 2.5mm; }
+.faq { display: flex; flex-direction: column; gap: 3.2mm; }
+.faq div { border: 0.3mm solid var(--line); border-radius: 2.5mm; padding: 3mm 4mm; }
+.faq b { display: block; margin-bottom: 0.8mm; }
+.faq p { color: var(--muted); font-size: 9.8pt; }
+.help { background: var(--plum); color: #fff; border-radius: 4mm; padding: 7mm 8mm; display: flex; flex-direction: column; gap: 2mm; }
+.help h3 { font-size: 15pt; }
+.help .contact { display: flex; gap: 10mm; font-weight: 700; font-size: 12.5pt; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+
+<!-- 1 cover -->
+<section class="page cover">
+  <div class="band">
+    <p class="kicker">Karachi Mart Online · Vendor guide</p>
+    <h1>Apna store kaise chalayein</h1>
+    <p>Is guide mein photos ke saath step by step bataya gaya hai: login kaise karein, product kaise add karein, aur order aaye to kya karein. Sab kuch mobile phone se ho jata hai.</p>
+  </div>
+  <div class="facts">
+    <div class="fact"><span class="k">Dashboard ka address</span><span class="v">vendor.karachimartonline.com</span></div>
+    <div class="fact"><span class="k">Help ke liye</span><span class="v">+92 371 2104790</span></div>
+    <div class="fact"><span class="k">Email</span><span class="v">info@karachimartonline.com</span></div>
+  </div>
+  <div class="toc">
+    <div><span>1. First time login</span><span>page 2</span></div>
+    <div><span>2. Dashboard aur menu</span><span>page 3</span></div>
+    <div><span>3. Naya product kaise add karein</span><span>page 4–7</span></div>
+    <div><span>4. Product edit karein</span><span>page 8</span></div>
+    <div><span>5. Order aaye to kya karein</span><span>page 9</span></div>
+    <div><span>6. Courier select karein</span><span>page 10</span></div>
+    <div><span>7. Apna store setup karein</span><span>page 11</span></div>
+    <div><span>Banner aur logo: size aur jagah</span><span>page 12</span></div>
+    <div><span>8. Payments</span><span>page 13</span></div>
+    <div><span>FAQs aur help</span><span>page 14</span></div>
+  </div>
+  <div class="foot"><span>Karachi Mart Online · Vendor guide</span><span>1</span></div>
+</section>
+
+<!-- 2 login -->
+<section class="page">
+  <div class="head"><p class="kicker">Section 1</p><h2>First time login</h2>
+    <p class="intro">KMO team aap ka account banati hai aur aap ko 1 email bhejti hai. Us email ke link se aap apna password khud set karte hain.</p></div>
+  <div class="row">
+    <div class="col">
+      <p class="kicker">Step 1</p>
+      <h3>Email se password set karein</h3>
+      <ol>
+        <li>Apni Gmail open karein. <b>Karachi Mart Online</b> ki email search karein.</li>
+        <li>Email mein button par tap karein. 1 page open hoga.</li>
+        <li>New password 2 dafa type karein aur save karein. Aap direct apne dashboard mein pohanch jayenge.</li>
+      </ol>
+      <div class="warn"><b>Email nahi mili?</b>Gmail mein Spam aur Promotions folder check karein. Link 24 hours tak valid hai. Expire ho jaye to KMO team ko call karein, woh new link bhej denge.</div>
+      <p class="kicker" style="margin-top:3mm">Step 2</p>
+      <h3>Next time login</h3>
+      <ol>
+        <li>Phone ke browser (Chrome) mein <b>vendor.karachimartonline.com</b> open karein.</li>
+        <li><b>Email</b> aur <b>Password</b> type karein.</li>
+        <li><span class="btn">Sign in</span> par tap karein.</li>
+      </ol>
+      <div class="tip"><b>Password bhool gaye?</b><span class="chip">Forgot password?</span> par tap karein aur apni email type karein. New password set karne ka link email par aa jayega.</div>
+      <div class="tip"><b>Easy tip</b>Chrome mein page open karke ⋮ menu se <b>Add to Home screen</b> kar lein. Phir dashboard app ki tarah 1 tap se open hoga.</div>
+    </div>
+    <figure><img class="phone" src="shots/01-login.png" style="width:78mm" alt=""><figcaption>Login page</figcaption></figure>
+  </div>
+  <div class="foot"><span>Karachi Mart Online · Vendor guide</span><span>2</span></div>
+</section>
+
+<!-- 3 dashboard -->
+<section class="page">
+  <div class="head"><p class="kicker">Section 2</p><h2>Dashboard aur menu</h2>
+    <p class="intro">Login ke baad sab se pehle <b>Overview</b> open hota hai. Upar left side par <b>☰</b> (3 lines) button se menu open hota hai.</p></div>
+  <div class="pair">
+    <figure><img class="phone" src="shots/02-overview.png" style="width:74mm" alt=""><figcaption>Overview</figcaption></figure>
+    <figure><img class="phone" src="shots/03-menu.png" style="width:74mm" alt=""><figcaption>☰ Menu</figcaption></figure>
+  </div>
+  <div class="pair" style="justify-items:stretch">
+    <ul>
+      <li><b>Sales this month</b>: is month kitne Rupees ki sale hui.</li>
+      <li><b>Pending orders</b>: jin orders par abhi kaam karna hai.</li>
+      <li><b>Recent orders</b>: kisi order par tap karein to details open hongi.</li>
+    </ul>
+    <ul>
+      <li><b>Products</b>: product add aur edit karna</li>
+      <li><b>Orders</b>: customer ke orders</li>
+      <li><b>Payments</b>: aap ki payments</li>
+      <li><b>Store settings</b>: name, logo aur banner</li>
+    </ul>
+  </div>
+  <div class="foot"><span>Karachi Mart Online · Vendor guide</span><span>3</span></div>
+</section>
+
+<!-- 4 add product step 1 -->
+<section class="page">
+  <div class="head"><p class="kicker">Section 3</p><h2>Naya product kaise add karein</h2>
+    <p class="intro">Product ka form 4 parts mein hai. Upar se neeche fill karte jayein aur end mein 1 dafa <b>Save product</b> par tap karein. Bas.</p></div>
+  <div class="row">
+    <div class="col">
+      <p class="kicker">Step 1</p>
+      <h3>Products open karein aur "+ Add product" par tap karein</h3>
+      <ol>
+        <li>Menu ☰ se <b>Products</b> open karein.</li>
+        <li>Upar wale bare orange button <span class="btn">+ Add product</span> par tap karein.</li>
+      </ol>
+      <p>Isi page par aap ke saare products ki list hoti hai. Har product ke saath <span class="chip">Edit</span> aur <span class="chip">Delete</span> hai.</p>
+      <div class="tip"><b>Yaad rakhein</b>Form ke 4 parts hain: 1. Product details, 2. Photos, 3. Sizes &amp; colours, 4. Stock. Agle pages par har part ki photo hai.</div>
+    </div>
+    <figure><img class="phone" src="shots/04-products.png" style="width:86mm" alt=""><figcaption>Products page</figcaption></figure>
+  </div>
+  <div class="foot"><span>Karachi Mart Online · Vendor guide</span><span>4</span></div>
+</section>
+
+<!-- 5 details -->
+<section class="page">
+  <div class="head"><p class="kicker">Step 2 · Part 1</p><h2>Name, category aur price</h2></div>
+  <ol>
+    <li><b>Product name</b>: product ka clear aur simple name likhein, jaise "Printed Cotton Kurti".</li>
+    <li><b>Category</b>: jo button aap ke product se match karta ho, us par 1 tap karein. Woh purple ho jayega aur neeche <b>Selected</b> likha aa jayega.</li>
+    <li><b>Selling price</b>: jis price par sell karna hai (sirf number, jaise 2200).</li>
+    <li><b>Original price</b>: sirf tab likhein jab sale lagani ho. Website par yeh price cut (line ke saath) show hoti hai. Optional hai.</li>
+    <li><b>Description</b>: fabric, size details, aur box mein kya kya hai.</li>
+  </ol>
+  <div class="pair" style="align-items:start">
+    <figure><img class="part" src="shots/06a.png" style="width:78mm" alt=""><figcaption>Name aur category (upar wala hissa)</figcaption></figure>
+    <figure><img class="part" src="shots/06b.png" style="width:78mm" alt=""><figcaption>Selected category, price aur description</figcaption></figure>
+  </div>
+  <div class="foot"><span>Karachi Mart Online · Vendor guide</span><span>5</span></div>
+</section>
+
+<!-- 6 photos + sizes -->
+<section class="page">
+  <div class="row">
+    <div class="col">
+      <p class="kicker">Step 3 · Part 2</p>
+      <h3>Photos lagayein</h3>
+      <ol>
+        <li><span class="chip">+ Add photos</span> wale box par tap karein.</li>
+        <li>Gallery se 1 ya zyada photos select karein, ya camera se new photo lein.</li>
+        <li>Pehli photo <b>Main</b> hoti hai. Doosri photo ko main banana ho to <span class="chip">Make main</span> tap karein.</li>
+        <li>Galat photo remove karni ho to corner wala <b>×</b> tap karein.</li>
+      </ol>
+      <div class="tip"><b>Achhi photo ke liye</b>Daylight mein, plain white wall ya bedsheet ke saamne photo lein. Kam se kam 1 photo zaroori hai.</div>
+    </div>
+    <figure><img class="part" src="shots/07-photos.png" style="width:82mm" alt=""><figcaption>Part 2: Photos</figcaption></figure>
+  </div>
+  <div class="row">
+    <div class="col">
+      <p class="kicker">Step 4 · Part 3</p>
+      <h3>Size ya colour (agar hon)</h3>
+      <ol>
+        <li><span class="chip">Size</span>, <span class="chip">Colour</span> ya <span class="chip">Other</span> select karein.</li>
+        <li>Pehle box mein size/colour type karein, jaise <b>Medium</b> ya <b>Red</b>.</li>
+        <li><b>Quantity</b> mein pieces type karein.</li>
+        <li><span class="btn">+ Add</span> par tap karein. Next size isi tarah add karein.</li>
+      </ol>
+      <p>Product 1 hi tarah ka hai (koi size ya colour nahi) to yeh part skip kar dein.</p>
+    </div>
+    <figure><img class="part" src="shots/08-sizes.png" style="width:82mm" alt=""><figcaption>Part 3: Sizes &amp; colours</figcaption></figure>
+  </div>
+  <div class="foot"><span>Karachi Mart Online · Vendor guide</span><span>6</span></div>
+</section>
+
+<!-- 7 save + pending -->
+<section class="page">
+  <div class="head"><p class="kicker">Step 5 aur 6</p><h2>Save karein aur approval ka wait karein</h2></div>
+  <div class="pair" style="justify-items:stretch">
+    <ul>
+      <li><b>Stock</b>: sizes daale hain to automatic total ho jata hai (5 + 8 + 4 = 17). Warna total quantity likhein.</li>
+      <li><b>Send for approval</b>: ON (orange) rehne dein.</li>
+      <li>End mein <span class="btn">Save product</span> par tap karein aur photos upload hone tak wait karein.</li>
+    </ul>
+    <ul>
+      <li>Save ke baad product <span class="pill pending">Pending</span> mein hota hai: KMO team check kar rahi hai.</li>
+      <li>Approve hote hi <span class="pill live">Live</span> ho jata hai aur website par show hota hai.</li>
+      <li>Approval ki notification bell icon 🔔 mein aati hai.</li>
+    </ul>
+  </div>
+  <div class="pair">
+    <figure><img class="phone" src="shots/10-save.png" style="width:72mm" alt=""><figcaption>Form ka last part</figcaption></figure>
+    <figure><img class="phone" src="shots/11-pending.png" style="width:72mm" alt=""><figcaption>New product Pending, purana Live</figcaption></figure>
+  </div>
+  <div class="warn"><b>Kuch miss ho gaya?</b>Name, category, price ya photo miss ho to Save ke upar red colour mein message aayega. Woh fill karke dobara Save karein.</div>
+  <div class="foot"><span>Karachi Mart Online · Vendor guide</span><span>7</span></div>
+</section>
+
+<!-- 8 edit -->
+<section class="page">
+  <div class="head"><p class="kicker">Section 4</p><h2>Product edit karein</h2>
+    <p class="intro">Price badalni ho, stock khatam ho gaya ho, ya nayi photo lagani ho: sab <b>Products</b> page se hota hai.</p></div>
+  <ul>
+    <li><b>Price ya stock badalna:</b> product ke saath <span class="chip">Edit</span> par tap karein, number change karein, phir <span class="btn">Save product</span>.</li>
+    <li><b>1 size khatam ho gaya:</b> Edit mein us size ke saath <b>Remove</b> tap karein, ya us ki sahi quantity dobara add karein.</li>
+    <li><b>Product remove karna:</b> <span class="chip">Delete</span> par tap karein. Confirm karne ke liye 1 dafa aur poocha jayega.</li>
+    <li><b>Product search karna:</b> upar <b>Search your products</b> mein name type karein, ya category select karein.</li>
+  </ul>
+  <h3 style="margin-top:3mm">Product status ka matlab</h3>
+  <table>
+    <thead><tr><th>Status</th><th>Matlab</th></tr></thead>
+    <tbody>
+      <tr><td><span class="pill live">Live</span></td><td>Website par hai, customers buy kar sakte hain.</td></tr>
+      <tr><td><span class="pill pending">Pending</span></td><td>KMO team check kar rahi hai. Abhi website par nahi.</td></tr>
+      <tr><td><span class="pill draft">Draft</span></td><td>Save kiya lekin approval ke liye nahi bheja ("Send for approval" OFF tha).</td></tr>
+      <tr><td><span class="pill arch">Archived</span></td><td>Product remove kar diya gaya hai.</td></tr>
+    </tbody>
+  </table>
+  <div class="foot"><span>Karachi Mart Online · Vendor guide</span><span>8</span></div>
+</section>
+
+<!-- 9 orders -->
+<section class="page">
+  <div class="head"><p class="kicker">Section 5</p><h2>Order aaye to kya karein</h2>
+    <p class="intro">Naya order aate hi bell icon 🔔 par notification aati hai. Menu ☰ se <b>Orders</b> open karein aur order number (#KMO-…) par tap karein.</p></div>
+  <div class="pair">
+    <figure><img class="phone" src="shots/12-orders.png" style="width:62mm" alt=""><figcaption>Orders page</figcaption></figure>
+    <figure><img class="phone" src="shots/13-order.png" style="width:62mm" alt=""><figcaption>Order details</figcaption></figure>
+  </div>
+  <p>Har step par list se next status select karein aur <span class="btn">Update status</span> par tap karein:</p>
+  <ol>
+    <li><b>Confirm order</b>: order check kar liya, stock available hai.</li>
+    <li><b>Mark as processing</b>: pack kar rahe hain.</li>
+    <li><b>Mark as ready to ship</b>: parcel ready hai.</li>
+    <li><b>Mark as shipped</b>: rider/courier ko de diya.</li>
+    <li><b>Mark as delivered</b>: customer ko mil gaya.</li>
+  </ol>
+  <div class="warn"><b>Stock khatam hai?</b>Order complete nahi ho sakta to <b>Cancel order</b> par tap karein, lekin pehle KMO team ko inform kar dein.</div>
+  <div class="foot"><span>Karachi Mart Online · Vendor guide</span><span>9</span></div>
+</section>
+
+<!-- 10 courier -->
+<section class="page">
+  <div class="head"><p class="kicker">Section 6</p><h2>Courier select karein</h2>
+    <p class="intro">Aap ke orders kis courier se jayenge, yeh <b>Shipping</b> page par select hota hai. Yeh kaam sirf 1 dafa karna hai.</p></div>
+  <div class="row">
+    <div class="col">
+      <ol>
+        <li>Menu ☰ se <b>Shipping</b> open karein.</li>
+        <li><b>Preferred courier</b> mein apna courier select karein, jaise <span class="chip">Leopards</span>, <span class="chip">TRAX</span>, <span class="chip">PostEx</span> ya <span class="chip">Courier Fast Service</span>.</li>
+        <li>Tap karte hi save ho jata hai. Selected courier par orange border aa jata hai.</li>
+        <li>Neeche <b>Your shipping rates</b> mein us courier ke rates show hote hain: city, weight (kg), fee aur GST/tax.</li>
+      </ol>
+      <div class="tip"><b>Kaun sa courier chunein?</b>Jo courier aap ke area se parcel pickup karta ho aur jis se aap pehle kaam kar chuke hon. Courier badalna ho to bas doosre courier par tap kar dein.</div>
+      <div class="warn"><b>"No rates set up yet" likha aa raha hai?</b>Courier ke rates KMO team set karti hai. Yeh message aaye to KMO team ko call karein, woh aap ke liye rates add kar degi.</div>
+    </div>
+    <figure><img class="phone" src="shots/17-shipping.png" style="width:82mm" alt=""><figcaption>Shipping page</figcaption></figure>
+  </div>
+  <div class="foot"><span>Karachi Mart Online · Vendor guide</span><span>10</span></div>
+</section>
+
+<!-- 11 store settings -->
+<section class="page">
+  <div class="head"><p class="kicker">Section 7</p><h2>Apna store setup karein</h2>
+    <p class="intro">Logo aur banner wala store customers ko zyada professional aur trusted lagta hai. Yeh kaam sirf 1 dafa karna hai.</p></div>
+  <div class="row">
+    <div class="col">
+      <ol>
+        <li>Menu ☰ se <b>Store settings</b> open karein.</li>
+        <li><span class="chip">+ Logo</span>: apne store ka logo lagayein (square photo behtar hai).</li>
+        <li><span class="chip">+ Upload banner</span>: 1 wide photo, jaise apne products ki.</li>
+        <li><b>Location</b> mein apna area likhein, jaise Gulshan-e-Iqbal.</li>
+        <li><b>Store description</b> mein 2 lines likhein ke aap kya bechte hain.</li>
+        <li>Sab se neeche <span class="btn">Save settings</span> par tap karein.</li>
+      </ol>
+      <div class="tip"><b>Vacation mode</b>Holiday par ja rahe hon to isay ON karke Save karein. Store page par holiday ka notice lag jata hai. Long holiday ho to KMO team ko bhi bata dein.</div>
+    </div>
+    <figure><img class="phone" src="shots/15-settings.png" style="width:86mm" alt=""><figcaption>Store settings</figcaption></figure>
+  </div>
+  <div class="foot"><span>Karachi Mart Online · Vendor guide</span><span>11</span></div>
+</section>
+
+<!-- 12 banner and logo -->
+<section class="page">
+  <div class="head"><p class="kicker">Store settings</p><h2>Banner aur logo: kaisi photo?</h2>
+    <p class="intro">Banner aur logo 2 jagah show hote hain: <b>homepage</b> ke "Featured vendors" card par, aur aap ke <b>store page</b> par.</p></div>
+  <table>
+    <thead><tr><th>Photo</th><th>Size</th><th>Type</th></tr></thead>
+    <tbody>
+      <tr><td><b>Banner</b> (+ Upload banner)</td><td>1600 × 400 px<br><span class="dim">kam se kam 1200 × 300</span></td><td>Wide (landscape), JPG ya PNG, 2 MB se kam</td></tr>
+              <tr><td><b>Logo</b> (+ Logo)</td><td>500 × 500 px</td><td>Square, JPG ya PNG, 2 MB se kam</td></tr>
+    </tbody>
+  </table>
+  <figure><img class="wideimg" src="shots/18-banner-guide.png" alt=""><figcaption>Banner ka safe hissa: important cheez hare dabbe ke andar rakhein</figcaption></figure>
+  <ul>
+    <li><b>Important cheez beech mein rakhein.</b> Har screen par banner upar-neeche aur sides se thora kat jata hai (diagram mein laal hissa).</li>
+    <li><b>Neeche left corner</b> mein aap ka logo aata hai. Wahan koi important cheez na rakhein.</li>
+    <li><b>Banner par text ya phone number na likhein.</b> Mobile par banner chhota ho jata hai aur text parha nahi jata.</li>
+    <li>Saaf, roshan aur apne products wali photo lagayein. Dhundli ya screenshot wali photo na lagayein.</li>
+    <li><b>Logo:</b> simple rakhein aur kinaron par thori khaali jagah chhorein, kyunke corners gol ho jate hain.</li>
+  </ul>
+  <div class="pair" style="grid-template-columns:1fr 1.7fr;align-items:end">
+    <figure><img class="wideimg" src="shots/19-banner-home.png" alt=""><figcaption>Homepage card</figcaption></figure>
+    <figure><img class="wideimg" src="shots/20-banner-store.png" alt=""><figcaption>Store page</figcaption></figure>
+  </div>
+  <div class="foot"><span>Karachi Mart Online · Vendor guide</span><span>12</span></div>
+</section>
+
+<!-- 13 payments -->
+<section class="page">
+  <div class="head"><p class="kicker">Section 8</p><h2>Payments</h2>
+    <p class="intro">Delivered orders ki payment yahan jama hoti hai.</p></div>
+  <div class="row">
+    <div class="col">
+      <ul>
+        <li><b>Available balance</b>: jo amount aap withdraw kar sakte hain.</li>
+        <li><b>Paid to date</b>: ab tak aap ko kitni payment mil chuki hai.</li>
+        <li><b>Request a withdrawal</b>: amount likhein (khaali chhor dein to full balance) aur <span class="btn">Send request to admin</span> par tap karein. KMO team payment bhej degi.</li>
+      </ul>
+      <div class="tip"><b>Commission</b>KMO aap ki sale par koi commission nahi leta. Membership free trial ke baad Rs. 499 monthly hai. Details isi page par <b>Read the full vendor agreement</b> mein hain.</div>
+    </div>
+    <figure><img class="phone" src="shots/16-payments.png" style="width:86mm" alt=""><figcaption>Payments</figcaption></figure>
+  </div>
+  <div class="foot"><span>Karachi Mart Online · Vendor guide</span><span>13</span></div>
+</section>
+
+<!-- 14 faq -->
+<section class="page">
+  <div class="head"><p class="kicker">FAQs</p><h2>Common questions</h2></div>
+  <div class="faq">
+    <div><b>Mera product website par show kyun nahi ho raha?</b><p>Products page par us ka status check karein. Pending ho to KMO team ki approval ka wait hai. Draft ho to Edit karke "Send for approval" ON karein aur Save karein.</p></div>
+    <div><b>Photo upload nahi ho rahi.</b><p>JPG, PNG ya WEBP photo select karein. Internet slow ho to Save ke baad page close na karein, upload complete hone dein.</p></div>
+    <div><b>Save kiya, red colour mein message aa gaya.</b><p>Woh batata hai ke kya miss hua hai: name, category, price ya kam se kam 1 photo. Woh fill karke dobara Save karein.</p></div>
+    <div><b>Mujhe apni category nahi mil rahi.</b><p>Har group ke end mein "Other ..." ka button hai. Agar aap ka poora group show nahi ho raha, to KMO team ko call karein. Woh aap ke store mein add kar degi.</p></div>
+    <div><b>Parcel kis courier se jayega?</b><p>Jo courier aap ne Shipping page par "Preferred courier" mein select kiya hai. Select nahi kiya to Menu ☰ → Shipping se kar lein.</p></div>
+    <div><b>Phone par menu nahi mil raha.</b><p>Upar left corner mein ☰ (3 lines) wala button tap karein.</p></div>
+    <div><b>Kya computer se bhi chala sakte hain?</b><p>Ji haan. Computer par bhi vendor.karachimartonline.com open karein. Wahan menu hamesha left side par khula rehta hai.</p></div>
+  </div>
+  <div class="help">
+    <h3>Koi bhi problem ho, hum se baat karein</h3>
+    <p>Call ya WhatsApp karein. Hum aap ko step by step guide kar denge.</p>
+    <div class="contact"><span>📞 +92 371 2104790</span><span>✉ info@karachimartonline.com</span></div>
+  </div>
+  <div class="foot"><span>Karachi Mart Online · Vendor guide</span><span>14</span></div>
+</section>
+
+</body>
+</html>
