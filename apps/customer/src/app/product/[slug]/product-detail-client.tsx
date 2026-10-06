@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getProductBySlug,
@@ -18,10 +18,9 @@ import {
   listPublishedProducts,
   listActivePromotions,
   toPricingPromotions,
-  MIN_360_FRAMES,
 } from "@kmo/shared/api";
 import { bestPromotionForProduct, cardPricing } from "@kmo/shared/lib";
-import { Breadcrumbs, Button, ProductCard, Product360Viewer } from "@kmo/shared/ui";
+import { Breadcrumbs, Button, ProductCard } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "@/lib/supabase";
 import { ensureCustomerId } from "@/lib/ensure-customer-id";
@@ -58,7 +57,6 @@ export default function ProductDetailClient() {
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
   const [qty, setQty] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
-  const [galleryMode, setGalleryMode] = useState<"photos" | "360">("photos");
 
   /** The variant row for the colour the shopper picked, if any — media can be
    *  tied to it so the product imagery changes with the colour. */
@@ -71,20 +69,6 @@ export default function ProductDetailClient() {
     );
     return row?.id ?? null;
   }, [product, selectedOptions]);
-
-  /** Frames in rotation order: the selected colour's spin when it has one,
-   *  otherwise the shared spin. Only a set with enough frames is playable. */
-  const angles360 = useMemo(() => {
-    if (!product?.has_360_view) return [];
-    const rows = product.product_360_images ?? [];
-    const forColour = selectedColourVariantId
-      ? rows.filter((r) => r.variant_id === selectedColourVariantId)
-      : [];
-    const set =
-      forColour.length >= MIN_360_FRAMES ? forColour : rows.filter((r) => r.variant_id === null);
-    if (set.length < MIN_360_FRAMES) return [];
-    return [...set].sort((a, b) => a.angle_index - b.angle_index).map((r) => r.url);
-  }, [product, selectedColourVariantId]);
 
   // A colour change swaps the photo set, so the old index may not exist.
   useEffect(() => {
@@ -295,48 +279,6 @@ export default function ProductDetailClient() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[500px_minmax(0,1fr)_316px] lg:items-start lg:gap-[26px]">
         {/* gallery */}
         <div>
-          {angles360.length > 0 ? (
-            <div className="mb-2.5 flex gap-2">
-              <button
-                type="button"
-                onClick={() => setGalleryMode("photos")}
-                className="rounded-full px-4 py-2 text-[12.5px] font-bold"
-                style={
-                  galleryMode === "photos"
-                    ? { background: "var(--color-primary)", color: "#fff" }
-                    : {
-                        background: "#fff",
-                        border: "1px solid var(--color-border)",
-                        color: "var(--color-primary)",
-                      }
-                }
-              >
-                {t.product.productImages}
-              </button>
-              <button
-                type="button"
-                onClick={() => setGalleryMode("360")}
-                className="flex items-center gap-1.5 rounded-full px-4 py-2 text-[12.5px] font-bold"
-                style={
-                  galleryMode === "360"
-                    ? { background: "var(--color-primary)", color: "#fff" }
-                    : {
-                        background: "#fff",
-                        border: "1px solid var(--color-border)",
-                        color: "var(--color-primary)",
-                      }
-                }
-              >
-                <RotateCcw className="h-3.5 w-3.5" />
-                {t.product.view360}
-              </button>
-            </div>
-          ) : null}
-
-          {galleryMode === "360" && angles360.length > 0 ? (
-            <Product360Viewer images={angles360} />
-          ) : (
-          <>
           <div
             className="relative h-[260px] overflow-hidden rounded-[10px] border border-border bg-surface sm:h-[470px]"
             style={{
@@ -385,8 +327,6 @@ export default function ProductDetailClient() {
               ))}
             </div>
           ) : null}
-          </>
-          )}
         </div>
 
         {/* info */}

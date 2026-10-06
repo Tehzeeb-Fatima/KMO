@@ -15,7 +15,9 @@ import {
   type ProductWithMedia,
 } from "@kmo/shared/api";
 import type { ProductStatus } from "@kmo/shared/types";
-import { ConfirmDialog, type Product360ColourSet } from "@kmo/shared/ui";
+import { ConfirmDialog } from "@kmo/shared/ui";
+
+type PhotoSet = { variantId: string | null; label: string };
 import { supabase } from "../lib/supabase";
 
 /**
@@ -125,7 +127,7 @@ export function AdminProductForm({
   const colourVariants = variants.filter((v) =>
     ["color", "colour"].includes(v.option_name.toLowerCase()),
   );
-  const sets360: Product360ColourSet[] = [
+  const sets360: PhotoSet[] = [
     { variantId: null, label: "All colours" },
     ...colourVariants.map((v) => ({ variantId: v.id, label: v.option_value })),
   ];

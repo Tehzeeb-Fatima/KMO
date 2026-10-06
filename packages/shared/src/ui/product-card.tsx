@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { RotateCcw } from "lucide-react";
 import { cn } from "../lib/utils";
 
 export interface ProductCardProps {
@@ -12,8 +11,6 @@ export interface ProductCardProps {
   rating?: number;
   soldCount?: number;
   cod?: boolean;
-  /** Shows a small "360°" badge — the viewer itself only loads on the detail page. */
-  has360?: boolean;
   /** Promotion label (admin-set); replaces the "-X%" badge when present. */
   promoLabel?: string | null;
   /** Top-right of the image, e.g. a wishlist heart. */
@@ -50,7 +47,6 @@ export function ProductCard({
   rating,
   soldCount,
   cod = true,
-  has360 = false,
   promoLabel,
   topRight,
   footer,
@@ -101,12 +97,6 @@ export function ProductCard({
           </span>
         ) : null}
         {topRight ? <div className="absolute right-2.5 top-2.5">{topRight}</div> : null}
-        {has360 ? (
-          <span className="absolute bottom-2.5 right-2.5 flex items-center gap-1 rounded-full bg-black/60 px-2 py-[3px] text-[9.5px] font-bold text-white">
-            <RotateCcw className="h-2.5 w-2.5" />
-            360°
-          </span>
-        ) : null}
       </div>
 
       <div className="flex flex-col gap-2 p-3.5">

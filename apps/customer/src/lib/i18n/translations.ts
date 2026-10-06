@@ -258,7 +258,6 @@ export const translations = {
       moreFromVendor: "More from this vendor",
       suggestedProducts: "Suggested products",
       productImages: "Product Images",
-      view360: "360° View",
       codAvailableBadge: "COD AVAILABLE",
     },
     account: {
@@ -647,7 +646,6 @@ export const translations = {
       moreFromVendor: "اس وینڈر سے مزید",
       suggestedProducts: "تجویز کردہ پراڈکٹس",
       productImages: "پراڈکٹ تصاویر",
-      view360: "360° منظر",
       codAvailableBadge: "COD دستیاب ہے",
     },
     account: {

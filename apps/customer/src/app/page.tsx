@@ -621,7 +621,6 @@ function PromoProductCard({
       price={cp.price}
       compareAtPrice={cp.compareAtPrice}
       promoLabel={cp.badgeText}
-      has360={p.has_360_view}
       topRight={<WishlistHeart productId={p.id} />}
       footer={<AddToCartButton productId={p.id} {...defaultCartVariant(p)} />}
     />
@@ -746,7 +745,6 @@ function FeaturedProducts({
                 price={cp.price}
                 compareAtPrice={cp.compareAtPrice}
                 promoLabel={cp.badgeText}
-                has360={p.has_360_view}
                 topRight={<WishlistHeart productId={p.id} />}
                 footer={<AddToCartButton productId={p.id} {...defaultCartVariant(p)} />}
               />

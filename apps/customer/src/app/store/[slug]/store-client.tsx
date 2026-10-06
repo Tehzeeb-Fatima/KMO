@@ -328,7 +328,6 @@ function ProductsTab({ vendorId }: { vendorId: string }) {
                 price={cp.price}
                 compareAtPrice={cp.compareAtPrice}
                 promoLabel={cp.badgeText}
-                has360={p.has_360_view}
               />
             );
           })

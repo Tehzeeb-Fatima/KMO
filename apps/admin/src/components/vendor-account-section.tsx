@@ -2,6 +2,8 @@ import { useState, type FormEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "../lib/supabase";
 
+const CUSTOMER_URL = import.meta.env.VITE_CUSTOMER_URL ?? "https://karachimartonline.com";
+
 /** Login email of the vendor's account, plus an admin-only password reset. */
 export function VendorAccountSection({ vendorId, ownerId }: { vendorId: string; ownerId: string }) {
   const { data: email, isLoading } = useQuery({
@@ -19,6 +21,23 @@ export function VendorAccountSection({ vendorId, ownerId }: { vendorId: string; 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
+
+  // Emails the vendor a fresh "set your password" link — for when the invite
+  // link expired or got lost. Lands on /reset-password, which works even in
+  // maintenance mode.
+  async function sendSetupEmail() {
+    if (!email) return;
+    setError(null);
+    setMessage(null);
+    setSending(true);
+    const { error: sendError } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${CUSTOMER_URL}/reset-password`,
+    });
+    setSending(false);
+    if (sendError) setError(sendError.message);
+    else setMessage(`Password setup email sent to ${email}. The link works for 24 hours.`);
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -52,16 +71,26 @@ export function VendorAccountSection({ vendorId, ownerId }: { vendorId: string; 
       </p>
 
       {!open ? (
-        <button
-          type="button"
-          onClick={() => {
-            setOpen(true);
-            setMessage(null);
-          }}
-          className="self-start text-[13px] font-bold text-accent"
-        >
-          Change password
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={sendSetupEmail}
+            disabled={!email || sending}
+            className="rounded-md bg-accent px-4 py-2 text-[13px] font-semibold text-white disabled:opacity-60"
+          >
+            {sending ? "Sending…" : "Send password setup email"}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setOpen(true);
+              setMessage(null);
+            }}
+            className="rounded-md border border-border px-4 py-2 text-[13px] font-semibold text-primary"
+          >
+            Set password myself
+          </button>
+        </div>
       ) : (
         <form onSubmit={handleSubmit} className="flex max-w-[360px] flex-col gap-3">
           <input
@@ -102,6 +131,7 @@ export function VendorAccountSection({ vendorId, ownerId }: { vendorId: string; 
       )}
 
       {message ? <p className="text-xs text-success">{message}</p> : null}
+      {!open && error ? <p className="text-xs text-danger">{error}</p> : null}
     </div>
   );
 }
