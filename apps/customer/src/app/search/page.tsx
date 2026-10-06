@@ -225,7 +225,7 @@ function SearchPageContent() {
       <div className="grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
         <aside className="hidden lg:block">{filterPanel}</aside>
 
-        <div>
+        <div className="min-w-0">
           {activePromo ? (
             <div className="mb-4">
               <h2 className="text-xl font-bold tracking-[-0.025em] text-ink sm:text-[21px]">
