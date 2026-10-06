@@ -88,28 +88,49 @@ export default function Home() {
       <HomeBanner banners={banners} />
 
       {platformSettings?.show_hero_boxes !== false ? (
-      <section className="grid gap-4 px-4 pt-7 sm:px-10 lg:grid-cols-[1.6fr_1fr_1fr]">
+      <section className="grid gap-4 px-4 pt-7 sm:px-10 lg:grid-cols-[2.2fr_1fr_1fr]">
         <div
-          className="relative flex min-h-[260px] flex-col justify-center gap-4 overflow-hidden rounded-xl p-8 text-white transition-all duration-300 [transform-style:preserve-3d] hover:[transform:perspective(900px)_rotateX(4deg)_rotateY(-4deg)_translateY(-6px)] hover:shadow-[0_24px_40px_-18px_rgba(74,34,102,0.6)] sm:min-h-[300px] sm:p-[38px_34px]"
-          style={{ background: "linear-gradient(135deg,#4a2266 0%,#8a3a7a 55%,#c4552f 100%)" }}
+          className="relative grid items-center gap-4 overflow-hidden rounded-xl p-7 text-white transition-all duration-300 [transform-style:preserve-3d] hover:[transform:perspective(900px)_rotateX(4deg)_rotateY(-4deg)_translateY(-6px)] hover:shadow-[0_24px_40px_-18px_rgba(74,34,102,0.6)] sm:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] sm:p-[34px_30px]"
+          style={{ background: "linear-gradient(135deg,#4a2266 0%,#7a2f6c 100%)" }}
         >
-          <span className="pointer-events-none absolute -right-[70px] -top-[70px] h-[260px] w-[260px] rounded-full bg-white/10" />
-          <span className="pointer-events-none absolute -bottom-[60px] right-[60px] h-[160px] w-[160px] rounded-full bg-white/10" />
-          <p className="relative font-mono text-[10.5px] tracking-[0.18em] text-[#F3D2C2]">
-            {t.home.heroLiveBadge}
-          </p>
-          <h1 className="relative text-[32px] font-extrabold leading-[1.05] tracking-[-0.038em] text-white sm:text-[44px]">
-            {t.home.heroLiveTitle}
-          </h1>
-          <p className="relative max-w-[420px] text-[15px] leading-[1.6] text-white/85">
-            {t.home.heroLiveDesc}
-          </p>
-          <Link
-            href="/search"
-            className="relative mt-1 w-fit rounded-full bg-white px-7 py-3.5 text-sm font-bold text-primary"
-          >
-            {t.home.heroLiveCta}
-          </Link>
+          <div className="relative flex min-w-0 flex-col gap-4">
+            <p className="font-mono text-[10.5px] tracking-[0.18em] text-[#F3D2C2]">
+              {t.home.heroLiveBadge}
+            </p>
+            <h1 className="text-[32px] font-extrabold leading-[1.05] tracking-[-0.038em] text-white sm:text-[40px]">
+              {t.home.heroLiveTitle}
+            </h1>
+            <p className="max-w-[420px] text-[15px] leading-[1.6] text-white/85">
+              {t.home.heroLiveDesc}
+            </p>
+            <Link
+              href="/search"
+              className="mt-1 w-fit rounded-full bg-white px-7 py-3.5 text-sm font-bold text-primary"
+            >
+              {t.home.heroLiveCta}
+            </Link>
+          </div>
+
+          {/* tilted photo stack: what's on sale, at a glance */}
+          <div className="relative h-[275px] sm:h-[290px]" aria-hidden="true">
+            {[
+              { src: "/hero/fashion.jpg", label: t.home.heroTagFashion, cls: "left-[2%] top-[2%] -rotate-[6deg]" },
+              { src: "/hero/jewellery.jpg", label: t.home.heroTagJewellery, cls: "left-[50%] top-[2%] rotate-[5deg]" },
+              { src: "/hero/home.jpg", label: t.home.heroTagHome, cls: "left-[5%] top-[54%] rotate-[4deg]" },
+              { src: "/hero/beauty.jpg", label: t.home.heroTagBeauty, cls: "left-[48%] top-[57%] -rotate-[5deg]" },
+            ].map((pic) => (
+              <div
+                key={pic.src}
+                className={`absolute w-[46%] rounded-md bg-white p-1.5 pb-6 shadow-[0_18px_30px_-14px_rgba(0,0,0,0.55)] transition-transform duration-300 hover:z-10 hover:scale-105 ${pic.cls}`}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={pic.src} alt="" className="aspect-[4/3] w-full rounded-[3px] object-cover" loading="eager" />
+                <span className="absolute inset-x-0 bottom-1 truncate px-1 text-center text-[11px] font-bold text-primary">
+                  {pic.label}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="flex min-h-[260px] flex-col justify-between gap-4 rounded-xl border border-[#e4d9ee] bg-white p-[26px] transition-all duration-300 [transform-style:preserve-3d] hover:[transform:perspective(900px)_rotateX(4deg)_rotateY(-4deg)_translateY(-6px)] hover:shadow-[0_24px_40px_-18px_rgba(74,34,102,0.5)] sm:min-h-[300px]">

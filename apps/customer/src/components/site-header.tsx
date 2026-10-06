@@ -75,13 +75,13 @@ export function SiteHeader() {
 
         <form
           onSubmit={handleSearch}
-          className="hidden max-w-[640px] flex-1 items-center gap-3 rounded-full border border-border bg-surface-alt py-[5px] pl-[18px] pr-[5px] sm:flex"
+          className="hidden min-w-0 max-w-[640px] flex-1 items-center gap-3 rounded-full border border-border bg-surface-alt py-[5px] pl-[18px] pr-[5px] sm:flex"
         >
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t.header.searchPlaceholder}
-            className="flex-1 truncate bg-transparent text-sm text-ink outline-none placeholder:text-muted-table"
+            className="min-w-0 flex-1 truncate bg-transparent text-sm text-ink outline-none placeholder:text-muted-table"
           />
           <button
             type="submit"
@@ -91,8 +91,8 @@ export function SiteHeader() {
           </button>
         </form>
 
-        <div className="flex flex-1 items-center justify-end gap-4 sm:gap-[26px]">
-          <div className="hidden shrink-0 items-center gap-2 md:flex">
+        <div className="ml-auto flex shrink-0 items-center justify-end gap-4 lg:gap-[26px]">
+          <div className="hidden shrink-0 items-center gap-2 lg:flex">
             <span className="h-[7px] w-[7px] rounded-full bg-accent" />
             <span className="leading-[1.25]">
               <span className="block text-[10.5px] text-muted-table">{t.header.deliverTo}</span>
@@ -107,7 +107,7 @@ export function SiteHeader() {
             className="flex shrink-0 items-center gap-1.5 text-[13.5px] font-semibold text-primary"
           >
             <User className="h-[18px] w-[18px]" strokeWidth={2} />
-            <span className="hidden sm:inline">{accountLabel}</span>
+            <span className="hidden lg:inline">{accountLabel}</span>
           </Link>
 
           <Link
@@ -115,7 +115,7 @@ export function SiteHeader() {
             className="relative flex shrink-0 items-center gap-1.5 pr-1 text-[13.5px] font-bold text-primary"
           >
             <ShoppingCart className="h-[19px] w-[19px]" strokeWidth={2} />
-            <span className="hidden sm:inline">{t.header.cart}</span>
+            <span className="hidden lg:inline">{t.header.cart}</span>
             {cartCount > 0 ? (
               <span className="absolute -right-1 -top-2 flex h-[17px] min-w-[17px] items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-white">
                 {cartCount}
@@ -125,7 +125,7 @@ export function SiteHeader() {
         </div>
       </div>
 
-      <div className="flex items-center gap-1.5 bg-surface px-4 pb-2 md:hidden">
+      <div className="flex items-center gap-1.5 bg-surface px-4 pb-2 lg:hidden">
         <span className="h-[6px] w-[6px] shrink-0 rounded-full bg-accent" />
         <span className="text-[11.5px] text-muted-table">
           {t.header.deliverTo} <span className="font-bold text-ink-dark">{t.header.city}</span>
