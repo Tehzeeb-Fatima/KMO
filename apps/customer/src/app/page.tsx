@@ -70,6 +70,12 @@ export default function Home() {
     queryFn: () => getPlatformSettings(supabase),
   });
 
+  const heroPhotos = [
+    { src: "/hero/fashion.jpg", label: t.home.heroTagFashion },
+    { src: "/hero/jewellery.jpg", label: t.home.heroTagJewellery },
+    { src: "/hero/home.jpg", label: t.home.heroTagHome },
+  ];
+
   const sectionCategories: TopCategory[] = (categories ?? [])
     .filter((c) => c.show_on_homepage)
     .sort((a, b) => a.homepage_order - b.homepage_order)
@@ -103,34 +109,23 @@ export default function Home() {
             <p className="max-w-[420px] text-[15px] leading-[1.6] text-white/85">
               {t.home.heroLiveDesc}
             </p>
-            <Link
-              href="/search"
-              className="mt-1 w-fit rounded-full bg-white px-7 py-3.5 text-sm font-bold text-primary"
-            >
-              {t.home.heroLiveCta}
-            </Link>
+            <div className="mt-1 flex items-end justify-between gap-3">
+              <Link
+                href="/search"
+                className="w-fit shrink-0 rounded-full bg-white px-7 py-3.5 text-sm font-bold text-primary"
+              >
+                {t.home.heroLiveCta}
+              </Link>
+              {/* phones: a small fan of photos next to the button keeps the box short */}
+              <HeroPhotoFan
+                className="h-[78px] w-[128px] sm:hidden"
+                photos={heroPhotos}
+                showLabels={false}
+              />
+            </div>
           </div>
 
-          {/* tilted photo stack: what's on sale, at a glance */}
-          <div className="relative h-[275px] sm:h-[290px]" aria-hidden="true">
-            {[
-              { src: "/hero/fashion.jpg", label: t.home.heroTagFashion, cls: "left-[2%] top-[2%] -rotate-[6deg]" },
-              { src: "/hero/jewellery.jpg", label: t.home.heroTagJewellery, cls: "left-[50%] top-[2%] rotate-[5deg]" },
-              { src: "/hero/home.jpg", label: t.home.heroTagHome, cls: "left-[5%] top-[54%] rotate-[4deg]" },
-              { src: "/hero/beauty.jpg", label: t.home.heroTagBeauty, cls: "left-[48%] top-[57%] -rotate-[5deg]" },
-            ].map((pic) => (
-              <div
-                key={pic.src}
-                className={`absolute w-[46%] rounded-md bg-white p-1.5 pb-6 shadow-[0_18px_30px_-14px_rgba(0,0,0,0.55)] transition-transform duration-300 hover:z-10 hover:scale-105 ${pic.cls}`}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={pic.src} alt="" className="aspect-[4/3] w-full rounded-[3px] object-cover" loading="eager" />
-                <span className="absolute inset-x-0 bottom-1 truncate px-1 text-center text-[11px] font-bold text-primary">
-                  {pic.label}
-                </span>
-              </div>
-            ))}
-          </div>
+          <HeroPhotoFan className="hidden h-[250px] sm:block" photos={heroPhotos} showLabels />
         </div>
 
         <div className="flex min-h-[260px] flex-col justify-between gap-4 rounded-xl border border-[#e4d9ee] bg-white p-[26px] transition-all duration-300 [transform-style:preserve-3d] hover:[transform:perspective(900px)_rotateX(4deg)_rotateY(-4deg)_translateY(-6px)] hover:shadow-[0_24px_40px_-18px_rgba(74,34,102,0.5)] sm:min-h-[300px]">
@@ -1005,6 +1000,43 @@ function VerifyEmailBanner() {
       >
         Dismiss
       </button>
+    </div>
+  );
+}
+
+/** Three tilted polaroid-style photos fanned left to right, for the hero box. */
+function HeroPhotoFan({
+  photos,
+  showLabels,
+  className,
+}: {
+  photos: { src: string; label: string }[];
+  showLabels: boolean;
+  className?: string;
+}) {
+  const placement = [
+    "left-0 top-[10%] -rotate-[8deg]",
+    "left-[30%] top-0 z-[2] rotate-[2deg]",
+    "left-[60%] top-[12%] z-[3] rotate-[9deg]",
+  ];
+  return (
+    <div className={`relative ${className ?? ""}`} aria-hidden="true">
+      {photos.map((pic, i) => (
+        <div
+          key={pic.src}
+          className={`absolute w-[40%] rounded-md bg-white shadow-[0_18px_30px_-14px_rgba(0,0,0,0.55)] transition-transform duration-300 hover:z-10 hover:scale-105 ${
+            showLabels ? "p-1.5 pb-6" : "p-1 pb-2"
+          } ${placement[i]}`}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={pic.src} alt="" className="aspect-[4/5] w-full rounded-[3px] object-cover" loading="eager" />
+          {showLabels ? (
+            <span className="absolute inset-x-0 bottom-1 truncate px-1 text-center text-[11px] font-bold text-primary">
+              {pic.label}
+            </span>
+          ) : null}
+        </div>
+      ))}
     </div>
   );
 }
