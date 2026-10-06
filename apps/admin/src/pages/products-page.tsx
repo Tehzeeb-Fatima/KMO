@@ -150,8 +150,8 @@ export function ProductsModerationPage() {
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-border bg-surface">
-        <div className="min-w-[820px]">
-        <div className="grid grid-cols-[32px_2fr_1fr_1fr_1fr_215px] items-center bg-surface-alt px-5 py-3.5 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
+        <div className="min-w-[920px]">
+        <div className="grid grid-cols-[32px_2fr_1.2fr_1fr_1fr_280px] gap-x-4 items-center bg-surface-alt px-5 py-3.5 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
           <input
             type="checkbox"
             checked={filtered.length > 0 && selected.size === filtered.length}
@@ -171,7 +171,7 @@ export function ProductsModerationPage() {
           filtered.map((p) => (
             <div
               key={p.id}
-              className="grid grid-cols-[32px_2fr_1fr_1fr_1fr_215px] items-center border-t border-[#F5F0EE] px-5 py-4 text-[13px]"
+              className="grid grid-cols-[32px_2fr_1.2fr_1fr_1fr_280px] gap-x-4 items-center border-t border-[#F5F0EE] px-5 py-4 text-[13px]"
             >
               <input
                 type="checkbox"
@@ -187,8 +187,8 @@ export function ProductsModerationPage() {
               </button>
               <span className="text-muted">{p.vendors?.store_name}</span>
               <span className="text-ink-dark">Rs. {p.price.toLocaleString()}</span>
-              <span className="text-muted">{p.status}</span>
-              <div className="flex flex-wrap gap-1.5">
+              <span><span className="rounded-full bg-surface-alt px-2.5 py-1 text-[11.5px] font-semibold capitalize text-ink-dark">{p.status}</span></span>
+              <div className="flex flex-nowrap justify-end gap-1.5">
                 {p.status === "pending" ? (
                   <>
                     <button
