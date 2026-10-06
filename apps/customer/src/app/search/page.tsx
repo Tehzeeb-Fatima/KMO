@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { ChevronDown } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import {
   listActivePromotions,
@@ -50,6 +51,9 @@ function SearchPageContent() {
 
   const [searchInput, setSearchInput] = useState(q);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  // Sub-category lists the shopper opened or closed by hand; otherwise the
+  // group of the category being browsed is open.
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
 
   function updateParams(patch: Record<string, string | null>) {
     const params = new URLSearchParams(searchParams.toString());
@@ -81,6 +85,22 @@ function SearchPageContent() {
   const activeSubs = (categories ?? [])
     .filter((c) => activeMainId && c.parent_id === activeMainId)
     .sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name));
+
+  const subsByParent = new Map<string, NonNullable<typeof categories>>();
+  for (const c of categories ?? []) {
+    if (!c.parent_id) continue;
+    const list = subsByParent.get(c.parent_id) ?? [];
+    list.push(c);
+    subsByParent.set(c.parent_id, list);
+  }
+  for (const list of subsByParent.values()) {
+    list.sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name));
+  }
+
+  function pickCategory(id: string | null) {
+    updateParams({ category: id, promo: null });
+    setFiltersOpen(false);
+  }
 
   const { data: activePromotions } = useQuery({
     queryKey: ["active-promotions-search"],
@@ -130,54 +150,86 @@ function SearchPageContent() {
 
       <div>
         <p className="mb-3 text-[13px] font-bold text-ink">{t.search.category}</p>
-        <div className="flex flex-col gap-1">
+        <div className="overflow-hidden rounded-xl border border-border bg-surface">
           <button
             type="button"
-            onClick={() => updateParams({ category: null, promo: null })}
-            className="rounded-md px-2.5 py-1.5 text-left text-[13px]"
+            onClick={() => pickCategory(null)}
+            className="flex w-full items-center px-3.5 py-3 text-left text-[13.5px] transition-colors hover:bg-surface-alt"
             style={
               !category && !promo
                 ? { background: "var(--color-primary-tint)", color: "var(--color-primary)", fontWeight: 700 }
-                : { color: "var(--color-ink-secondary)" }
+                : { color: "var(--color-ink-secondary)", fontWeight: 600 }
             }
           >
             {t.search.allCategories}
           </button>
-          {mainCategories(categories ?? []).map((c) => (
-            <div key={c.id} className="flex flex-col gap-1">
-              <button
-                type="button"
-                onClick={() => updateParams({ category: c.id, promo: null })}
-                className="rounded-md px-2.5 py-1.5 text-left text-[13px]"
-                style={
-                  category === c.id
-                    ? { background: "var(--color-primary-tint)", color: "var(--color-primary)", fontWeight: 700 }
-                    : activeMainId === c.id
-                      ? { color: "var(--color-primary)", fontWeight: 700 }
-                      : { color: "var(--color-ink-secondary)" }
-                }
-              >
-                {c.name}
-              </button>
-              {activeMainId === c.id
-                ? activeSubs.map((sub) => (
+          {mainCategories(categories ?? []).map((c) => {
+            const subs = subsByParent.get(c.id) ?? [];
+            const open = subs.length > 0 && (openGroups[c.id] ?? activeMainId === c.id);
+            const isSelected = category === c.id;
+            const inGroup = activeMainId === c.id;
+            return (
+              <div key={c.id} className="border-t border-border">
+                <div
+                  className="flex items-center transition-colors hover:bg-surface-alt"
+                  style={isSelected ? { background: "var(--color-primary-tint)" } : undefined}
+                >
+                  <button
+                    type="button"
+                    onClick={() => pickCategory(c.id)}
+                    className="min-w-0 flex-1 truncate px-3.5 py-3 text-left text-[13.5px]"
+                    style={
+                      isSelected || inGroup
+                        ? { color: "var(--color-primary)", fontWeight: 700 }
+                        : { color: "var(--color-ink-secondary)", fontWeight: 600 }
+                    }
+                  >
+                    {c.name}
+                  </button>
+                  {subs.length > 0 ? (
                     <button
-                      key={sub.id}
                       type="button"
-                      onClick={() => updateParams({ category: sub.id, promo: null })}
-                      className="ml-3 rounded-md px-2.5 py-1 text-left text-[12.5px]"
-                      style={
-                        category === sub.id
-                          ? { background: "var(--color-primary-tint)", color: "var(--color-primary)", fontWeight: 700 }
-                          : { color: "var(--color-ink-secondary)" }
-                      }
+                      aria-expanded={open}
+                      aria-label={`${open ? "Hide" : "Show"} ${c.name} sub-categories`}
+                      onClick={() => setOpenGroups((prev) => ({ ...prev, [c.id]: !open }))}
+                      className="mr-1.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted-table transition-colors hover:bg-white hover:text-primary"
                     >
-                      {sub.name}
+                      <ChevronDown
+                        className={`h-4 w-4 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+                        strokeWidth={2.2}
+                      />
                     </button>
-                  ))
-                : null}
-            </div>
-          ))}
+                  ) : null}
+                </div>
+                {open ? (
+                  <div className="flex flex-col gap-0.5 bg-surface-alt px-2 py-2">
+                    {subs.map((sub) => {
+                      const subSelected = category === sub.id;
+                      return (
+                        <button
+                          key={sub.id}
+                          type="button"
+                          onClick={() => pickCategory(sub.id)}
+                          className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-left text-[13px] transition-colors hover:bg-white"
+                          style={
+                            subSelected
+                              ? { background: "var(--color-primary)", color: "#fff", fontWeight: 700 }
+                              : { color: "var(--color-ink-secondary)" }
+                          }
+                        >
+                          <span
+                            className="h-1.5 w-1.5 shrink-0 rounded-full"
+                            style={{ background: subSelected ? "#fff" : "var(--color-muted-table)" }}
+                          />
+                          <span className="min-w-0">{sub.name}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : null}
+              </div>
+            );
+          })}
         </div>
       </div>
 
