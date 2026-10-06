@@ -96,36 +96,38 @@ export default function Home() {
       {platformSettings?.show_hero_boxes !== false ? (
       <section className="grid gap-4 px-4 pt-7 sm:px-10 lg:grid-cols-[2.2fr_1fr_1fr]">
         <div
-          className="relative grid items-center gap-4 overflow-hidden rounded-xl p-7 text-white transition-all duration-300 [transform-style:preserve-3d] hover:[transform:perspective(900px)_rotateX(4deg)_rotateY(-4deg)_translateY(-6px)] hover:shadow-[0_24px_40px_-18px_rgba(74,34,102,0.6)] sm:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] sm:p-[34px_30px]"
+          className="relative flex flex-col justify-center gap-4 overflow-hidden rounded-xl p-7 text-white transition-all duration-300 [transform-style:preserve-3d] hover:[transform:perspective(900px)_rotateX(4deg)_rotateY(-4deg)_translateY(-6px)] hover:shadow-[0_24px_40px_-18px_rgba(74,34,102,0.6)] sm:p-[34px_30px]"
           style={{ background: "linear-gradient(135deg,#4a2266 0%,#7a2f6c 100%)" }}
         >
-          <div className="relative flex min-w-0 flex-col gap-4">
-            <p className="font-mono text-[10.5px] tracking-[0.18em] text-[#F3D2C2]">
-              {t.home.heroLiveBadge}
-            </p>
-            <h1 className="text-[32px] font-extrabold leading-[1.05] tracking-[-0.038em] text-white sm:text-[40px]">
-              {t.home.heroLiveTitle}
-            </h1>
-            <p className="max-w-[420px] text-[15px] leading-[1.6] text-white/85">
-              {t.home.heroLiveDesc}
-            </p>
-            <div className="mt-1 flex items-end justify-between gap-3">
-              <Link
-                href="/search"
-                className="w-fit shrink-0 rounded-full bg-white px-7 py-3.5 text-sm font-bold text-primary"
-              >
-                {t.home.heroLiveCta}
-              </Link>
-              {/* phones: a small fan of photos next to the button keeps the box short */}
-              <HeroPhotoFan
-                className="h-[78px] w-[128px] sm:hidden"
-                photos={heroPhotos}
-                showLabels={false}
-              />
+          <p className="font-mono text-[10.5px] tracking-[0.18em] text-[#F3D2C2]">
+            {t.home.heroLiveBadge}
+          </p>
+          {/* full width so the title sits on two lines */}
+          <h1 className="max-w-[640px] text-[32px] font-extrabold leading-[1.05] tracking-[-0.038em] text-white [text-wrap:balance] sm:text-[40px] lg:text-[36px] xl:text-[40px]">
+            {t.home.heroLiveTitle}
+          </h1>
+          <div className="grid items-center gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)]">
+            <div className="flex min-w-0 flex-col gap-4">
+              <p className="max-w-[420px] text-[15px] leading-[1.6] text-white/85">
+                {t.home.heroLiveDesc}
+              </p>
+              <div className="mt-1 flex items-end justify-between gap-3">
+                <Link
+                  href="/search"
+                  className="w-fit shrink-0 rounded-full bg-white px-7 py-3.5 text-sm font-bold text-primary"
+                >
+                  {t.home.heroLiveCta}
+                </Link>
+                {/* phones: a small fan of photos next to the button keeps the box short */}
+                <HeroPhotoFan
+                  className="h-[78px] w-[128px] sm:hidden"
+                  photos={heroPhotos}
+                  showLabels={false}
+                />
+              </div>
             </div>
+            <HeroPhotoFan className="hidden h-[160px] sm:block" photos={heroPhotos} showLabels />
           </div>
-
-          <HeroPhotoFan className="hidden h-[250px] sm:block" photos={heroPhotos} showLabels />
         </div>
 
         <div
@@ -136,11 +138,9 @@ export default function Home() {
           }}
         >
           <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-accent" />
-              <span className="font-mono text-[10px] tracking-[0.16em] text-accent">
-                {t.home.heroWelcomeBadge}
-              </span>
+            <div className="flex items-start gap-2">
+              <span className="mt-[5px] h-2 w-2 shrink-0 rounded-full bg-accent" />
+              <BrandBadge text={t.home.heroWelcomeBadge} className="font-mono text-[10px] leading-[1.6] tracking-[0.16em] text-accent" />
             </div>
             <h2 className="text-2xl font-extrabold leading-[1.15] tracking-[-0.03em] text-ink-dark">
               {t.home.heroWelcomeTitle}
@@ -165,11 +165,9 @@ export default function Home() {
           }}
         >
           <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-primary" />
-              <span className="font-mono text-[10px] tracking-[0.16em] text-primary">
-                {t.home.heroSellBadge}
-              </span>
+            <div className="flex items-start gap-2">
+              <span className="mt-[5px] h-2 w-2 shrink-0 rounded-full bg-primary" />
+              <BrandBadge text={t.home.heroSellBadge} className="font-mono text-[10px] leading-[1.6] tracking-[0.16em] text-primary" />
             </div>
             <h2 className="text-2xl font-extrabold leading-[1.15] tracking-[-0.03em] text-ink-dark">
               {t.home.heroSellTitle}
@@ -1028,8 +1026,8 @@ function HeroPhotoFan({
 }) {
   const placement = [
     "left-0 top-[10%] -rotate-[8deg]",
-    "left-[30%] top-0 z-[2] rotate-[2deg]",
-    "left-[60%] top-[12%] z-[3] rotate-[9deg]",
+    "left-[28%] top-0 z-[2] rotate-[2deg]",
+    "left-[60%] top-[8%] z-[3] rotate-[6deg]",
   ];
   return (
     <div className={`relative ${className ?? ""}`} aria-hidden="true">
@@ -1050,5 +1048,21 @@ function HeroPhotoFan({
         </div>
       ))}
     </div>
+  );
+}
+
+const BRAND_NAMES = ["Karachi Mart Online", "کراچی مارٹ آن لائن"];
+
+/** Badge text with the store name on its own line: "WELCOME TO" / "Karachi Mart Online". */
+function BrandBadge({ text, className }: { text: string; className?: string }) {
+  const brand = BRAND_NAMES.find((b) => text.includes(b));
+  if (!brand) return <span className={className}>{text}</span>;
+  const [before, after] = text.split(brand);
+  return (
+    <span className={className}>
+      {before.trim() ? <span className="block">{before.trim()}</span> : null}
+      <span className="block font-bold">{brand}</span>
+      {after.trim() ? <span className="block">{after.trim()}</span> : null}
+    </span>
   );
 }
