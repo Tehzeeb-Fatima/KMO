@@ -189,7 +189,8 @@ export async function uploadVendorMedia(
   if (error) throw error;
 
   const { data } = supabase.storage.from("vendor-media").getPublicUrl(path);
-  return data.publicUrl;
+  // Same path on every re-upload, so add a version or browsers keep the old image.
+  return `${data.publicUrl}?v=${Date.now()}`;
 }
 
 export async function isFollowingVendor(

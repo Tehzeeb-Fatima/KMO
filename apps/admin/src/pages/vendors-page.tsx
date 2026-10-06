@@ -7,6 +7,8 @@ import {
   getPlatformSettings,
   getVendorById,
   listCategories,
+  updateMyVendor,
+  uploadVendorMedia,
   listMembershipCharges,
   listMyProducts,
   listVendorCategories,
@@ -556,8 +558,11 @@ function VendorDetail({ vendorId, onBack }: { vendorId: string; onBack: () => vo
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="flex flex-col gap-5">
           <div className="flex gap-[18px] rounded-lg border border-border bg-surface p-6">
-            <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[14px] bg-primary text-lg font-extrabold text-white">
-              {initials(vendor.store_name)}
+            <span
+              className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[14px] bg-primary bg-cover bg-center text-lg font-extrabold text-white"
+              style={vendor.logo_url ? { backgroundImage: `url(${vendor.logo_url})` } : undefined}
+            >
+              {vendor.logo_url ? null : initials(vendor.store_name)}
             </span>
             <div>
               <div className="flex items-center gap-2.5">
@@ -571,6 +576,16 @@ function VendorDetail({ vendorId, onBack }: { vendorId: string; onBack: () => vo
               </p>
             </div>
           </div>
+
+          <VendorImagesSection
+            vendorId={vendorId}
+            logoUrl={vendor.logo_url}
+            coverUrl={vendor.cover_url}
+            onSaved={(updated) => {
+              queryClient.setQueryData(["admin-vendor", vendorId], updated);
+              queryClient.invalidateQueries({ queryKey: ["admin-vendors"] });
+            }}
+          />
 
           <div className="rounded-lg border border-border bg-surface p-6">
             <div className="flex items-center justify-between">
@@ -980,6 +995,107 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     <div className="flex flex-col gap-[7px]">
       <span className="text-[12.5px] font-bold text-ink-dark">{label}</span>
       {children}
+    </div>
+  );
+}
+
+type VendorRowForImages = Awaited<ReturnType<typeof updateMyVendor>>;
+
+/** Admin-side logo and banner upload, for vendors who have not set their own. */
+function VendorImagesSection({
+  vendorId,
+  logoUrl,
+  coverUrl,
+  onSaved,
+}: {
+  vendorId: string;
+  logoUrl: string | null;
+  coverUrl: string | null;
+  onSaved: (updated: VendorRowForImages) => void;
+}) {
+  const { user } = useAuth();
+  const [error, setError] = useState<string | null>(null);
+  const save = useMutation({
+    mutationFn: async (p: { kind: "logo" | "cover"; file: File | null }) => {
+      const url = p.file ? await uploadVendorMedia(supabase, vendorId, p.kind, p.file) : null;
+      return updateMyVendor(supabase, vendorId, p.kind === "logo" ? { logo_url: url } : { cover_url: url });
+    },
+    onSuccess: (updated, p) => {
+      setError(null);
+      onSaved(updated);
+      if (user) void logAdminAction(supabase, user.id, `vendor.${p.kind}.${p.file ? "upload" : "remove"}`, "vendor", vendorId);
+    },
+    onError: (err: Error) => setError(err.message),
+  });
+  const busy = (kind: "logo" | "cover") => save.isPending && save.variables?.kind === kind;
+
+  function picker(kind: "logo" | "cover") {
+    return (
+      <input
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          e.target.value = "";
+          if (file) save.mutate({ kind, file });
+        }}
+      />
+    );
+  }
+
+  return (
+    <div className="rounded-lg border border-border bg-surface p-6">
+      <span className="text-[15px] font-bold text-ink">Logo &amp; banner</span>
+      <p className="mt-1 text-[12px] text-muted">
+        Shown on the homepage &ldquo;Featured vendors&rdquo; card and the vendor&rsquo;s store page. The vendor can
+        also change these from their Store settings.
+      </p>
+      <div className="mt-4 flex flex-wrap items-start gap-4">
+        <div className="flex flex-col gap-2">
+          <label
+            className="flex h-[88px] w-[88px] cursor-pointer items-center justify-center overflow-hidden rounded-[14px] border border-dashed border-border bg-surface-alt bg-cover bg-center text-[11.5px] font-semibold text-muted"
+            style={logoUrl ? { backgroundImage: `url(${logoUrl})`, borderStyle: "solid" } : undefined}
+          >
+            {busy("logo") ? "Uploading…" : logoUrl ? null : "+ Logo"}
+            {picker("logo")}
+          </label>
+          {logoUrl ? (
+            <button
+              type="button"
+              onClick={() => save.mutate({ kind: "logo", file: null })}
+              disabled={save.isPending}
+              className="text-left text-[11.5px] font-bold text-danger disabled:opacity-60"
+            >
+              Remove logo
+            </button>
+          ) : (
+            <span className="text-[11px] text-muted">Square image</span>
+          )}
+        </div>
+        <div className="flex min-w-[220px] flex-1 flex-col gap-2">
+          <label
+            className="flex h-[88px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-[14px] border border-dashed border-border bg-surface-alt bg-cover bg-center text-[11.5px] font-semibold text-muted"
+            style={coverUrl ? { backgroundImage: `url(${coverUrl})`, borderStyle: "solid" } : undefined}
+          >
+            {busy("cover") ? "Uploading…" : coverUrl ? null : "+ Banner"}
+            {picker("cover")}
+          </label>
+          {coverUrl ? (
+            <button
+              type="button"
+              onClick={() => save.mutate({ kind: "cover", file: null })}
+              disabled={save.isPending}
+              className="text-left text-[11.5px] font-bold text-danger disabled:opacity-60"
+            >
+              Remove banner
+            </button>
+          ) : (
+            <span className="text-[11px] text-muted">Wide image, e.g. 1200 × 400</span>
+          )}
+        </div>
+      </div>
+      {error ? <p className="mt-2 text-[12px] text-danger">{error}</p> : null}
     </div>
   );
 }
