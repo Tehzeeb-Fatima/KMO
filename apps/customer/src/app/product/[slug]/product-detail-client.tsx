@@ -195,8 +195,11 @@ export default function ProductDetailClient() {
   const colourImages = selectedColourVariantId
     ? allImages.filter((i) => i.variant_id === selectedColourVariantId)
     : [];
+  const sharedImages = allImages.filter((i) => i.variant_id === null);
+  // Products whose photos were all tied to a colour still need a gallery
+  // before a colour is picked, so fall back to every photo.
   const images =
-    colourImages.length > 0 ? colourImages : allImages.filter((i) => i.variant_id === null);
+    colourImages.length > 0 ? colourImages : sharedImages.length > 0 ? sharedImages : allImages;
   const stock = selectedVariant ? selectedVariant.stock_quantity : product.stock_quantity;
   const listPrice = selectedVariant?.price_override ?? product.price;
 
