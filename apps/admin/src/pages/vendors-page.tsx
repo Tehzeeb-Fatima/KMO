@@ -13,6 +13,7 @@ import {
   listMyProducts,
   listVendorCategories,
   listVendorCategoryNames,
+  listVendorDeliveryRates,
   listVendors,
   logAdminAction,
   membershipStatus,
@@ -611,6 +612,8 @@ function VendorDetail({ vendorId, onBack }: { vendorId: string; onBack: () => vo
 
           <VendorAccountSection vendorId={vendorId} ownerId={vendor.owner_id} />
 
+          <VendorDeliveryRatesSection vendorId={vendorId} />
+
           <VendorMembershipSection vendorId={vendorId} membershipStartedAt={vendor.membership_started_at} />
 
           <VendorProductsSection vendorId={vendorId} />
@@ -711,6 +714,47 @@ function VendorDetail({ vendorId, onBack }: { vendorId: string; onBack: () => vo
           setDeleteError(null);
         }}
       />
+    </div>
+  );
+}
+
+/** Read-only: what this vendor is charging customers for delivery, so admin
+ *  can check it without logging in as the vendor. Editing happens on the
+ *  vendor's own Shipping page. */
+function VendorDeliveryRatesSection({ vendorId }: { vendorId: string }) {
+  const { data: rates, isLoading } = useQuery({
+    queryKey: ["vendor-delivery-rates", vendorId],
+    queryFn: () => listVendorDeliveryRates(supabase, vendorId),
+  });
+
+  return (
+    <div className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-6">
+      <span className="text-[15px] font-bold text-ink">Delivery charges to customers</span>
+      <p className="text-[12.5px] text-muted">
+        Set by the vendor on their own dashboard. Cities not listed here use KMO&rsquo;s default (Rs. 120, free over
+        Rs. 2,500).
+      </p>
+      {isLoading ? (
+        <p className="text-[13px] text-muted">Loading…</p>
+      ) : !rates || rates.length === 0 ? (
+        <p className="text-[13px] text-muted">No custom rates set — KMO&rsquo;s default applies everywhere.</p>
+      ) : (
+        <div className="overflow-x-auto rounded-lg border border-border">
+          <div className="grid min-w-[280px] grid-cols-2 bg-surface-alt px-3.5 py-2.5 font-mono text-[10px] uppercase tracking-[0.08em] text-muted-table">
+            <span>City</span>
+            <span>Fee</span>
+          </div>
+          {rates.map((r) => (
+            <div
+              key={r.id}
+              className="grid min-w-[280px] grid-cols-2 items-center border-t border-[#F5F0EE] px-3.5 py-2.5 text-[12.5px]"
+            >
+              <span className="font-bold text-ink-dark">{r.city}</span>
+              <span className="text-ink-dark">Rs. {r.fee.toLocaleString()}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
