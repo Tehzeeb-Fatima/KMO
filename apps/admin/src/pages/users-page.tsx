@@ -23,6 +23,7 @@ const STAFF_MODULES: { key: string; label: string }[] = [
   { key: "payouts", label: "Payouts" },
   { key: "categories", label: "Categories" },
   { key: "couriers", label: "Couriers" },
+  { key: "delivery-caps", label: "Delivery caps" },
   { key: "promotions", label: "Promotions" },
   { key: "banners", label: "Banners" },
   { key: "testimonials", label: "Testimonials" },

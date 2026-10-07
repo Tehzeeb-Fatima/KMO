@@ -172,6 +172,57 @@ export interface Database {
         };
         Relationships: [];
       };
+      vendor_delivery_rates: {
+        Row: {
+          id: string;
+          vendor_id: string;
+          city: string;
+          fee: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          vendor_id: string;
+          city: string;
+          fee: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          vendor_id?: string;
+          city?: string;
+          fee?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      delivery_fee_caps: {
+        Row: {
+          id: string;
+          city: string;
+          max_fee: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          city: string;
+          max_fee: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          city?: string;
+          max_fee?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       courier_rate_slabs: {
         Row: {
           id: string;

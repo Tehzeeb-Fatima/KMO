@@ -20,6 +20,7 @@ import { NotFoundPage } from "./pages/not-found-page";
 import { AuditLogPage } from "./pages/audit-log-page";
 import { ContactMessagesPage } from "./pages/contact-messages-page";
 import { UsersPage } from "./pages/users-page";
+import { DeliveryCapsPage } from "./pages/delivery-caps-page";
 
 export default function App() {
   return (
@@ -42,6 +43,7 @@ export default function App() {
         <Route path="payouts" element={<ModuleRoute module="payouts"><PayoutsPage /></ModuleRoute>} />
         <Route path="categories" element={<ModuleRoute module="categories"><CategoriesPage /></ModuleRoute>} />
         <Route path="couriers" element={<ModuleRoute module="couriers"><CouriersPage /></ModuleRoute>} />
+        <Route path="delivery-caps" element={<ModuleRoute module="delivery-caps"><DeliveryCapsPage /></ModuleRoute>} />
         <Route path="promotions" element={<ModuleRoute module="promotions"><PromotionsPage /></ModuleRoute>} />
         <Route path="banners" element={<ModuleRoute module="banners"><BannersPage /></ModuleRoute>} />
         <Route path="testimonials" element={<ModuleRoute module="testimonials"><TestimonialsPage /></ModuleRoute>} />

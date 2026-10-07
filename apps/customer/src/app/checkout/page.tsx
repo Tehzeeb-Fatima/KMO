@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   claimGuestAccount,
   createAddress,
+  getVendorDeliveryRatesForCity,
   listActivePromotions,
   listAddresses,
   listCartItems,
@@ -92,6 +93,14 @@ function CheckoutContent() {
   }, [appliedCode, coupon]);
 
   const effectiveAddressId = selectedAddressId ?? addresses?.[0]?.id ?? null;
+  const selectedAddress = addresses?.find((a) => a.id === effectiveAddressId) ?? null;
+  const vendorIds = Array.from(new Set(items?.map((i) => i.products.vendor_id) ?? []));
+
+  const { data: vendorDeliveryRates } = useQuery({
+    queryKey: ["vendor-delivery-rates-checkout", vendorIds.join(","), selectedAddress?.city],
+    queryFn: () => getVendorDeliveryRatesForCity(supabase, vendorIds, selectedAddress!.city),
+    enabled: vendorIds.length > 0 && !!selectedAddress?.city,
+  });
 
   const addAddressMutation = useMutation({
     mutationFn: () =>
@@ -139,8 +148,18 @@ function CheckoutContent() {
       return sum + price * item.quantity;
     }, 0) ?? 0;
 
-  const vendorCount = new Set(items?.map((i) => i.products.vendor_id)).size;
-  const deliveryFee = (subtotal >= 2500 ? 0 : 120) * Math.max(vendorCount, 1);
+  // Each vendor order gets its own delivery fee: the vendor's own rate for the
+  // delivery city if they've set one, else KMO's default (free over Rs. 2,500,
+  // otherwise Rs. 120) — mirrored exactly in place_order so this isn't just an
+  // estimate.
+  const deliveryFee = vendorIds.reduce((sum, vendorId) => {
+    const vendorSubtotal = (items ?? [])
+      .filter((i) => i.products.vendor_id === vendorId)
+      .reduce((s, i) => s + (i.product_variants?.price_override ?? i.products.price) * i.quantity, 0);
+    const customRate = vendorDeliveryRates?.get(vendorId);
+    const fee = customRate ?? (vendorSubtotal >= 2500 ? 0 : 120);
+    return sum + fee;
+  }, 0);
 
   // Mirrors place_order's matching exactly, so this total is what gets charged
   // — not an estimate that then changes once the order is actually created.

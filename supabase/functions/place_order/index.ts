@@ -61,12 +61,20 @@ Deno.serve(async (req: Request) => {
   // Confirm the address belongs to this customer.
   const { data: address } = await admin
     .from("addresses")
-    .select("id, customer_id")
+    .select("id, customer_id, city")
     .eq("id", body.address_id)
     .maybeSingle();
   if (!address || address.customer_id !== user.id) {
     return json({ error: "Address not found" }, 404);
   }
+
+  // Per-vendor delivery rate overrides for the delivery city, if any vendor in
+  // this cart has set one. Falls back to deliveryFeeFor() below otherwise.
+  const { data: deliveryRates } = await admin
+    .from("vendor_delivery_rates")
+    .select("vendor_id, fee")
+    .ilike("city", address.city);
+  const deliveryRateByVendor = new Map((deliveryRates ?? []).map((r) => [r.vendor_id, r.fee]));
 
   const { data: cartItems, error: cartError } = await admin
     .from("cart_items")
@@ -194,7 +202,7 @@ Deno.serve(async (req: Request) => {
       const unitPrice = variant?.price_override ?? product.price;
       return sum + unitPrice * item.quantity;
     }, 0);
-    const deliveryFee = deliveryFeeFor(subtotal);
+    const deliveryFee = deliveryRateByVendor.get(vendorId) ?? deliveryFeeFor(subtotal);
 
     // Pick the best-matching promotion for this vendor's items, if any. A
     // promo can be scoped to a vendor and/or a category — both null means
