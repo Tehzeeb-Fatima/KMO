@@ -36,7 +36,9 @@ export async function deleteVendorDeliveryRate(supabase: Client, id: string): Pr
   if (error) throw error;
 }
 
-/** For checkout: the vendor-set rate for each (vendor, city) pair that has one, keyed by vendor id. */
+/** For checkout: each vendor's rate for the delivery city — their exact-city
+ *  rate if they set one, else their "Other cities" rate if they set that
+ *  instead. Keyed by vendor id. */
 export async function getVendorDeliveryRatesForCity(
   supabase: Client,
   vendorIds: string[],
@@ -45,11 +47,17 @@ export async function getVendorDeliveryRatesForCity(
   if (vendorIds.length === 0 || !city.trim()) return new Map();
   const { data, error } = await supabase
     .from("vendor_delivery_rates")
-    .select("vendor_id, fee")
+    .select("vendor_id, city, fee")
     .in("vendor_id", vendorIds)
-    .ilike("city", city.trim());
+    .or(`city.ilike.${city.trim()},city.ilike.Other`);
   if (error) throw error;
-  return new Map(data.map((r) => [r.vendor_id, r.fee]));
+  const exact = new Map<string, number>();
+  const fallback = new Map<string, number>();
+  for (const r of data) {
+    if (r.city.toLowerCase() === city.trim().toLowerCase()) exact.set(r.vendor_id, r.fee);
+    else fallback.set(r.vendor_id, r.fee);
+  }
+  return new Map([...fallback, ...exact]);
 }
 
 export async function listDeliveryFeeCaps(supabase: Client): Promise<DeliveryFeeCapRow[]> {

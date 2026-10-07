@@ -10,6 +10,7 @@ import {
   setVendorDeliveryRate,
   updateMyVendor,
 } from "@kmo/shared/api";
+import { DELIVERY_CITY_OPTIONS, OTHER_CITY } from "@kmo/shared/lib";
 import { ConfirmDialog } from "@kmo/shared/ui";
 import { supabase } from "../lib/supabase";
 
@@ -134,11 +135,14 @@ function CustomerDeliveryChargesSection({ vendorId }: { vendorId: string }) {
     queryFn: () => listDeliveryFeeCaps(supabase),
   });
 
+  const availableCities = DELIVERY_CITY_OPTIONS.filter((c) => !rates?.some((r) => r.city === c));
   const [city, setCity] = useState("");
   const [fee, setFee] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  const matchingCap = caps?.find((c) => c.city.toLowerCase() === city.trim().toLowerCase());
+  const matchingCap =
+    caps?.find((c) => c.city.toLowerCase() === city.toLowerCase()) ??
+    (city && city !== OTHER_CITY ? caps?.find((c) => c.city === OTHER_CITY) : undefined);
 
   const saveMutation = useMutation({
     mutationFn: () => setVendorDeliveryRate(supabase, { vendor_id: vendorId, city: city.trim(), fee: Number(fee) }),
@@ -166,20 +170,27 @@ function CustomerDeliveryChargesSection({ vendorId }: { vendorId: string }) {
     <div className="flex flex-col gap-3.5 rounded-xl border border-border bg-surface p-[22px_24px]">
       <p className="text-[15px] font-bold text-ink">Your delivery charge to customers</p>
       <p className="text-[12.5px] text-muted">
-        Set what a customer pays for delivery, per city. Cities you haven&rsquo;t set use KMO&rsquo;s default (Rs. 120,
-        free over Rs. 2,500).
+        Set what a customer pays for delivery, per city. Pick <span className="font-semibold text-ink-dark">Other</span>{" "}
+        to set one rate for every city you haven&rsquo;t listed individually — otherwise KMO&rsquo;s default applies
+        (Rs. 120, free over Rs. 2,500).
       </p>
 
       <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-[1fr_1fr_auto]">
-        <input
-          placeholder="City"
+        <select
           value={city}
           onChange={(e) => {
             setCity(e.target.value);
             setError(null);
           }}
-          className="col-span-2 rounded-lg border border-border px-3 py-2 text-[13px] outline-none focus:border-primary-light sm:col-span-1"
-        />
+          className="col-span-2 rounded-lg border border-border bg-surface px-3 py-2 text-[13px] text-ink-dark outline-none focus:border-primary-light sm:col-span-1"
+        >
+          <option value="">City…</option>
+          {availableCities.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
         <input
           type="number"
           min="0"

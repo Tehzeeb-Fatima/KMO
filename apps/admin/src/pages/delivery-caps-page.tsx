@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { deleteDeliveryFeeCap, listDeliveryFeeCaps, setDeliveryFeeCap } from "@kmo/shared/api";
+import { DELIVERY_CITY_OPTIONS } from "@kmo/shared/lib";
 import { ConfirmDialog } from "@kmo/shared/ui";
 import { supabase } from "../lib/supabase";
 
@@ -16,6 +17,7 @@ export function DeliveryCapsPage() {
     queryFn: () => listDeliveryFeeCaps(supabase),
   });
 
+  const availableCities = DELIVERY_CITY_OPTIONS.filter((c) => !caps?.some((cap) => cap.city === c));
   const [city, setCity] = useState("");
   const [maxFee, setMaxFee] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -45,21 +47,28 @@ export function DeliveryCapsPage() {
   return (
     <div className="flex max-w-[640px] flex-col gap-4">
       <p className="text-sm text-muted">
-        A vendor cannot charge a customer more than this for delivery to a city they&rsquo;ve set a cap for. Cities
-        without a cap are unrestricted.
+        A vendor cannot charge a customer more than this for delivery to a city they&rsquo;ve set a cap for. Pick{" "}
+        <span className="font-semibold text-ink-dark">Other</span> to cap every city that doesn&rsquo;t have its own
+        row. Cities without a cap (and no Other cap set) are unrestricted.
       </p>
 
       <div className="rounded-xl border border-border bg-surface p-5">
         <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-[1fr_1fr_auto]">
-          <input
-            placeholder="City"
+          <select
             value={city}
             onChange={(e) => {
               setCity(e.target.value);
               setError(null);
             }}
-            className="col-span-2 rounded-lg border border-border px-3 py-2 text-[13px] outline-none focus:border-primary-light sm:col-span-1"
-          />
+            className="col-span-2 rounded-lg border border-border bg-surface px-3 py-2 text-[13px] text-ink-dark outline-none focus:border-primary-light sm:col-span-1"
+          >
+            <option value="">City…</option>
+            {availableCities.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
           <input
             type="number"
             min="0"

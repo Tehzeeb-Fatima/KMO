@@ -68,13 +68,20 @@ Deno.serve(async (req: Request) => {
     return json({ error: "Address not found" }, 404);
   }
 
-  // Per-vendor delivery rate overrides for the delivery city, if any vendor in
-  // this cart has set one. Falls back to deliveryFeeFor() below otherwise.
+  // Per-vendor delivery rate overrides for the delivery city: a vendor's exact
+  // -city rate if they set one, else their "Other cities" rate if they set
+  // that instead. Falls back to deliveryFeeFor() below when neither is set.
   const { data: deliveryRates } = await admin
     .from("vendor_delivery_rates")
-    .select("vendor_id, fee")
-    .ilike("city", address.city);
-  const deliveryRateByVendor = new Map((deliveryRates ?? []).map((r) => [r.vendor_id, r.fee]));
+    .select("vendor_id, city, fee")
+    .or(`city.ilike.${address.city},city.ilike.Other`);
+  const deliveryRateFallback = new Map<string, number>();
+  const deliveryRateExact = new Map<string, number>();
+  for (const r of deliveryRates ?? []) {
+    if (r.city.toLowerCase() === address.city.toLowerCase()) deliveryRateExact.set(r.vendor_id, r.fee);
+    else deliveryRateFallback.set(r.vendor_id, r.fee);
+  }
+  const deliveryRateByVendor = new Map([...deliveryRateFallback, ...deliveryRateExact]);
 
   const { data: cartItems, error: cartError } = await admin
     .from("cart_items")
