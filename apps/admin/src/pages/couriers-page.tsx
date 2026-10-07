@@ -11,7 +11,7 @@ import {
   setCourierActive,
 } from "@kmo/shared/api";
 import { DELIVERY_CITY_OPTIONS } from "@kmo/shared/lib";
-import { ConfirmDialog } from "@kmo/shared/ui";
+import { ConfirmDialog, SearchableSelect } from "@kmo/shared/ui";
 import { supabase } from "../lib/supabase";
 
 export function CouriersPage() {
@@ -254,18 +254,13 @@ function SlabTable({
       <p className="mb-3 text-[12px] text-muted">{hint}</p>
 
       <div className="mb-3 grid grid-cols-2 gap-2.5 sm:grid-cols-6">
-        <select
+        <SearchableSelect
+          options={DELIVERY_CITY_OPTIONS}
           value={city}
-          onChange={(e) => setCity(e.target.value)}
-          className="col-span-2 rounded-lg border border-border bg-surface px-3 py-2 text-[13px] text-ink-dark outline-none focus:border-primary-light sm:col-span-1"
-        >
-          <option value="">City…</option>
-          {DELIVERY_CITY_OPTIONS.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
-        </select>
+          onChange={setCity}
+          placeholder="City…"
+          className="col-span-2 sm:col-span-1"
+        />
         <input
           type="number"
           step="0.1"

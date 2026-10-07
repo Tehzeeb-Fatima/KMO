@@ -11,3 +11,4 @@ export * from "./dashboard-shell";
 export * from "./product-card";
 export * from "./notification-bell";
 export * from "./turnstile";
+export * from "./searchable-select";

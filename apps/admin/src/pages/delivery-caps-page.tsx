@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { deleteDeliveryFeeCap, listDeliveryFeeCaps, setDeliveryFeeCap } from "@kmo/shared/api";
 import { DELIVERY_CITY_OPTIONS } from "@kmo/shared/lib";
-import { ConfirmDialog } from "@kmo/shared/ui";
+import { ConfirmDialog, SearchableSelect } from "@kmo/shared/ui";
 import { supabase } from "../lib/supabase";
 
 /** Caps what a vendor can charge a customer for delivery, per city. Vendors set
@@ -54,21 +54,16 @@ export function DeliveryCapsPage() {
 
       <div className="rounded-xl border border-border bg-surface p-5">
         <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-[1fr_1fr_auto]">
-          <select
+          <SearchableSelect
+            options={availableCities}
             value={city}
-            onChange={(e) => {
-              setCity(e.target.value);
+            onChange={(c) => {
+              setCity(c);
               setError(null);
             }}
-            className="col-span-2 rounded-lg border border-border bg-surface px-3 py-2 text-[13px] text-ink-dark outline-none focus:border-primary-light sm:col-span-1"
-          >
-            <option value="">City…</option>
-            {availableCities.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
+            placeholder="City…"
+            className="col-span-2 sm:col-span-1"
+          />
           <input
             type="number"
             min="0"
