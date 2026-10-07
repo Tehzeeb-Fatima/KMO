@@ -60,21 +60,38 @@ export async function getVendorDeliveryRatesForCity(
   return new Map([...fallback, ...exact]);
 }
 
-export async function listDeliveryFeeCaps(supabase: Client): Promise<DeliveryFeeCapRow[]> {
-  const { data, error } = await supabase.from("delivery_fee_caps").select("*").order("city");
+/** With no vendorId: every default (platform-wide) cap. With a vendorId: that
+ *  vendor's own override caps, plus the defaults (so a vendor's screen can
+ *  show "capped at Rs. X" even for cities they don't have their own cap for). */
+export async function listDeliveryFeeCaps(supabase: Client, vendorId?: string): Promise<DeliveryFeeCapRow[]> {
+  let query = supabase.from("delivery_fee_caps").select("*").order("city");
+  query = vendorId ? query.or(`vendor_id.is.null,vendor_id.eq.${vendorId}`) : query.is("vendor_id", null);
+  const { data, error } = await query;
   if (error) throw error;
   return data;
 }
 
 export async function setDeliveryFeeCap(
   supabase: Client,
-  input: { city: string; max_fee: number },
+  input: { vendor_id?: string | null; city: string; max_fee: number },
 ): Promise<DeliveryFeeCapRow> {
-  const { data, error } = await supabase
-    .from("delivery_fee_caps")
-    .upsert(input, { onConflict: "city" })
-    .select("*")
-    .single();
+  const vendorId = input.vendor_id ?? null;
+  let existing = supabase.from("delivery_fee_caps").select("id").eq("city", input.city);
+  existing = vendorId ? existing.eq("vendor_id", vendorId) : existing.is("vendor_id", null);
+  const { data: existingRow } = await existing.maybeSingle();
+
+  const { data, error } = existingRow
+    ? await supabase
+        .from("delivery_fee_caps")
+        .update({ max_fee: input.max_fee })
+        .eq("id", existingRow.id)
+        .select("*")
+        .single()
+    : await supabase
+        .from("delivery_fee_caps")
+        .insert({ vendor_id: vendorId, city: input.city, max_fee: input.max_fee })
+        .select("*")
+        .single();
   if (error) throw error;
   return data;
 }

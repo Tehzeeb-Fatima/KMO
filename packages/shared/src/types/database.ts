@@ -202,6 +202,7 @@ export interface Database {
       delivery_fee_caps: {
         Row: {
           id: string;
+          vendor_id: string | null;
           city: string;
           max_fee: number;
           created_at: string;
@@ -209,6 +210,7 @@ export interface Database {
         };
         Insert: {
           id?: string;
+          vendor_id?: string | null;
           city: string;
           max_fee: number;
           created_at?: string;
@@ -216,6 +218,7 @@ export interface Database {
         };
         Update: {
           id?: string;
+          vendor_id?: string | null;
           city?: string;
           max_fee?: number;
           created_at?: string;

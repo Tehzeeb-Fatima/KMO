@@ -131,8 +131,8 @@ function CustomerDeliveryChargesSection({ vendorId }: { vendorId: string }) {
     queryFn: () => listVendorDeliveryRates(supabase, vendorId),
   });
   const { data: caps } = useQuery({
-    queryKey: ["delivery-fee-caps"],
-    queryFn: () => listDeliveryFeeCaps(supabase),
+    queryKey: ["delivery-fee-caps", vendorId],
+    queryFn: () => listDeliveryFeeCaps(supabase, vendorId),
   });
 
   const availableCities = DELIVERY_CITY_OPTIONS.filter((c) => !rates?.some((r) => r.city === c));
@@ -140,9 +140,15 @@ function CustomerDeliveryChargesSection({ vendorId }: { vendorId: string }) {
   const [fee, setFee] = useState("");
   const [error, setError] = useState<string | null>(null);
 
+  // Most specific wins: this vendor's own cap for the city, then their Other
+  // cap, then the platform default for the city, then the default Other cap.
   const matchingCap =
-    caps?.find((c) => c.city.toLowerCase() === city.toLowerCase()) ??
-    (city && city !== OTHER_CITY ? caps?.find((c) => c.city === OTHER_CITY) : undefined);
+    caps?.find((c) => c.vendor_id === vendorId && c.city.toLowerCase() === city.toLowerCase()) ??
+    (city && city !== OTHER_CITY
+      ? caps?.find((c) => c.vendor_id === vendorId && c.city === OTHER_CITY)
+      : undefined) ??
+    caps?.find((c) => c.vendor_id === null && c.city.toLowerCase() === city.toLowerCase()) ??
+    (city && city !== OTHER_CITY ? caps?.find((c) => c.vendor_id === null && c.city === OTHER_CITY) : undefined);
 
   const saveMutation = useMutation({
     mutationFn: () => setVendorDeliveryRate(supabase, { vendor_id: vendorId, city: city.trim(), fee: Number(fee) }),
