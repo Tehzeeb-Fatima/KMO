@@ -63,3 +63,12 @@ export function categoryPath<T extends CategoryLike>(categories: T[], id: string
 export function categoryWithChildren<T extends CategoryLike>(categories: T[], id: string): string[] {
   return [id, ...categories.filter((c) => c.parent_id === id).map((c) => c.id)];
 }
+
+/** Only categories with published products: a sub-category needs its own
+ *  products, a main category needs its own or any sub-category's. Empty ones
+ *  are hidden on the storefront, not deleted. */
+export function nonEmptyCategories<T extends CategoryLike>(categories: T[], countById: Map<string, number>): T[] {
+  const has = (id: string) => (countById.get(id) ?? 0) > 0;
+  const subWithProducts = new Set(categories.filter((c) => c.parent_id && has(c.id)).map((c) => c.parent_id));
+  return categories.filter((c) => (c.parent_id ? has(c.id) : has(c.id) || subWithProducts.has(c.id)));
+}

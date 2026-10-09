@@ -7,7 +7,7 @@ import { ChevronDown } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import {
   listActivePromotions,
-  listCategories,
+  listShopCategories,
   listPublishedProducts,
   promotionProductFilter,
   toPricingPromotions,
@@ -72,9 +72,10 @@ function SearchPageContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchInput]);
 
+  // Storefront list: empty categories are hidden until they get products.
   const { data: categories } = useQuery({
-    queryKey: ["categories"],
-    queryFn: () => listCategories(supabase),
+    queryKey: ["shop-categories"],
+    queryFn: () => listShopCategories(supabase),
   });
 
   // The main category being browsed (directly or via one of its

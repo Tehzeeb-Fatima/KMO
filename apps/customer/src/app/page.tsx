@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   listActivePromotions,
-  listCategories,
+  listShopCategories,
   listPublishedProducts,
   listTopCategories,
   getPlatformSettings,
@@ -32,8 +32,8 @@ const VENDOR_URL = process.env.NEXT_PUBLIC_VENDOR_URL ?? "https://vendor.karachi
 export default function Home() {
   const { t } = useLanguage();
   const { data: categories } = useQuery({
-    queryKey: ["categories"],
-    queryFn: () => listCategories(supabase),
+    queryKey: ["shop-categories"],
+    queryFn: () => listShopCategories(supabase),
   });
   const { data: products } = useQuery({
     queryKey: ["featured-products"],

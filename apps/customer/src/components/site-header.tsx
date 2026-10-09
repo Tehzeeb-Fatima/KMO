@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { ShoppingCart, User } from "lucide-react";
-import { listCartItems, listCategories } from "@kmo/shared/api";
+import { listCartItems, listShopCategories } from "@kmo/shared/api";
 import { mainCategories } from "@kmo/shared/lib";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "@/lib/supabase";
@@ -27,8 +27,8 @@ export function SiteHeader() {
     enabled: !!user,
   });
   const { data: categories } = useQuery({
-    queryKey: ["categories"],
-    queryFn: () => listCategories(supabase),
+    queryKey: ["shop-categories"],
+    queryFn: () => listShopCategories(supabase),
   });
 
   const cartCount = cartItems?.reduce((sum, i) => sum + i.quantity, 0) ?? 0;

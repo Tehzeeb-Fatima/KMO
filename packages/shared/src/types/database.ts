@@ -1270,7 +1270,12 @@ export interface Database {
         Relationships: [];
       };
     };
-    Views: Record<string, never>;
+    Views: {
+      category_product_counts: {
+        Row: { category_id: string; product_count: number };
+        Relationships: [];
+      };
+    };
     Functions: {
       is_valid_preview_token: {
         Args: { candidate: string };

@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../types";
+import { nonEmptyCategories } from "../lib/category-tree";
 
 type Client = SupabaseClient<Database>;
 type ProductRow = Database["public"]["Tables"]["products"]["Row"];
@@ -316,6 +317,19 @@ export async function getProductsByIds(
     price: number;
     vendors: { store_name: string } | null;
   }[];
+}
+
+/** Storefront categories: only those with published products (see nonEmptyCategories). */
+export async function listShopCategories(supabase: Client): Promise<CategoryRow[]> {
+  const [categories, counts] = await Promise.all([
+    listCategories(supabase),
+    supabase.from("category_product_counts").select("category_id, product_count"),
+  ]);
+  if (counts.error) throw counts.error;
+  const countById = new Map(
+    (counts.data ?? []).map((r) => [r.category_id, r.product_count]),
+  );
+  return nonEmptyCategories(categories, countById);
 }
 
 export async function listCategories(supabase: Client): Promise<CategoryRow[]> {
