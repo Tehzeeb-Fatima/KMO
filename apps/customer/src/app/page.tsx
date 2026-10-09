@@ -655,14 +655,16 @@ function PromoProductCard({
 
 /** The variant a card adds to the cart: the first one in stock, or the base product. */
 function defaultCartVariant(p: {
-  stock_quantity: number;
-  product_variants: { id: string; stock_quantity: number }[];
+  stock_quantity: number | null;
+  product_variants: { id: string; stock_quantity: number | null }[];
 }): { variantId: string | null; outOfStock: boolean } {
+  // null stock = not tracked, always available
+  const available = (q: number | null) => q === null || q > 0;
   if (p.product_variants.length > 0) {
-    const inStock = p.product_variants.find((v) => v.stock_quantity > 0);
+    const inStock = p.product_variants.find((v) => available(v.stock_quantity));
     return { variantId: inStock?.id ?? null, outOfStock: !inStock };
   }
-  return { variantId: null, outOfStock: p.stock_quantity <= 0 };
+  return { variantId: null, outOfStock: !available(p.stock_quantity) };
 }
 
 function TopCategorySection({

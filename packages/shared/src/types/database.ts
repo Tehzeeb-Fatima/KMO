@@ -404,7 +404,7 @@ export interface Database {
           price: number;
           compare_at_price: number | null;
           sku: string | null;
-          stock_quantity: number;
+          stock_quantity: number | null;
           status: ProductStatus;
           brand: string | null;
           tags: string[];
@@ -425,7 +425,7 @@ export interface Database {
           price: number;
           compare_at_price?: number | null;
           sku?: string | null;
-          stock_quantity?: number;
+          stock_quantity?: number | null;
           status?: ProductStatus;
           brand?: string | null;
           tags?: string[];
@@ -446,7 +446,7 @@ export interface Database {
           price?: number;
           compare_at_price?: number | null;
           sku?: string | null;
-          stock_quantity?: number;
+          stock_quantity?: number | null;
           status?: ProductStatus;
           brand?: string | null;
           tags?: string[];
@@ -522,7 +522,7 @@ export interface Database {
           option_name: string;
           option_value: string;
           price_override: number | null;
-          stock_quantity: number;
+          stock_quantity: number | null;
           sku: string | null;
           created_at: string;
         };
@@ -532,7 +532,7 @@ export interface Database {
           option_name: string;
           option_value: string;
           price_override?: number | null;
-          stock_quantity?: number;
+          stock_quantity?: number | null;
           sku?: string | null;
           created_at?: string;
         };
@@ -542,7 +542,7 @@ export interface Database {
           option_name?: string;
           option_value?: string;
           price_override?: number | null;
-          stock_quantity?: number;
+          stock_quantity?: number | null;
           sku?: string | null;
           created_at?: string;
         };

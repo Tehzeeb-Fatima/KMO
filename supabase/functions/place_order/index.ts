@@ -101,7 +101,7 @@ Deno.serve(async (req: Request) => {
       id: string;
       name: string;
       price: number;
-      stock_quantity: number;
+      stock_quantity: number | null;
       vendor_id: string;
       category_id: string | null;
       status: string;
@@ -110,10 +110,11 @@ Deno.serve(async (req: Request) => {
       return json({ error: `A product in your cart is no longer available.` }, 409);
     }
     const variant = item.product_variants as unknown as {
-      stock_quantity: number;
+      stock_quantity: number | null;
     } | null;
     const availableStock = variant ? variant.stock_quantity : product.stock_quantity;
-    if (item.quantity > availableStock) {
+    // null = the vendor doesn't track stock for this item, so it never runs out.
+    if (availableStock !== null && item.quantity > availableStock) {
       return json(
         { error: `Not enough stock for "${product.name}" (only ${availableStock} left).` },
         409,
@@ -340,16 +341,18 @@ Deno.serve(async (req: Request) => {
     });
     await admin.from("order_items").insert(orderItemsPayload);
 
-    // Decrement stock.
+    // Decrement stock (untracked stock, null, stays null).
     for (const item of items) {
       if (item.variant_id) {
-        const variant = item.product_variants as unknown as { stock_quantity: number };
+        const variant = item.product_variants as unknown as { stock_quantity: number | null };
+        if (variant.stock_quantity === null) continue;
         await admin
           .from("product_variants")
           .update({ stock_quantity: variant.stock_quantity - item.quantity })
           .eq("id", item.variant_id);
       } else {
-        const product = item.products as unknown as { stock_quantity: number };
+        const product = item.products as unknown as { stock_quantity: number | null };
+        if (product.stock_quantity === null) continue;
         await admin
           .from("products")
           .update({ stock_quantity: product.stock_quantity - item.quantity })

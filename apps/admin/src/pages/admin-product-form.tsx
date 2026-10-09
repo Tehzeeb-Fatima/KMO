@@ -88,7 +88,7 @@ export function AdminProductForm({
   const [compareAtPrice, setCompareAtPrice] = useState(
     product?.compare_at_price ? String(product.compare_at_price) : "",
   );
-  const [stock, setStock] = useState(product ? String(product.stock_quantity) : "");
+  const [stock, setStock] = useState(product?.stock_quantity != null ? String(product.stock_quantity) : "");
   const [categoryIds, setCategoryIds] = useState<Set<string>>(
     new Set(product?.category_id ? [product.category_id] : []),
   );
@@ -163,7 +163,8 @@ export function AdminProductForm({
         name,
         price: Number(price) || 0,
         compare_at_price: compareAtPrice ? Number(compareAtPrice) : null,
-        stock_quantity: Number(stock) || 0,
+        // empty = stock not tracked (always available)
+        stock_quantity: stock.trim() === "" ? null : Number(stock) || 0,
         category_id: categoryIdList[0] ?? null,
         description,
         status: (published ? "published" : "draft") as ProductStatus,
@@ -226,7 +227,7 @@ export function AdminProductForm({
         product_id: currentProductId,
         option_name: variantOptionName.trim(),
         option_value: variantOptionValue.trim(),
-        stock_quantity: Number(variantStock) || 0,
+        stock_quantity: variantStock.trim() === "" ? null : Number(variantStock) || 0,
       });
     },
     onSuccess: (v) => {
@@ -318,9 +319,9 @@ export function AdminProductForm({
                 className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
               />
             </FormField>
-            <FormField label="Stock quantity">
+            <FormField label="Stock quantity (optional)">
               <input
-                placeholder="120"
+                placeholder="Empty = always available"
                 value={stock}
                 onChange={(e) => setStock(e.target.value)}
                 className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
@@ -495,7 +496,7 @@ export function AdminProductForm({
                         ) : null}
                         <span className="text-muted">{v.option_name}:</span>
                         <span className="font-bold text-ink-dark">{v.option_value}</span>
-                        <span className="text-muted-table">({v.stock_quantity})</span>
+                        <span className="text-muted-table">({v.stock_quantity ?? "not counted"})</span>
                         <button
                           type="button"
                           onClick={() => setPendingDelete({ type: "variant", id: v.id })}
@@ -527,7 +528,7 @@ export function AdminProductForm({
                   </FormField>
                   <FormField label="Stock">
                     <input
-                      placeholder="10"
+                      placeholder="Optional"
                       value={variantStock}
                       onChange={(e) => setVariantStock(e.target.value)}
                       className="rounded-lg border border-border px-[11px] py-2 text-[13px] outline-none focus:border-primary-light"

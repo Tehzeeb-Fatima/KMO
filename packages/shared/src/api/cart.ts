@@ -9,7 +9,7 @@ export interface CartItemWithProduct extends CartItemRow {
     id: string;
     name: string;
     price: number;
-    stock_quantity: number;
+    stock_quantity: number | null;
     vendor_id: string;
     category_id: string | null;
     vendors: { id: string; store_name: string } | null;
@@ -20,7 +20,7 @@ export interface CartItemWithProduct extends CartItemRow {
     option_name: string;
     option_value: string;
     price_override: number | null;
-    stock_quantity: number;
+    stock_quantity: number | null;
   } | null;
 }
 

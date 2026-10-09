@@ -201,6 +201,8 @@ export default function ProductDetailClient() {
   const images =
     colourImages.length > 0 ? colourImages : sharedImages.length > 0 ? sharedImages : allImages;
   const stock = selectedVariant ? selectedVariant.stock_quantity : product.stock_quantity;
+  // null stock = the vendor doesn't track it, so it's always available
+  const outOfStock = stock !== null && stock <= 0;
   const listPrice = selectedVariant?.price_override ?? product.price;
 
   // An active admin promotion targeting this exact product is the single
@@ -255,7 +257,7 @@ export default function ProductDetailClient() {
               price,
               priceCurrency: "PKR",
               availability:
-                stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+                !outOfStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
               url: `https://karachimart.online/product/${product.slug}`,
             },
           }),
@@ -371,8 +373,12 @@ export default function ProductDetailClient() {
             </span>
           </div>
 
-          <p className="text-sm font-semibold" style={{ color: stock > 0 ? "var(--color-success)" : "var(--color-danger)" }}>
-            {stock > 0 ? `${t.product.inStock} (${stock} ${t.product.available})` : t.product.outOfStock}
+          <p className="text-sm font-semibold" style={{ color: !outOfStock ? "var(--color-success)" : "var(--color-danger)" }}>
+            {outOfStock
+              ? t.product.outOfStock
+              : stock === null
+                ? t.product.inStock
+                : `${t.product.inStock} (${stock} ${t.product.available})`}
           </p>
 
           {Object.entries(variantGroups).map(([optionName, variants]) => (
@@ -443,7 +449,7 @@ export default function ProductDetailClient() {
             <Button
               variant="secondary"
               className="min-w-0 flex-1 basis-[calc(50%-38px)] sm:basis-auto"
-              disabled={stock <= 0 || addMutation.isPending}
+              disabled={outOfStock || addMutation.isPending}
               onClick={() => addMutation.mutate()}
             >
               {addMutation.isPending ? t.product.adding : t.common.addToCart}
@@ -451,7 +457,7 @@ export default function ProductDetailClient() {
             <Button
               variant="primary"
               className="min-w-0 flex-1 basis-[calc(50%-38px)] sm:basis-auto"
-              disabled={stock <= 0}
+              disabled={outOfStock}
               onClick={() =>
                 addMutation.mutate(undefined, {
                   onSuccess: () => router.push("/cart"),

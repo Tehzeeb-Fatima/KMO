@@ -34,13 +34,20 @@ const STATUS_BADGE: Record<ProductStatus, { label: string; bg: string; color: st
   archived: { label: "Archived", bg: "var(--color-danger-tint)", color: "var(--color-danger)" },
 };
 
-function stockColor(stock: number, threshold: number) {
+/** Empty box = stock not tracked (null): always available, never "Out of stock". */
+function parseStock(input: string): number | null {
+  return input.trim() === "" ? null : Math.max(0, Number(input) || 0);
+}
+
+function stockColor(stock: number | null, threshold: number) {
+  if (stock === null) return "var(--color-success)";
   if (stock <= 0) return "var(--color-danger)";
   if (stock <= threshold) return "var(--color-warning)";
   return "var(--color-success)";
 }
 
-function stockLabel(stock: number) {
+function stockLabel(stock: number | null) {
+  if (stock === null) return "Available";
   return stock <= 0 ? "Out of stock" : `${stock} in stock`;
 }
 
@@ -387,7 +394,7 @@ function ProductsList({
 }
 
 type FormImage = { key: string; url: string; id?: string; file?: File };
-type FormVariant = { key: string; option_name: string; option_value: string; stock_quantity: number; id?: string };
+type FormVariant = { key: string; option_name: string; option_value: string; stock_quantity: number | null; id?: string };
 
 const VARIANT_TYPES = ["Size", "Colour", "Other"] as const;
 const inputClass =
@@ -474,7 +481,7 @@ function ProductForm({
     setName(product.name);
     setPrice(String(product.price));
     setCompareAtPrice(product.compare_at_price ? String(product.compare_at_price) : "");
-    setStock(String(product.stock_quantity));
+    setStock(product.stock_quantity === null ? "" : String(product.stock_quantity));
     setCategoryId(product.category_id ?? "");
     setDescription(product.description ?? "");
     setPublished(product.status === "published" || product.status === "pending");
@@ -538,7 +545,7 @@ function ProductForm({
         key: crypto.randomUUID(),
         option_name: optionName,
         option_value: variantValue.trim(),
-        stock_quantity: Number(variantQty) || 0,
+        stock_quantity: parseStock(variantQty),
       },
     ]);
     setVariantValue("");
@@ -549,8 +556,11 @@ function ProductForm({
     setVariants((prev) => prev.filter((x) => x.key !== v.key));
   }
 
-  // With sizes/colours, total stock is simply the sum of their quantities.
-  const variantStockTotal = variants.reduce((sum, v) => sum + v.stock_quantity, 0);
+  // With sizes/colours, total stock is the sum of their quantities, or
+  // untracked (null) if any of them has no quantity.
+  const variantStockTotal = variants.some((v) => v.stock_quantity === null)
+    ? null
+    : variants.reduce((sum, v) => sum + (v.stock_quantity ?? 0), 0);
   const hasVariants = variants.length > 0;
 
   const saveMutation = useMutation({
@@ -567,7 +577,7 @@ function ProductForm({
         name: name.trim(),
         price: Number(price) || 0,
         compare_at_price: compareAtPrice ? Number(compareAtPrice) : null,
-        stock_quantity: hasVariants ? variantStockTotal : Number(stock) || 0,
+        stock_quantity: hasVariants ? variantStockTotal : parseStock(stock),
         category_id: categoryId,
         description,
         // Vendors submit for review: new or unpublished products go to
@@ -794,7 +804,7 @@ function ProductForm({
                   <div key={v.key} className="flex items-center gap-3 px-3.5 py-2.5 text-[13px]">
                     <span className="w-[70px] shrink-0 text-muted">{v.option_name}</span>
                     <span className="flex-1 font-bold text-ink-dark">{v.option_value}</span>
-                    <span className="text-muted">{v.stock_quantity} in stock</span>
+                    <span className="text-muted">{stockLabel(v.stock_quantity)}</span>
                     <button
                       type="button"
                       onClick={() => removeVariant(v)}
@@ -848,7 +858,7 @@ function ProductForm({
                 />
                 <input
                   inputMode="numeric"
-                  placeholder="Quantity"
+                  placeholder="Quantity (optional)"
                   value={variantQty}
                   onChange={(e) => setVariantQty(e.target.value)}
                   onKeyDown={(e) => {
@@ -872,21 +882,25 @@ function ProductForm({
           </Section>
 
           {/* 4. stock */}
-          <Section title="4. Stock">
+          <Section title="4. Stock (optional)">
             {hasVariants ? (
               <p className="text-[13px] text-ink-dark">
-                Total in stock: <span className="font-bold">{variantStockTotal}</span>
+                Total in stock:{" "}
+                <span className="font-bold">{variantStockTotal === null ? "Not counted" : variantStockTotal}</span>
                 <span className="text-muted"> — added up from your sizes &amp; colours.</span>
               </p>
             ) : (
-              <FormField label="How many do you have?">
+              <FormField label="How many do you have? (optional)">
                 <input
                   inputMode="numeric"
-                  placeholder="e.g. 20"
+                  placeholder="Leave empty if you don't count stock"
                   value={stock}
                   onChange={(e) => setStock(e.target.value)}
-                  className={`${inputClass} max-w-[200px]`}
+                  className={`${inputClass} max-w-[300px]`}
                 />
+                <span className="text-[12px] text-muted">
+                  Empty = always available. Fill it in if you want orders to stop when it runs out.
+                </span>
               </FormField>
             )}
           </Section>
