@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getPlatformSettings } from "@kmo/shared/api";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/i18n/language-context";
+import { ListSkeleton } from "@/components/page-loader";
 
 /** Turns the admin-editable plain-text body into simple blocks: a line
  *  starting with "# " is a section heading, "- " is a bullet, a blank line
@@ -45,7 +46,7 @@ export function VendorAgreementContent() {
       </h1>
 
       {isLoading ? (
-        <p className="mt-6 text-sm text-muted">{t.common.loading}</p>
+        <div className="mt-6"><ListSkeleton rows={6} rowClassName="h-5" /></div>
       ) : (
         <div className="mt-6 flex flex-col gap-4 text-sm leading-[1.75] text-ink-dark">
           {blocks.map((b, i) => {

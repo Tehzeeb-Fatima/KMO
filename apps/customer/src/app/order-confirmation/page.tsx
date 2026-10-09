@@ -9,10 +9,11 @@ import { Button } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { RequireAuth } from "@/components/require-auth";
 import { supabase } from "@/lib/supabase";
+import { PageLoader } from "@/components/page-loader";
 
 export default function OrderConfirmationPage() {
   return (
-    <Suspense fallback={<p className="p-10 text-sm text-muted">Loading…</p>}>
+    <Suspense fallback={<PageLoader />}>
       <RequireAuth allowedRoles={["customer"]}>
         <OrderConfirmationContent />
       </RequireAuth>
@@ -34,7 +35,7 @@ function OrderConfirmationContent() {
     enabled: orderIds.length > 0,
   });
 
-  if (isLoading) return <p className="p-10 text-sm text-muted">Loading…</p>;
+  if (isLoading) return <PageLoader />;
 
   if (!orders || orders.length === 0) {
     return (

@@ -8,6 +8,7 @@ import { useAuth } from "@kmo/shared/auth";
 import { RequireAuth } from "@/components/require-auth";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/i18n/language-context";
+import { ListSkeleton } from "@/components/page-loader";
 
 export default function AddressesPage() {
   return (
@@ -76,7 +77,7 @@ function AddressesContent() {
       </div>
 
       {isLoading ? (
-        <p className="text-sm text-muted">{t.account.loadingAddresses}</p>
+        <ListSkeleton rows={2} rowClassName="h-24" />
       ) : (
         <div className="flex flex-col gap-3">
           {addresses?.map((addr) => (

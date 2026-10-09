@@ -8,6 +8,7 @@ import { Breadcrumbs, Button, ConfirmDialog } from "@kmo/shared/ui";
 import { RequireAuth } from "@/components/require-auth";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/i18n/language-context";
+import { CartSkeleton } from "@/components/page-loader";
 
 export default function CartPage() {
   return (
@@ -61,7 +62,7 @@ function CartContent() {
     }, 0);
   }, [items]);
 
-  if (isLoading) return <p className="p-10 text-sm text-muted">{t.cart.loading}</p>;
+  if (isLoading) return <CartSkeleton />;
 
   if (!items || items.length === 0) {
     return (

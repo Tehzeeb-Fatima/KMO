@@ -10,10 +10,11 @@ import { RequireAuth } from "@/components/require-auth";
 import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n/language-context";
+import { PageLoader, ListSkeleton } from "@/components/page-loader";
 
 export default function MessagesPage() {
   return (
-    <Suspense fallback={<p className="p-10 text-sm text-muted">Loading…</p>}>
+    <Suspense fallback={<PageLoader />}>
       <RequireAuth allowedRoles={["customer"]}>
         <MessagesContent />
       </RequireAuth>
@@ -49,7 +50,7 @@ function MessagesContent() {
       </h1>
 
       {isLoading ? (
-        <p className="text-sm text-muted">{t.account.loadingConversations}</p>
+        <ListSkeleton rows={4} rowClassName="h-16" />
       ) : !conversations || conversations.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border p-10 text-center text-sm text-muted">
           {t.account.noConversationsYet}

@@ -9,6 +9,7 @@ import { useAuth } from "@kmo/shared/auth";
 import { RequireAuth } from "@/components/require-auth";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/i18n/language-context";
+import { ListSkeleton } from "@/components/page-loader";
 
 export default function OrdersPage() {
   return (
@@ -34,7 +35,7 @@ function OrdersContent() {
 
 
       {isLoading ? (
-        <p className="text-sm text-muted">{t.account.loadingOrders}</p>
+        <ListSkeleton rows={3} rowClassName="h-28" />
       ) : !orders || orders.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border p-10 text-center text-sm text-muted">
           {t.account.noOrdersPlaced}

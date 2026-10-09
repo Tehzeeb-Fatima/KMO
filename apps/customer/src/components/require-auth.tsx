@@ -4,6 +4,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth, type UserRole } from "@kmo/shared/auth";
 import { supabase } from "@/lib/supabase";
+import { PageLoader } from "@/components/page-loader";
 
 /**
  * Reads `user`/`profile` directly (rather than the shared `useAuthGuard`
@@ -53,9 +54,7 @@ export function RequireAuth({
 
   if (!ready) {
     return (
-      <div className="flex flex-1 items-center justify-center p-8 text-sm text-muted">
-        Loading…
-      </div>
+      <PageLoader />
     );
   }
 

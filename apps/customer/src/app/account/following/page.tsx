@@ -9,6 +9,7 @@ import { useAuth } from "@kmo/shared/auth";
 import { RequireAuth } from "@/components/require-auth";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/i18n/language-context";
+import { ListSkeleton } from "@/components/page-loader";
 
 export default function FollowingPage() {
   return (
@@ -46,7 +47,7 @@ function FollowingContent() {
       </h1>
 
       {isLoading ? (
-        <p className="text-sm text-muted">{t.account.loadingFollowed}</p>
+        <ListSkeleton rows={3} rowClassName="h-16" />
       ) : !vendors || vendors.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border p-10 text-center text-sm text-muted">
           {t.account.noFollowedHint}

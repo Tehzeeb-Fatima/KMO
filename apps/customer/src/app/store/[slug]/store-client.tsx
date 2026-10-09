@@ -21,6 +21,7 @@ import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "@/lib/supabase";
 import { ensureCustomerId } from "@/lib/ensure-customer-id";
 import { useLanguage } from "@/lib/i18n/language-context";
+import { StorePageSkeleton } from "@/components/page-loader";
 
 type Tab = "products" | "policies" | "reviews" | "about";
 
@@ -96,7 +97,7 @@ export default function StoreClient() {
   }
 
   if (isLoading) {
-    return <p className="p-10 text-sm text-muted">{t.store.loadingStore}</p>;
+    return <StorePageSkeleton />;
   }
 
   if (!vendor) {
@@ -295,9 +296,11 @@ function ProductsTab({ vendorId }: { vendorId: string }) {
     <div>
       <div className="mb-4 flex items-center justify-between">
         <p className="text-[13px] text-muted">
-          {isLoading
-            ? t.common.loading
-            : `${t.store.showingProducts} ${products?.length ?? 0} ${t.store.productsWord}`}
+          {isLoading ? (
+            <span className="inline-block h-4 w-32 animate-pulse rounded bg-surface-alt align-middle" />
+          ) : (
+            `${t.store.showingProducts} ${products?.length ?? 0} ${t.store.productsWord}`
+          )}
         </p>
       </div>
       <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-4">

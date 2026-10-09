@@ -17,6 +17,7 @@ import { ProductCard } from "@kmo/shared/ui";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/i18n/language-context";
 import type { TranslationTree } from "@/lib/i18n/translations";
+import { PageLoader } from "@/components/page-loader";
 
 type Sort = "newest" | "price_asc" | "price_desc";
 
@@ -30,7 +31,7 @@ function sortOptions(t: TranslationTree): { value: Sort; label: string }[] {
 
 export default function SearchPage() {
   return (
-    <Suspense fallback={<p className="p-10 text-sm text-muted">Loading…</p>}>
+    <Suspense fallback={<PageLoader />}>
       <SearchPageContent />
     </Suspense>
   );
@@ -317,7 +318,11 @@ function SearchPageContent() {
           ) : null}
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <p className="text-[13px] text-muted">
-              {isLoading ? t.search.searching : `${products?.length ?? 0} ${t.search.results}`}
+              {isLoading ? (
+                <span className="inline-block h-4 w-24 animate-pulse rounded bg-surface-alt align-middle" />
+              ) : (
+                `${products?.length ?? 0} ${t.search.results}`
+              )}
               {q ? ` ${t.search.resultsFor} "${q}"` : ""}
             </p>
             <div className="flex flex-wrap gap-2">

@@ -25,6 +25,7 @@ import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "@/lib/supabase";
 import { ensureCustomerId } from "@/lib/ensure-customer-id";
 import { useLanguage } from "@/lib/i18n/language-context";
+import { ProductPageSkeleton } from "@/components/page-loader";
 
 export default function ProductDetailClient() {
   const params = useParams<{ slug: string }>();
@@ -178,7 +179,7 @@ export default function ProductDetailClient() {
   });
 
   if (isLoading) {
-    return <p className="p-10 text-sm text-muted">{t.product.loading}</p>;
+    return <ProductPageSkeleton />;
   }
 
   if (!product) {
