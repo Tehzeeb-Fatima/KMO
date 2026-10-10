@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { PasswordInput } from "@kmo/shared/ui";
 import { supabase } from "../lib/supabase";
 
 const CUSTOMER_URL = import.meta.env.VITE_CUSTOMER_URL ?? "https://karachimartonline.com";
@@ -93,19 +94,19 @@ export function VendorAccountSection({ vendorId, ownerId }: { vendorId: string; 
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="flex max-w-[360px] flex-col gap-3">
-          <input
-            type="password"
+          <PasswordInput
             placeholder="New password (min 8 characters)"
+            autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="rounded-md border border-border px-3 py-2 text-sm"
+            className="h-10 rounded-md text-sm"
           />
-          <input
-            type="password"
+          <PasswordInput
             placeholder="Confirm new password"
+            autoComplete="new-password"
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
-            className="rounded-md border border-border px-3 py-2 text-sm"
+            className="h-10 rounded-md text-sm"
           />
           {error ? <p className="text-xs text-danger">{error}</p> : null}
           <div className="flex gap-2">
