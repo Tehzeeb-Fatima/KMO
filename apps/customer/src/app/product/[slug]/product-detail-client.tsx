@@ -286,7 +286,7 @@ export default function ProductDetailClient() {
         {/* gallery: stays in view beside a long description */}
         <div className="lg:sticky lg:top-6">
           <div
-            className="relative h-[260px] overflow-hidden rounded-[10px] border border-border bg-surface sm:h-[470px]"
+            className="relative aspect-square w-full overflow-hidden rounded-[10px] border border-border bg-surface"
             style={{
               background: images[activeImage]
                 ? `url(${images[activeImage].url}) center/cover`

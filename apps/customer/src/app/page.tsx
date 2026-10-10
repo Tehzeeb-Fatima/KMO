@@ -126,7 +126,7 @@ export default function Home() {
                 />
               </div>
             </div>
-            <HeroPhotoFan className="hidden h-[160px] sm:block" photos={heroPhotos} showLabels />
+            <HeroPhotoFan className="hidden h-[160px] w-full max-w-[380px] justify-self-center sm:block" photos={heroPhotos} showLabels />
           </div>
         </div>
 
@@ -1027,21 +1027,23 @@ function HeroPhotoFan({
   className?: string;
 }) {
   const placement = [
-    "left-0 top-[10%] -rotate-[8deg]",
+    "left-0 top-[8%] -rotate-[8deg]",
     "left-[28%] top-0 z-[2] rotate-[2deg]",
-    "left-[60%] top-[8%] z-[3] rotate-[6deg]",
+    "left-[56%] top-[6%] z-[3] rotate-[6deg]",
   ];
   return (
     <div className={`relative ${className ?? ""}`} aria-hidden="true">
       {photos.map((pic, i) => (
+        // Sized from the box's height, not its width, so the cards always fit
+        // inside the hero at any zoom level or screen width.
         <div
           key={pic.src}
-          className={`absolute w-[40%] rounded-md bg-white shadow-[0_18px_30px_-14px_rgba(0,0,0,0.55)] transition-transform duration-300 hover:z-10 hover:scale-105 ${
+          className={`absolute h-[88%] rounded-md bg-white shadow-[0_18px_30px_-14px_rgba(0,0,0,0.55)] transition-transform duration-300 hover:z-10 hover:scale-105 ${
             showLabels ? "p-1.5 pb-6" : "p-1 pb-2"
           } ${placement[i]}`}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={pic.src} alt="" className="aspect-[4/5] w-full rounded-[3px] object-cover" loading="eager" />
+          <img src={pic.src} alt="" className="aspect-[4/5] h-full w-auto max-w-none rounded-[3px] object-cover" loading="eager" />
           {showLabels ? (
             <span className="absolute inset-x-0 bottom-1 truncate px-1 text-center text-[11px] font-bold text-primary">
               {pic.label}

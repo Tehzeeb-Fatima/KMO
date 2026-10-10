@@ -62,7 +62,7 @@ export function ProductCard({
     <LinkComponent
       href={href}
       className={cn(
-        "block overflow-hidden rounded-lg border border-border-primary bg-primary-tint-2 transition-shadow duration-200 hover:shadow-[0_10px_26px_-10px_rgba(74,34,102,0.5)]",
+        "flex h-full flex-col overflow-hidden rounded-lg border border-border-primary bg-primary-tint-2 transition-shadow duration-200 hover:shadow-[0_10px_26px_-10px_rgba(74,34,102,0.5)]",
         className,
       )}
     >
@@ -83,7 +83,7 @@ export function ProductCard({
         className="relative mt-2.5 aspect-square bg-white"
         style={{
           background: imageUrl
-            ? `#fff url(${imageUrl}) center/contain no-repeat`
+            ? `#fff url(${imageUrl}) center/cover no-repeat`
             : "repeating-linear-gradient(135deg,#F3ECE8 0 8px,#E9DFD9 8px 16px)",
         }}
       >
@@ -99,8 +99,10 @@ export function ProductCard({
         {topRight ? <div className="absolute right-2.5 top-2.5">{topRight}</div> : null}
       </div>
 
-      <div className="flex flex-col gap-2 p-3.5">
-        <p className="line-clamp-2 text-[13.5px] font-medium leading-[1.45] text-ink-dark">
+      {/* every card the same height: the name always reserves two lines and
+          the footer sits at the bottom */}
+      <div className="flex flex-1 flex-col gap-2 p-3.5">
+        <p className="line-clamp-2 min-h-[2.9em] text-[13.5px] font-medium leading-[1.45] text-ink-dark">
           {name}
         </p>
         <div className="flex items-baseline gap-2">
@@ -119,7 +121,7 @@ export function ProductCard({
             {typeof soldCount === "number" ? ` (${soldCount.toLocaleString()} sold)` : null}
           </p>
         ) : null}
-        {footer ? <div className="pt-1">{footer}</div> : null}
+        {footer ? <div className="mt-auto pt-1">{footer}</div> : null}
       </div>
     </LinkComponent>
   );
