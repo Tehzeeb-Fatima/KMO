@@ -197,7 +197,7 @@ export default function Home() {
               {t.home.allCategories}
             </Link>
           </div>
-          <HorizontalSlider itemClassName="w-[112px]">
+          <HorizontalSlider spread itemClassName="w-[104px] sm:w-[118px] lg:w-auto lg:min-w-[118px] lg:max-w-[176px] lg:flex-1">
             {mainCategories(categories).map((c) => (
               <Link key={c.id} href={`/search?category=${c.id}`} className="group flex flex-col items-center gap-2 text-center">
                 <div

@@ -148,7 +148,7 @@ export function SiteHeader() {
 
       {/* row 2 — terracotta category strip */}
       {categories && categories.length > 0 ? (
-        <div className="flex gap-0.5 overflow-x-auto bg-accent px-4 sm:px-10">
+        <div className="flex justify-between gap-0.5 overflow-x-auto bg-accent px-4 sm:px-10">
           {mainCategories(categories).map((c) => (
             <Link
               key={c.id}
