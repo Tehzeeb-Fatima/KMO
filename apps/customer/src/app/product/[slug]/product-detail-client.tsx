@@ -283,8 +283,8 @@ export default function ProductDetailClient() {
       />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[500px_minmax(0,1fr)_316px] lg:items-start lg:gap-[26px]">
-        {/* gallery */}
-        <div>
+        {/* gallery: stays in view beside a long description */}
+        <div className="lg:sticky lg:top-6">
           <div
             className="relative h-[260px] overflow-hidden rounded-[10px] border border-border bg-surface sm:h-[470px]"
             style={{
@@ -481,7 +481,7 @@ export default function ProductDetailClient() {
           {product.description ? (
             <div className="border-t border-[#F1EAE6] pt-4">
               <h2 className="mb-2 text-[15px] font-bold text-ink">{t.product.description}</h2>
-              <p className="text-sm leading-[1.75] text-ink-dark">{product.description}</p>
+              <p className="whitespace-pre-line break-words text-sm leading-[1.75] text-ink-dark">{product.description}</p>
             </div>
           ) : null}
 
@@ -500,7 +500,7 @@ export default function ProductDetailClient() {
         </div>
 
         {/* sidebar */}
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 lg:sticky lg:top-6">
           <div className="rounded-[10px] border border-border bg-surface p-5">
             <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-table">
               {t.product.deliveryPayment}
@@ -570,7 +570,9 @@ export default function ProductDetailClient() {
           {t.product.reviews} {reviewCount > 0 ? `(${reviewCount})` : ""}
         </h2>
 
-        <div className="mt-5 grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
+        <div
+          className={`mt-5 grid gap-6 ${reviewCount > 0 ? "lg:grid-cols-[240px_minmax(0,1fr)]" : "max-w-[560px]"}`}
+        >
           <div>
             {reviewCount > 0 ? (
               <>
@@ -594,7 +596,9 @@ export default function ProductDetailClient() {
                 </div>
               </>
             ) : (
-              <p className="text-sm text-muted">{t.product.noReviewsYet}</p>
+              <p className="text-sm text-muted">
+                {t.product.noReviewsYet} {t.product.beFirstReview}
+              </p>
             )}
 
             {user ? (
@@ -616,8 +620,8 @@ export default function ProductDetailClient() {
                   placeholder={t.product.shareExperience}
                   value={reviewBody}
                   onChange={(e) => setReviewBody(e.target.value)}
-                  rows={2}
-                  className="rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-primary-light"
+                  rows={3}
+                  className="w-full resize-y rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary-light"
                 />
                 <Button
                   variant="secondary"
@@ -631,11 +635,9 @@ export default function ProductDetailClient() {
             ) : null}
           </div>
 
-          <div className="flex flex-col gap-4">
-            {!reviews || reviews.length === 0 ? (
-              <p className="text-sm text-muted">{t.product.beFirstReview}</p>
-            ) : (
-              reviews.map((r) => (
+          {reviews && reviews.length > 0 ? (
+            <div className="flex flex-col gap-4">
+              {reviews.map((r) => (
                 <div key={r.id} className="border-t border-[#F1EAE6] pt-4 first:border-t-0 first:pt-0">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-bold text-ink-dark">
@@ -650,9 +652,9 @@ export default function ProductDetailClient() {
                     </div>
                   ) : null}
                 </div>
-              ))
-            )}
-          </div>
+              ))}
+            </div>
+          ) : null}
         </div>
       </div>
 
