@@ -93,6 +93,7 @@ export function AdminProductForm({
     new Set(product?.category_id ? [product.category_id] : []),
   );
   const [description, setDescription] = useState(product?.description ?? "");
+  const [descriptionUr, setDescriptionUr] = useState(product?.description_ur ?? "");
   const [published, setPublished] = useState(product?.status === "published");
   const [images, setImages] = useState<{ id: string; url: string; variantId: string | null }[]>(
     product?.product_images.map((img) => ({
@@ -167,6 +168,7 @@ export function AdminProductForm({
         stock_quantity: stock.trim() === "" ? null : Number(stock) || 0,
         category_id: categoryIdList[0] ?? null,
         description,
+        description_ur: descriptionUr.trim() || null,
         status: (published ? "published" : "draft") as ProductStatus,
       };
       let savedId = currentProductId;
@@ -387,6 +389,17 @@ export function AdminProductForm({
               placeholder="Describe the product…"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              className="resize-y rounded-lg border border-border px-[13px] py-[11px] font-sans text-[13px] outline-none focus:border-primary-light"
+            />
+          </FormField>
+
+          <FormField label="Description in Urdu (optional)">
+            <textarea
+              rows={3}
+              dir="rtl"
+              placeholder="اردو میں تفصیل"
+              value={descriptionUr}
+              onChange={(e) => setDescriptionUr(e.target.value)}
               className="resize-y rounded-lg border border-border px-[13px] py-[11px] font-sans text-[13px] outline-none focus:border-primary-light"
             />
           </FormField>

@@ -401,6 +401,7 @@ export interface Database {
           name: string;
           slug: string;
           description: string | null;
+          description_ur: string | null;
           price: number;
           compare_at_price: number | null;
           sku: string | null;
@@ -422,6 +423,7 @@ export interface Database {
           name: string;
           slug: string;
           description?: string | null;
+          description_ur?: string | null;
           price: number;
           compare_at_price?: number | null;
           sku?: string | null;
@@ -443,6 +445,7 @@ export interface Database {
           name?: string;
           slug?: string;
           description?: string | null;
+          description_ur?: string | null;
           price?: number;
           compare_at_price?: number | null;
           sku?: string | null;

@@ -32,7 +32,7 @@ export default function ProductDetailClient() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
 
   const { data: product, isLoading } = useQuery({
     queryKey: ["product", params.slug],
@@ -205,6 +205,8 @@ export default function ProductDetailClient() {
   // null stock = the vendor doesn't track it, so it's always available
   const outOfStock = stock !== null && stock <= 0;
   const listPrice = selectedVariant?.price_override ?? product.price;
+  // Urdu description when the site is in Urdu and the product has one.
+  const shownDescription = (locale === "ur" && product.description_ur) || product.description;
 
   // An active admin promotion targeting this exact product is the single
   // source of truth for the discount shown — it's what checkout will
@@ -478,10 +480,10 @@ export default function ProductDetailClient() {
             </button>
           </div>
 
-          {product.description ? (
+          {shownDescription ? (
             <div className="border-t border-[#F1EAE6] pt-4">
               <h2 className="mb-2 text-[15px] font-bold text-ink">{t.product.description}</h2>
-              <p className="whitespace-pre-line break-words text-sm leading-[1.75] text-ink-dark">{product.description}</p>
+              <p className="whitespace-pre-line break-words text-sm leading-[1.75] text-ink-dark">{shownDescription}</p>
             </div>
           ) : null}
 

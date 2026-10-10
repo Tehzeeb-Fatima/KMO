@@ -456,6 +456,7 @@ function ProductForm({
   const [stock, setStock] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [description, setDescription] = useState("");
+  const [descriptionUr, setDescriptionUr] = useState("");
   const [published, setPublished] = useState(true);
   const [images, setImages] = useState<FormImage[]>([]);
   const [variants, setVariants] = useState<FormVariant[]>([]);
@@ -484,6 +485,7 @@ function ProductForm({
     setStock(product.stock_quantity === null ? "" : String(product.stock_quantity));
     setCategoryId(product.category_id ?? "");
     setDescription(product.description ?? "");
+    setDescriptionUr(product.description_ur ?? "");
     setPublished(product.status === "published" || product.status === "pending");
     setImages(
       product.product_images
@@ -580,6 +582,7 @@ function ProductForm({
         stock_quantity: hasVariants ? variantStockTotal : parseStock(stock),
         category_id: categoryId,
         description,
+        description_ur: descriptionUr.trim() || null,
         // Vendors submit for review: new or unpublished products go to
         // 'pending' for admin approval; an already-live product stays live.
         status: (!published
@@ -737,6 +740,17 @@ function ProductForm({
                 placeholder="Material, size guide, what's in the box…"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
+                className={`${inputClass} resize-y font-sans`}
+              />
+            </FormField>
+
+            <FormField label="Description in Urdu (optional)">
+              <textarea
+                rows={3}
+                dir="rtl"
+                placeholder="اردو میں تفصیل — ویب سائٹ اردو میں ہو تو یہ دکھے گی"
+                value={descriptionUr}
+                onChange={(e) => setDescriptionUr(e.target.value)}
                 className={`${inputClass} resize-y font-sans`}
               />
             </FormField>
