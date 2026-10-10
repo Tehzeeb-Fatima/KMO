@@ -22,6 +22,7 @@ import { supabase } from "@/lib/supabase";
 import { ensureCustomerId } from "@/lib/ensure-customer-id";
 import { useLanguage } from "@/lib/i18n/language-context";
 import { StorePageSkeleton } from "@/components/page-loader";
+import { DEFAULT_VENDOR_BANNER } from "@/lib/vendor-banner";
 
 type Tab = "products" | "policies" | "reviews" | "about";
 
@@ -128,9 +129,7 @@ export default function StoreClient() {
         <div
           className="h-[100px] w-full sm:h-[190px]"
           style={{
-            backgroundImage: vendor.cover_url
-              ? `url(${vendor.cover_url})`
-              : "repeating-linear-gradient(135deg,#5C3178 0 10px,#4A2266 10px 20px)",
+            backgroundImage: `url(${vendor.cover_url ?? DEFAULT_VENDOR_BANNER})`,
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
