@@ -61,7 +61,7 @@ Deno.serve(async (req: Request) => {
   // Confirm the address belongs to this customer.
   const { data: address } = await admin
     .from("addresses")
-    .select("id, customer_id, city")
+    .select("id, customer_id, full_name, phone, address_line, area, city")
     .eq("id", body.address_id)
     .maybeSingle();
   if (!address || address.customer_id !== user.id) {
@@ -301,6 +301,12 @@ Deno.serve(async (req: Request) => {
         customer_id: user.id,
         vendor_id: vendorId,
         address_id: body.address_id,
+        // Snapshot of where to deliver, readable by the vendor on their order.
+        ship_name: address.full_name,
+        ship_phone: address.phone,
+        ship_address_line: address.address_line,
+        ship_area: address.area,
+        ship_city: address.city,
         payment_method: body.payment_method as never,
         subtotal,
         delivery_fee: deliveryFee,

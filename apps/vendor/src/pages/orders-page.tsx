@@ -112,7 +112,7 @@ function OrdersList({ vendorId, onOpen }: { vendorId: string; onOpen: (id: strin
                 >
                   <span className="text-[13px] font-bold text-primary">#{o.order_number}</span>
                   <span className="text-[12.5px] text-ink-dark">
-                    {o.profiles?.full_name ?? "Customer"}
+                    {o.ship_name ?? o.profiles?.full_name ?? "Customer"}
                   </span>
                   <span className="text-[12.5px] text-muted">
                     {new Date(o.created_at).toLocaleDateString(undefined, { day: "numeric", month: "short" })}
@@ -213,6 +213,8 @@ function OrderDetail({
         </div>
 
         <div className="flex flex-col gap-4">
+          <DeliverToCard order={order} />
+
           <div className="rounded-xl border border-border bg-surface p-5">
             <p className="mb-2 font-mono text-xs font-bold uppercase tracking-[0.06em] text-muted-table">
               Fulfilment
@@ -293,4 +295,57 @@ function nextInFlow(status: OrderStatus): OrderStatus | null {
   const idx = ORDER_STATUS_FLOW.indexOf(status);
   if (idx === -1 || idx === ORDER_STATUS_FLOW.length - 1) return null;
   return ORDER_STATUS_FLOW[idx + 1];
+}
+
+/** Where to send the parcel: copied onto the order at checkout. */
+function DeliverToCard({
+  order,
+}: {
+  order: {
+    ship_name: string | null;
+    ship_phone: string | null;
+    ship_address_line: string | null;
+    ship_area: string | null;
+    ship_city: string | null;
+  };
+}) {
+  const [copied, setCopied] = useState(false);
+  const addressText = [order.ship_address_line, order.ship_area, order.ship_city].filter(Boolean).join(", ");
+  const fullText = [order.ship_name, order.ship_phone, addressText].filter(Boolean).join("\n");
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(fullText);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard can be blocked; the details are still on screen.
+    }
+  }
+
+  return (
+    <div className="rounded-xl border border-border bg-surface p-5">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <p className="font-mono text-xs font-bold uppercase tracking-[0.06em] text-muted-table">Deliver to</p>
+        {addressText ? (
+          <button type="button" onClick={copy} className="text-[12px] font-bold text-accent">
+            {copied ? "Copied ✓" : "Copy"}
+          </button>
+        ) : null}
+      </div>
+      {addressText ? (
+        <div className="flex flex-col gap-1 text-[13px] text-ink-dark">
+          {order.ship_name ? <p className="font-bold">{order.ship_name}</p> : null}
+          {order.ship_phone ? (
+            <a href={`tel:${order.ship_phone}`} className="w-fit font-semibold text-primary">
+              {order.ship_phone}
+            </a>
+          ) : null}
+          <p className="leading-[1.55]">{addressText}</p>
+        </div>
+      ) : (
+        <p className="text-[13px] text-muted">Address not available for this order. Please contact KMO.</p>
+      )}
+    </div>
+  );
 }

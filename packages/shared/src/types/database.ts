@@ -622,6 +622,11 @@ export interface Database {
           customer_id: string;
           vendor_id: string;
           address_id: string | null;
+          ship_name: string | null;
+          ship_phone: string | null;
+          ship_address_line: string | null;
+          ship_area: string | null;
+          ship_city: string | null;
           payment_method: PaymentMethod;
           status: OrderStatus;
           subtotal: number;
@@ -646,6 +651,11 @@ export interface Database {
           customer_id: string;
           vendor_id: string;
           address_id?: string | null;
+          ship_name?: string | null;
+          ship_phone?: string | null;
+          ship_address_line?: string | null;
+          ship_area?: string | null;
+          ship_city?: string | null;
           payment_method?: PaymentMethod;
           status?: OrderStatus;
           subtotal: number;
@@ -670,6 +680,11 @@ export interface Database {
           customer_id?: string;
           vendor_id?: string;
           address_id?: string | null;
+          ship_name?: string | null;
+          ship_phone?: string | null;
+          ship_address_line?: string | null;
+          ship_area?: string | null;
+          ship_city?: string | null;
           payment_method?: PaymentMethod;
           status?: OrderStatus;
           subtotal?: number;
