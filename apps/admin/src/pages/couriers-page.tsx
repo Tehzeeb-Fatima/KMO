@@ -264,6 +264,7 @@ function SlabTable({
         <input
           type="number"
           step="0.1"
+          autoComplete="off"
           placeholder="Min kg"
           value={minWeight}
           onChange={(e) => setMinWeight(e.target.value)}
@@ -272,6 +273,7 @@ function SlabTable({
         <input
           type="number"
           step="0.1"
+          autoComplete="off"
           placeholder="Max kg"
           value={maxWeight}
           onChange={(e) => setMaxWeight(e.target.value)}
@@ -279,6 +281,7 @@ function SlabTable({
         />
         <input
           type="number"
+          autoComplete="off"
           placeholder="Fee (Rs.)"
           value={fee}
           onChange={(e) => setFee(e.target.value)}
@@ -286,6 +289,7 @@ function SlabTable({
         />
         <input
           type="number"
+          autoComplete="off"
           placeholder="GST/tax %"
           value={taxPercent}
           onChange={(e) => setTaxPercent(e.target.value)}

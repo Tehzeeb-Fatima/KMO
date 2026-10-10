@@ -31,6 +31,8 @@ export async function updatePlatformSettings(
       | "bottom_category_id"
       | "show_hero_boxes"
       | "show_testimonials"
+      | "default_delivery_fee"
+      | "free_delivery_threshold"
     >
   >,
 ): Promise<SettingsRow> {

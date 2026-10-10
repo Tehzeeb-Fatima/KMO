@@ -110,6 +110,7 @@ function CapTable({ title, hint, vendorId }: { title: string; hint: string; vend
         <input
           type="number"
           min="0"
+          autoComplete="off"
           placeholder="Max fee (Rs.)"
           value={maxFee}
           onChange={(e) => {

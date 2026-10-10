@@ -26,6 +26,8 @@ export function SettingsPage() {
   });
 
   const [commission, setCommission] = useState("0");
+  const [defaultDeliveryFee, setDefaultDeliveryFee] = useState("");
+  const [freeDeliveryThreshold, setFreeDeliveryThreshold] = useState("");
   const [codCitywide, setCodCitywide] = useState(true);
   const [membershipFee, setMembershipFee] = useState("499");
   const [trialMonths, setTrialMonths] = useState("2");
@@ -56,6 +58,10 @@ export function SettingsPage() {
       setTrialMonths(String(settings.vendor_free_trial_months));
       setAgreementTitle(settings.vendor_agreement_title);
       setAgreementBody(settings.vendor_agreement_body);
+      setDefaultDeliveryFee(settings.default_delivery_fee === null ? "" : String(settings.default_delivery_fee));
+      setFreeDeliveryThreshold(
+        settings.free_delivery_threshold === null ? "" : String(settings.free_delivery_threshold),
+      );
     }
   }, [settings]);
 
@@ -101,6 +107,23 @@ export function SettingsPage() {
       if (user) {
         void logAdminAction(supabase, user.id, "settings.commission", "platform_settings", undefined, {
           default_commission_rate: updated.default_commission_rate,
+        });
+      }
+    },
+  });
+
+  const saveDefaultDeliveryFee = useMutation({
+    mutationFn: () =>
+      updatePlatformSettings(supabase, {
+        default_delivery_fee: defaultDeliveryFee.trim() === "" ? null : Number(defaultDeliveryFee),
+        free_delivery_threshold: freeDeliveryThreshold.trim() === "" ? null : Number(freeDeliveryThreshold),
+      }),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(["platform-settings"], updated);
+      if (user) {
+        void logAdminAction(supabase, user.id, "settings.default_delivery_fee", "platform_settings", undefined, {
+          default_delivery_fee: updated.default_delivery_fee,
+          free_delivery_threshold: updated.free_delivery_threshold,
         });
       }
     },
@@ -315,6 +338,38 @@ export function SettingsPage() {
             className="w-20 rounded-lg border border-border px-3 py-2.5 text-[13.5px] outline-none focus:border-primary-light"
           />
           <span className="text-[13px] text-muted">% default commission on new vendors</span>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-3.5 rounded-xl border border-border bg-surface p-[22px_24px]">
+        <p className="text-[15px] font-bold text-ink">Default delivery fee</p>
+        <p className="text-xs text-muted">
+          Used only when a vendor hasn&rsquo;t set their own delivery charge for a customer&rsquo;s city (Vendors can
+          set their own on their Shipping page). Leave blank to charge no fallback fee until you set one.
+        </p>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2">
+            <input
+              value={defaultDeliveryFee}
+              onChange={(e) => setDefaultDeliveryFee(e.target.value)}
+              onBlur={() => saveDefaultDeliveryFee.mutate()}
+              placeholder="Not set"
+              autoComplete="off"
+              className="w-24 rounded-lg border border-border px-3 py-2.5 text-[13.5px] outline-none focus:border-primary-light"
+            />
+            <span className="text-[13px] text-muted">Rs. delivery fee</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              value={freeDeliveryThreshold}
+              onChange={(e) => setFreeDeliveryThreshold(e.target.value)}
+              onBlur={() => saveDefaultDeliveryFee.mutate()}
+              placeholder="Not set"
+              autoComplete="off"
+              className="w-24 rounded-lg border border-border px-3 py-2.5 text-[13.5px] outline-none focus:border-primary-light"
+            />
+            <span className="text-[13px] text-muted">free delivery over Rs.</span>
+          </div>
         </div>
       </div>
 

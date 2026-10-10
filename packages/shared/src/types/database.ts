@@ -818,6 +818,8 @@ export interface Database {
           bottom_category_id: string | null;
           show_hero_boxes: boolean;
           show_testimonials: boolean;
+          default_delivery_fee: number | null;
+          free_delivery_threshold: number | null;
           updated_at: string;
         };
         Insert: {
@@ -834,6 +836,8 @@ export interface Database {
           bottom_category_id?: string | null;
           show_hero_boxes?: boolean;
           show_testimonials?: boolean;
+          default_delivery_fee?: number | null;
+          free_delivery_threshold?: number | null;
           updated_at?: string;
         };
         Update: {
@@ -850,6 +854,8 @@ export interface Database {
           bottom_category_id?: string | null;
           show_hero_boxes?: boolean;
           show_testimonials?: boolean;
+          default_delivery_fee?: number | null;
+          free_delivery_threshold?: number | null;
           updated_at?: string;
         };
         Relationships: [];

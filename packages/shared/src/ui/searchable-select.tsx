@@ -43,6 +43,7 @@ export function SearchableSelect({ options, value, onChange, placeholder = "Sele
         <div className="absolute left-0 right-0 z-20 mt-1 rounded-lg border border-border bg-surface shadow-lg">
           <input
             autoFocus
+            autoComplete="off"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search city…"

@@ -25,7 +25,6 @@ function CartContent() {
     queryKey: ["cart"],
     queryFn: () => listCartItems(supabase),
   });
-
   const updateMutation = useMutation({
     mutationFn: ({ id, quantity }: { id: string; quantity: number }) =>
       updateCartItemQuantity(supabase, id, quantity),
@@ -181,18 +180,11 @@ function CartContent() {
             <span className="text-muted">{t.cart.subtotal}</span>
             <span className="font-semibold text-ink-dark">Rs. {subtotal.toLocaleString()}</span>
           </div>
-          <div className="flex justify-between text-[13.5px]">
-            <span className="text-muted">{t.cart.delivery}</span>
-            <span className="font-semibold text-success">
-              {subtotal >= 2500 ? t.cart.free : "Rs. 120"}
-            </span>
-          </div>
           <div className="flex justify-between border-t border-[#F1EAE6] pt-3.5 text-lg font-extrabold">
             <span className="text-ink">{t.cart.total}</span>
-            <span className="text-accent">
-              Rs. {(subtotal + (subtotal >= 2500 ? 0 : 120) * groups.length).toLocaleString()}
-            </span>
+            <span className="text-accent">Rs. {subtotal.toLocaleString()}</span>
           </div>
+          <p className="-mt-2 text-[11.5px] text-muted">Delivery is calculated at checkout.</p>
           <div className="flex items-center gap-2 rounded-lg bg-primary-tint px-3 py-2.5">
             <span className="rounded bg-white px-1.5 py-1 font-mono text-[9.5px] tracking-[0.08em] text-primary">
               COD

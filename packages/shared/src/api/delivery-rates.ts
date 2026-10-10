@@ -22,11 +22,23 @@ export async function setVendorDeliveryRate(
   supabase: Client,
   input: { vendor_id: string; city: string; fee: number },
 ): Promise<VendorDeliveryRateRow> {
-  const { data, error } = await supabase
+  // The unique index is on (vendor_id, lower(city)), an expression — upsert's
+  // onConflict can't target that, so this checks for an existing row itself.
+  const { data: existingRow } = await supabase
     .from("vendor_delivery_rates")
-    .upsert(input, { onConflict: "vendor_id,city" })
-    .select("*")
-    .single();
+    .select("id")
+    .eq("vendor_id", input.vendor_id)
+    .ilike("city", input.city)
+    .maybeSingle();
+
+  const { data, error } = existingRow
+    ? await supabase
+        .from("vendor_delivery_rates")
+        .update({ fee: input.fee })
+        .eq("id", existingRow.id)
+        .select("*")
+        .single()
+    : await supabase.from("vendor_delivery_rates").insert(input).select("*").single();
   if (error) throw error;
   return data;
 }

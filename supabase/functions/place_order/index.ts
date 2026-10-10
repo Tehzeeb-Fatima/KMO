@@ -17,10 +17,14 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-// Matches the PDP sidebar copy: "Free over Rs. 2,500, otherwise Rs. 120 flat."
-// Applied per vendor order, since checkout splits into one order per vendor.
-function deliveryFeeFor(subtotal: number): number {
-  return subtotal >= 2500 ? 0 : 120;
+// The admin-configured platform-wide default (Settings > Default delivery
+// fee), used only when the vendor hasn't set their own rate for the city.
+// Null threshold/fee means the admin hasn't set a default yet — free, rather
+// than guessing a number nobody configured. Applied per vendor order, since
+// checkout splits into one order per vendor.
+function deliveryFeeFor(subtotal: number, defaultFee: number | null, freeThreshold: number | null): number {
+  if (freeThreshold !== null && subtotal >= freeThreshold) return 0;
+  return defaultFee ?? 0;
 }
 
 Deno.serve(async (req: Request) => {
@@ -133,7 +137,7 @@ Deno.serve(async (req: Request) => {
 
   const { data: settings } = await admin
     .from("platform_settings")
-    .select("default_commission_rate")
+    .select("default_commission_rate, default_delivery_fee, free_delivery_threshold")
     .single();
   const defaultCommissionRate = settings?.default_commission_rate ?? 0;
 
@@ -210,7 +214,9 @@ Deno.serve(async (req: Request) => {
       const unitPrice = variant?.price_override ?? product.price;
       return sum + unitPrice * item.quantity;
     }, 0);
-    const deliveryFee = deliveryRateByVendor.get(vendorId) ?? deliveryFeeFor(subtotal);
+    const deliveryFee =
+      deliveryRateByVendor.get(vendorId) ??
+      deliveryFeeFor(subtotal, settings?.default_delivery_fee ?? null, settings?.free_delivery_threshold ?? null);
 
     // Pick the best-matching promotion for this vendor's items, if any. A
     // promo can be scoped to a vendor and/or a category — both null means

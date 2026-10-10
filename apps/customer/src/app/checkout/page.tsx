@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   claimGuestAccount,
   createAddress,
+  getPlatformSettings,
   getVendorDeliveryRatesForCity,
   listActivePromotions,
   listAddresses,
@@ -15,8 +16,8 @@ import {
   toPricingPromotions,
 } from "@kmo/shared/api";
 import type { PaymentMethod } from "@kmo/shared/types";
-import { bestPromotionForVendor } from "@kmo/shared/lib";
-import { Button } from "@kmo/shared/ui";
+import { bestPromotionForVendor, PAKISTAN_CITIES } from "@kmo/shared/lib";
+import { Button, SearchableSelect } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { RequireAuth } from "@/components/require-auth";
 import { supabase } from "@/lib/supabase";
@@ -55,6 +56,10 @@ function CheckoutContent() {
     queryKey: ["active-promotions-checkout"],
     queryFn: () => listActivePromotions(supabase, 50),
   });
+  const { data: platformSettings } = useQuery({
+    queryKey: ["platform-settings"],
+    queryFn: () => getPlatformSettings(supabase),
+  });
 
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [addingAddress, setAddingAddress] = useState(false);
@@ -65,6 +70,7 @@ function CheckoutContent() {
   const [phone, setPhone] = useState("");
   const [addressLine, setAddressLine] = useState("");
   const [area, setArea] = useState("");
+  const [addressCity, setAddressCity] = useState("");
 
   const isGuest = !!user?.is_anonymous;
   const [email, setEmail] = useState(user?.email ?? "");
@@ -110,11 +116,13 @@ function CheckoutContent() {
         phone,
         address_line: addressLine,
         area,
+        city: addressCity,
       }),
     onSuccess: (created) => {
       queryClient.invalidateQueries({ queryKey: ["addresses"] });
       setSelectedAddressId(created.id);
       setAddingAddress(false);
+      setAddressCity("");
     },
   });
 
@@ -149,15 +157,17 @@ function CheckoutContent() {
     }, 0) ?? 0;
 
   // Each vendor order gets its own delivery fee: the vendor's own rate for the
-  // delivery city if they've set one, else KMO's default (free over Rs. 2,500,
-  // otherwise Rs. 120) — mirrored exactly in place_order so this isn't just an
-  // estimate.
+  // delivery city if they've set one, else the admin's platform-wide default
+  // (if they've set one — otherwise it's free) — mirrored exactly in
+  // place_order so this isn't just an estimate.
+  const defaultFee = platformSettings?.default_delivery_fee ?? 0;
+  const freeThreshold = platformSettings?.free_delivery_threshold;
   const deliveryFee = vendorIds.reduce((sum, vendorId) => {
     const vendorSubtotal = (items ?? [])
       .filter((i) => i.products.vendor_id === vendorId)
       .reduce((s, i) => s + (i.product_variants?.price_override ?? i.products.price) * i.quantity, 0);
     const customRate = vendorDeliveryRates?.get(vendorId);
-    const fee = customRate ?? (vendorSubtotal >= 2500 ? 0 : 120);
+    const fee = customRate ?? (freeThreshold != null && vendorSubtotal >= freeThreshold ? 0 : defaultFee);
     return sum + fee;
   }, 0);
 
@@ -312,10 +322,24 @@ function CheckoutContent() {
                   onChange={(e) => setArea(e.target.value)}
                   className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
                 />
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[12.5px] font-semibold text-muted">
+                    City <span className="font-medium text-danger">*</span>
+                  </label>
+                  <SearchableSelect
+                    options={PAKISTAN_CITIES}
+                    value={addressCity}
+                    onChange={setAddressCity}
+                    placeholder="Select your city…"
+                  />
+                  <p className="text-[11.5px] text-muted">
+                    Delivery charges are calculated for this city at checkout.
+                  </p>
+                </div>
                 <Button
                   variant="secondary"
                   className="w-fit"
-                  disabled={addAddressMutation.isPending || !fullName || !phone || !addressLine}
+                  disabled={addAddressMutation.isPending || !fullName || !phone || !addressLine || !addressCity}
                   onClick={() => addAddressMutation.mutate()}
                 >
                   {addAddressMutation.isPending ? "Saving…" : "Save address"}
