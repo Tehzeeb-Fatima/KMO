@@ -59,7 +59,10 @@ Deno.serve(async (req: Request) => {
   if (!userId) return json({ error: "Missing user." }, 400);
   if (password.length < 8) return json({ error: "Password must be at least 8 characters." }, 400);
 
-  const { error: updateError } = await admin.auth.admin.updateUserById(userId, { password });
+  // Also confirm the email: a vendor who never opened their invite link is
+  // still unconfirmed, and Supabase refuses to sign them in with the new
+  // password ("Email not confirmed"). The admin is vouching for the account.
+  const { error: updateError } = await admin.auth.admin.updateUserById(userId, { password, email_confirm: true });
   if (updateError) return json({ error: updateError.message }, 400);
 
   await admin.from("audit_logs").insert({
