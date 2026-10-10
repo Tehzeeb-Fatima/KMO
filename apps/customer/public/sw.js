@@ -1,27 +1,39 @@
-const CACHE_NAME = "kmo-cache-v1";
+// Offline support without ever showing an old version of the site.
+//
+// Only the "You're offline" page (plus the CSS/JS it needs and the logo) is
+// cached. Everything else always comes from the network: when the network is
+// down, page loads get the offline page and other requests simply fail, so a
+// stale copy of a page or its data can never be shown as if it were current.
+const CACHE_NAME = "kmo-offline-v2";
 const OFFLINE_URL = "/offline";
-// Small app-shell precache — kept intentionally minimal since prices/stock
-// change often and we don't want stale product data served as if fresh.
-const PRECACHE_URLS = ["/offline", "/kmo-icon.png"];
+
+async function cacheOfflinePage() {
+  const cache = await caches.open(CACHE_NAME);
+  const response = await fetch(OFFLINE_URL, { cache: "reload" });
+  if (!response.ok) return;
+  const html = await response.clone().text();
+  // The offline page's own stylesheet and scripts, so it renders styled offline.
+  const assets = [...new Set(html.match(/\/_next\/static\/[^"'\s)]+\.(?:css|js)/g) ?? [])];
+  await cache.put(OFFLINE_URL, response);
+  await cache.addAll(["/kmo-icon.png", ...assets]);
+}
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS)).then(() => self.skipWaiting()),
-  );
+  event.waitUntil(cacheOfflinePage().then(() => self.skipWaiting()));
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches
       .keys()
+      // Drops the old "kmo-cache-v1", which held copies of real pages and data.
       .then((keys) => Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))))
       .then(() => self.clients.claim()),
   );
 });
 
-// Network-first everywhere — this is a live marketplace, so we always want
-// fresh data when online. Cache is only a fallback for when the network
-// request fails outright (offline, or the connection drops mid-request).
+let refreshedThisSession = false;
+
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   if (request.method !== "GET") return;
@@ -31,23 +43,22 @@ self.addEventListener("fetch", (event) => {
 
   if (request.mode === "navigate") {
     event.respondWith(
-      fetch(request).catch(async () => {
-        const cache = await caches.open(CACHE_NAME);
-        return (await cache.match(request)) || (await cache.match(OFFLINE_URL));
-      }),
+      fetch(request)
+        .then((response) => {
+          // Keep the offline page in step with new deploys, once per worker start.
+          if (!refreshedThisSession) {
+            refreshedThisSession = true;
+            cacheOfflinePage().catch(() => {});
+          }
+          return response;
+        })
+        .catch(async () => (await caches.match(OFFLINE_URL)) || Response.error()),
     );
     return;
   }
 
+  // Network only; the cache is consulted solely for the offline page's assets.
   event.respondWith(
-    fetch(request)
-      .then((response) => {
-        if (response.ok) {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
-        }
-        return response;
-      })
-      .catch(async () => (await caches.match(request)) || Response.error()),
+    fetch(request).catch(async () => (await caches.match(request)) || Response.error()),
   );
 });
