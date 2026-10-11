@@ -6,7 +6,7 @@ import {
   getPlatformSettings,
   getVendorDueAmount,
   listVendorPayouts,
-  membershipStatus,
+  commissionStatus, membershipStatus,
   notifyAdmins,
 } from "@kmo/shared/api";
 import { StatusBadge } from "@kmo/shared/ui";
@@ -35,7 +35,16 @@ export function PaymentsPage() {
   });
 
   const paidToDate = payouts?.filter((p) => p.status === "paid").reduce((s, p) => s + p.amount, 0) ?? 0;
-  const commissionRate = vendor?.commission_rate ?? 0;
+  const commission =
+    vendor && settings
+      ? commissionStatus(
+          vendor.membership_started_at,
+          settings.commission_free_months,
+          vendor.commission_rate,
+          settings.default_commission_rate,
+        )
+      : null;
+  const commissionRate = commission?.currentRate ?? 0;
   const trial =
     vendor && settings
       ? membershipStatus(vendor.membership_started_at, settings.vendor_free_trial_months)
@@ -78,7 +87,9 @@ export function PaymentsPage() {
 
       <div className="mb-4 rounded-xl border border-border bg-surface p-5">
         <p className="text-[13px] font-bold text-ink">
-          KMO charges no commission on your sales — you keep the full listed price.
+          {commission?.inFreePeriod
+            ? `No commission until ${commission.startsAt.toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })} — you keep the full listed price. After that, KMO's commission is ${commission.rateAfter}% on delivered orders.`
+            : `KMO's commission is ${commission?.rateAfter ?? 0}% on delivered orders.`}
         </p>
         <p className="mt-1 text-xs text-muted">
           {trial?.inFreeTrial

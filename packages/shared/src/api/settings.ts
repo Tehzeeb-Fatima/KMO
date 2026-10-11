@@ -24,6 +24,7 @@ export async function updatePlatformSettings(
       | "maintenance_mode"
       | "vendor_membership_fee"
       | "vendor_free_trial_months"
+      | "commission_free_months"
       | "vendor_agreement_title"
       | "vendor_agreement_body"
       | "vendor_of_week_id"

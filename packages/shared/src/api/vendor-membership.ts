@@ -17,6 +17,23 @@ export function membershipStatus(
   return { trialEndsAt, inFreeTrial: trialEndsAt.getTime() > Date.now() };
 }
 
+/** Commission standing for a vendor: nothing is charged for the first
+ *  `commissionFreeMonths` after on-boarding, then `vendorRate` if the vendor
+ *  has their own rate, else the platform's `defaultRate`. place_order applies
+ *  the same rule when an order is placed. */
+export function commissionStatus(
+  membershipStartedAt: string,
+  commissionFreeMonths: number,
+  vendorRate: number | null,
+  defaultRate: number,
+): { startsAt: Date; inFreePeriod: boolean; rateAfter: number; currentRate: number } {
+  const startsAt = new Date(membershipStartedAt);
+  startsAt.setMonth(startsAt.getMonth() + commissionFreeMonths);
+  const inFreePeriod = startsAt.getTime() > Date.now();
+  const rateAfter = vendorRate ?? defaultRate;
+  return { startsAt, inFreePeriod, rateAfter, currentRate: inFreePeriod ? 0 : rateAfter };
+}
+
 export async function listMembershipCharges(
   supabase: Client,
   vendorId: string,

@@ -16,6 +16,7 @@ import {
   listVendorDeliveryRates,
   listVendors,
   logAdminAction,
+  commissionStatus,
   membershipStatus,
   recordMembershipCharge,
   setVendorCategories,
@@ -614,7 +615,11 @@ function VendorDetail({ vendorId, onBack }: { vendorId: string; onBack: () => vo
 
           <VendorDeliveryRatesSection vendorId={vendorId} />
 
-          <VendorMembershipSection vendorId={vendorId} membershipStartedAt={vendor.membership_started_at} />
+          <VendorMembershipSection
+            vendorId={vendorId}
+            membershipStartedAt={vendor.membership_started_at}
+            commissionRate={vendor.commission_rate}
+          />
 
           <VendorProductsSection vendorId={vendorId} />
 
@@ -762,9 +767,12 @@ function VendorDeliveryRatesSection({ vendorId }: { vendorId: string }) {
 function VendorMembershipSection({
   vendorId,
   membershipStartedAt,
+  commissionRate,
 }: {
   vendorId: string;
   membershipStartedAt: string;
+  /** The vendor's own rate, or null to use the platform rate. */
+  commissionRate: number | null;
 }) {
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -798,9 +806,30 @@ function VendorMembershipSection({
     },
   });
 
+  // On-boarding date: the free membership months and the commission-free
+  // months are both counted from it.
+  const onboardingMutation = useMutation({
+    mutationFn: (date: string) =>
+      updateMyVendor(supabase, vendorId, { membership_started_at: new Date(`${date}T00:00:00`).toISOString() }),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(["admin-vendor", vendorId], updated);
+      queryClient.invalidateQueries({ queryKey: ["admin-vendors"] });
+      if (user) void logAdminAction(supabase, user.id, "vendor.onboarding_date", "vendor", vendorId);
+    },
+  });
+
   if (!settings) return null;
 
   const trial = membershipStatus(membershipStartedAt, settings.vendor_free_trial_months);
+  const commission = commissionStatus(
+    membershipStartedAt,
+    settings.commission_free_months,
+    commissionRate,
+    settings.default_commission_rate,
+  );
+  const longDate = (d: Date) => d.toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" });
+  const started = new Date(membershipStartedAt);
+  const startedInput = `${started.getFullYear()}-${String(started.getMonth() + 1).padStart(2, "0")}-${String(started.getDate()).padStart(2, "0")}`;
 
   return (
     <div className="rounded-lg border border-border bg-surface p-6">
@@ -815,10 +844,29 @@ function VendorMembershipSection({
           {logPaymentMutation.isPending ? "Logging…" : "Log this month's payment"}
         </button>
       </div>
+      <label className="mt-3 flex flex-wrap items-center gap-2 text-[12.5px] text-ink-dark">
+        <span className="font-bold">On-boarding date</span>
+        <input
+          type="date"
+          value={startedInput}
+          disabled={onboardingMutation.isPending}
+          onChange={(e) => {
+            if (e.target.value) onboardingMutation.mutate(e.target.value);
+          }}
+          className="rounded-md border border-border px-2 py-1 text-[12.5px] outline-none focus:border-primary-light"
+        />
+      </label>
       <p className="mt-2 text-[12.5px] text-muted">
+        <span className="font-bold text-ink-dark">Platform fee:</span>{" "}
         {trial.inFreeTrial
-          ? `Free trial until ${trial.trialEndsAt.toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })}.`
-          : `Rs. ${settings.vendor_membership_fee}/month since the trial ended on ${trial.trialEndsAt.toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })}.`}
+          ? `free until ${longDate(trial.trialEndsAt)}, then Rs. ${settings.vendor_membership_fee}/month.`
+          : `Rs. ${settings.vendor_membership_fee}/month since the free period ended on ${longDate(trial.trialEndsAt)}.`}
+      </p>
+      <p className="mt-1 text-[12.5px] text-muted">
+        <span className="font-bold text-ink-dark">Commission:</span>{" "}
+        {commission.inFreePeriod
+          ? `0% until ${longDate(commission.startsAt)}, then ${commission.rateAfter}%.`
+          : `${commission.rateAfter}% since ${longDate(commission.startsAt)}.`}
       </p>
       {charges && charges.length > 0 ? (
         <div className="mt-3 flex flex-col gap-1.5">

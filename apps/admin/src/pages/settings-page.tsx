@@ -31,6 +31,7 @@ export function SettingsPage() {
   const [codCitywide, setCodCitywide] = useState(true);
   const [membershipFee, setMembershipFee] = useState("499");
   const [trialMonths, setTrialMonths] = useState("2");
+  const [commissionFreeMonths, setCommissionFreeMonths] = useState("3");
   const [agreementTitle, setAgreementTitle] = useState("");
   const [agreementBody, setAgreementBody] = useState("");
   const [vendorOfWeekId, setVendorOfWeekId] = useState("");
@@ -56,6 +57,7 @@ export function SettingsPage() {
       setCodCitywide((settings.delivery_zones ?? []).includes("citywide-cod"));
       setMembershipFee(String(settings.vendor_membership_fee));
       setTrialMonths(String(settings.vendor_free_trial_months));
+      setCommissionFreeMonths(String(settings.commission_free_months));
       setAgreementTitle(settings.vendor_agreement_title);
       setAgreementBody(settings.vendor_agreement_body);
       setDefaultDeliveryFee(settings.default_delivery_fee === null ? "" : String(settings.default_delivery_fee));
@@ -134,6 +136,7 @@ export function SettingsPage() {
       updatePlatformSettings(supabase, {
         vendor_membership_fee: Number(membershipFee) || 0,
         vendor_free_trial_months: Number(trialMonths) || 0,
+        commission_free_months: Number(commissionFreeMonths) || 0,
       }),
     onSuccess: (updated) => {
       queryClient.setQueryData(["platform-settings"], updated);
@@ -393,6 +396,15 @@ export function SettingsPage() {
             <input
               value={trialMonths}
               onChange={(e) => setTrialMonths(e.target.value)}
+              onBlur={() => saveMembership.mutate()}
+              className="rounded-lg border border-border px-3 py-2.5 text-[13.5px] outline-none focus:border-primary-light"
+            />
+          </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="text-[12px] font-bold text-ink-dark">Commission-free period (months)</span>
+            <input
+              value={commissionFreeMonths}
+              onChange={(e) => setCommissionFreeMonths(e.target.value)}
               onBlur={() => saveMembership.mutate()}
               className="rounded-lg border border-border px-3 py-2.5 text-[13.5px] outline-none focus:border-primary-light"
             />

@@ -811,6 +811,7 @@ export interface Database {
           maintenance_mode: boolean;
           vendor_membership_fee: number;
           vendor_free_trial_months: number;
+          commission_free_months: number;
           vendor_agreement_title: string;
           vendor_agreement_body: string;
           vendor_of_week_id: string | null;
@@ -829,6 +830,7 @@ export interface Database {
           maintenance_mode?: boolean;
           vendor_membership_fee?: number;
           vendor_free_trial_months?: number;
+          commission_free_months?: number;
           vendor_agreement_title?: string;
           vendor_agreement_body?: string;
           vendor_of_week_id?: string | null;
@@ -847,6 +849,7 @@ export interface Database {
           maintenance_mode?: boolean;
           vendor_membership_fee?: number;
           vendor_free_trial_months?: number;
+          commission_free_months?: number;
           vendor_agreement_title?: string;
           vendor_agreement_body?: string;
           vendor_of_week_id?: string | null;

@@ -137,9 +137,10 @@ Deno.serve(async (req: Request) => {
 
   const { data: settings } = await admin
     .from("platform_settings")
-    .select("default_commission_rate, default_delivery_fee, free_delivery_threshold")
+    .select("default_commission_rate, commission_free_months, default_delivery_fee, free_delivery_threshold")
     .single();
   const defaultCommissionRate = settings?.default_commission_rate ?? 0;
+  const commissionFreeMonths = settings?.commission_free_months ?? 0;
 
   // A coupon is vendor-scoped: it only discounts the order for the vendor it
   // was created by, even if the cart spans multiple vendors.
@@ -289,10 +290,15 @@ Deno.serve(async (req: Request) => {
 
     const { data: vendorRow } = await admin
       .from("vendors")
-      .select("commission_rate, owner_id, store_name")
+      .select("commission_rate, membership_started_at, owner_id, store_name")
       .eq("id", vendorId)
       .maybeSingle();
-    const commissionRate = vendorRow?.commission_rate ?? defaultCommissionRate;
+    // No commission for the first months after the vendor's on-boarding date,
+    // then their own rate if they have one, else the platform rate.
+    const commissionStartsAt = new Date(vendorRow?.membership_started_at ?? 0);
+    commissionStartsAt.setMonth(commissionStartsAt.getMonth() + commissionFreeMonths);
+    const commissionRate =
+      commissionStartsAt.getTime() > Date.now() ? 0 : (vendorRow?.commission_rate ?? defaultCommissionRate);
     // Commission is always on the pre-discount price — on every promotion
     // model. A vendor's commission never moves because of a promotion, only
     // their net payout does (via promotionVendorFundedAmount below).
