@@ -9,6 +9,7 @@ export const CATEGORY_ICONS = {
   shirt: { label: "Shirt", paths: '<path d="M20 7l-4-3-4 2-4-2-4 3 2 4 2-1v10h8V10l2 1z"/>' },
   puzzle: { label: "Puzzle", paths: '<path d="M4 4h6v3a2 2 0 1 0 4 0V4h6v6h-3a2 2 0 1 0 0 4h3v6h-6v-3a2 2 0 1 0-4 0v3H4z"/>' },
   handbag: { label: "Handbag", paths: '<path d="M6 7h12l1 13H5z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/>' },
+  scissors: { label: "Scissors", paths: '<circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M8.12 8.12 12 12M20 4 8.12 15.88M14.8 14.8 20 20"/>' },
   tag: { label: "Tag", paths: '<path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/>' },
 } as const;
 
