@@ -165,8 +165,9 @@ export default function StoreClient() {
               </div>
 
               {vendor.description ? (
-                <p className="max-w-[620px] text-[13px] leading-relaxed text-muted sm:text-[13.5px] sm:leading-[1.6]">
-                  {vendor.description}
+                // Opening line only; the full text is on the About tab.
+                <p className="line-clamp-2 max-w-[620px] text-[13px] leading-relaxed text-muted sm:text-[13.5px] sm:leading-[1.6]">
+                  {vendor.description.trim().split("\n")[0]}
                 </p>
               ) : null}
 
@@ -382,7 +383,7 @@ function AboutTab({
     <div className="grid gap-6 sm:grid-cols-[minmax(0,1fr)_330px]">
       <div>
         <h2 className="text-lg font-bold tracking-[-0.02em] text-ink">{t.store.aboutStore}</h2>
-        <p className="mt-3 max-w-[640px] text-sm leading-[1.7] text-ink-dark">
+        <p className="mt-3 max-w-[640px] whitespace-pre-line text-sm leading-[1.7] text-ink-dark">
           {description || t.store.noDescriptionYet}
         </p>
       </div>
