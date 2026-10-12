@@ -167,7 +167,7 @@
   width: 40%;
   pointer-events: none;
   background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-  animation: category-shimmer-sweep 4.5s ease-in-out infinite;
+  animation: category-shimmer-sweep 9s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {

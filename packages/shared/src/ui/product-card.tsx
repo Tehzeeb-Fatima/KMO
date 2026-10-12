@@ -105,12 +105,12 @@ export function ProductCard({
         <p className="line-clamp-2 min-h-[2.9em] text-[13.5px] font-medium leading-[1.45] text-ink-dark">
           {name}
         </p>
-        <div className="flex items-baseline gap-2">
-          <span className="text-lg font-extrabold tracking-[-0.025em] text-primary">
+        <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
+          <span className="text-[14.5px] font-extrabold tracking-[-0.02em] text-primary sm:text-lg sm:tracking-[-0.025em]">
             Rs. {price.toLocaleString()}
           </span>
           {compareAtPrice && compareAtPrice > price ? (
-            <span className="text-[12.5px] font-semibold text-ink-dark line-through decoration-danger decoration-2">
+            <span className="text-[10.5px] font-semibold text-ink-dark line-through decoration-danger decoration-2 sm:text-[12.5px]">
               Rs. {compareAtPrice.toLocaleString()}
             </span>
           ) : null}
