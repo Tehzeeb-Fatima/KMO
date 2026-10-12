@@ -972,7 +972,13 @@ function Field({
     <div className="flex flex-col gap-[7px]">
       <span className="text-[12.5px] font-bold text-ink-dark">
         {label}
-        {optional ? <span className="font-medium text-muted-table"> {optionalLabel}</span> : null}
+        {optional ? (
+          <span className="font-medium text-muted-table"> {optionalLabel}</span>
+        ) : (
+          <span className="text-danger" aria-hidden="true">
+            {" "}*
+          </span>
+        )}
       </span>
       {children}
     </div>

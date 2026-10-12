@@ -40,14 +40,14 @@ export default function ContactPage() {
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <input
               required
-              placeholder={t.contact.firstName}
+              placeholder={`${t.contact.firstName} *`}
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
               className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
             />
             <input
               required
-              placeholder={t.contact.lastName}
+              placeholder={`${t.contact.lastName} *`}
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
               className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
@@ -56,7 +56,7 @@ export default function ContactPage() {
           <input
             required
             type="tel"
-            placeholder={t.contact.phoneNumber}
+            placeholder={`${t.contact.phoneNumber} *`}
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
@@ -64,7 +64,7 @@ export default function ContactPage() {
           <textarea
             required
             rows={4}
-            placeholder={t.contact.howCanWeHelp}
+            placeholder={`${t.contact.howCanWeHelp} *`}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             className="resize-y rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
