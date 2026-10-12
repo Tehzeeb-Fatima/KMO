@@ -148,3 +148,31 @@
     font-family: var(--font-noto-nastaliq-urdu), var(--font-plus-jakarta-sans), sans-serif;
   }
 }
+
+/* Category strip shimmer — a soft light sweep that passes over the bar every
+   few seconds, then pauses, to draw the eye like a "fresh / new" cue. */
+@keyframes category-shimmer-sweep {
+  0%, 40% {
+    transform: translateX(-120%);
+  }
+  70%, 100% {
+    transform: translateX(220%);
+  }
+}
+
+.category-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  pointer-events: none;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  animation: category-shimmer-sweep 4.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .category-shimmer::after {
+    animation: none;
+    display: none;
+  }
+}

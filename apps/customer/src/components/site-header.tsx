@@ -148,16 +148,18 @@ export function SiteHeader() {
 
       {/* row 2 — terracotta category strip */}
       {categories && categories.length > 0 ? (
-        <div className="flex justify-between gap-0.5 overflow-x-auto bg-accent px-4 sm:px-10">
-          {mainCategories(categories).map((c) => (
-            <Link
-              key={c.id}
-              href={`/search?category=${c.id}`}
-              className="shrink-0 whitespace-nowrap border-b-[3px] border-transparent px-[15px] py-[13px] text-[12.5px] font-semibold text-[#F8E4DA] hover:text-white"
-            >
-              {c.name}
-            </Link>
-          ))}
+        <div className="category-shimmer relative overflow-hidden bg-accent">
+          <div className="flex justify-between gap-0.5 overflow-x-auto px-4 sm:px-10">
+            {mainCategories(categories).map((c) => (
+              <Link
+                key={c.id}
+                href={`/search?category=${c.id}`}
+                className="shrink-0 whitespace-nowrap border-b-[3px] border-transparent px-[15px] py-[13px] text-[12.5px] font-semibold text-[#F8E4DA] hover:text-white"
+              >
+                {c.name}
+              </Link>
+            ))}
+          </div>
         </div>
       ) : null}
     </header>
