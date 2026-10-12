@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Mail, Phone } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/language-context";
 
 const VENDOR_URL = process.env.NEXT_PUBLIC_VENDOR_URL ?? "https://vendor.karachimartonline.com";
@@ -48,16 +49,29 @@ export function SiteFooter() {
     <footer className="bg-sidebar">
       <div className="mx-auto grid w-full max-w-[1358px] grid-cols-2 gap-8 px-4 py-12 sm:grid-cols-3 sm:px-10 lg:grid-cols-5">
         <div className="col-span-2 flex flex-col gap-3 sm:col-span-1">
-          <div className="flex items-center gap-[11px]">
+          <Link href="/" aria-label="Karachi Mart home" className="flex w-fit items-center gap-[11px]">
             <span className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-[#f5ece2]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/kmo-icon.png" alt="" className="h-full w-full object-cover" />
             </span>
             <span className="text-base font-extrabold text-white">Karachi Mart</span>
-          </div>
+          </Link>
           <p className="max-w-[280px] text-[13px] leading-[1.6] text-[#B9A3CD]">
             {t.footer.description}
           </p>
+          <div className="mt-1 flex flex-col gap-2 text-[13px]">
+            <a
+              href="mailto:info@karachimartonline.com"
+              className="flex w-fit items-center gap-2 text-[#D5C4E2] hover:text-white"
+            >
+              <Mail className="h-4 w-4 shrink-0 text-[#B9A3CD]" />
+              info@karachimartonline.com
+            </a>
+            <a href="tel:+923712104790" className="flex w-fit items-center gap-2 text-[#D5C4E2] hover:text-white">
+              <Phone className="h-4 w-4 shrink-0 text-[#B9A3CD]" />
+              <span dir="ltr">+92 371 2104790</span>
+            </a>
+          </div>
         </div>
 
         {columns.map((col) => (
