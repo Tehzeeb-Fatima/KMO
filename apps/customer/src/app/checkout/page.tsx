@@ -6,7 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   claimGuestAccount,
   createAddress,
-  getPlatformSettings,
+  getDefaultDeliveryRateForCity,
   getVendorDeliveryRatesForCity,
   listActivePromotions,
   listAddresses,
@@ -56,11 +56,6 @@ function CheckoutContent() {
     queryKey: ["active-promotions-checkout"],
     queryFn: () => listActivePromotions(supabase, 50),
   });
-  const { data: platformSettings } = useQuery({
-    queryKey: ["platform-settings"],
-    queryFn: () => getPlatformSettings(supabase),
-  });
-
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [addingAddress, setAddingAddress] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cod");
@@ -106,6 +101,11 @@ function CheckoutContent() {
     queryKey: ["vendor-delivery-rates-checkout", vendorIds.join(","), selectedAddress?.city],
     queryFn: () => getVendorDeliveryRatesForCity(supabase, vendorIds, selectedAddress!.city),
     enabled: vendorIds.length > 0 && !!selectedAddress?.city,
+  });
+  const { data: defaultDeliveryRate } = useQuery({
+    queryKey: ["default-delivery-rate-checkout", selectedAddress?.city],
+    queryFn: () => getDefaultDeliveryRateForCity(supabase, selectedAddress!.city),
+    enabled: !!selectedAddress?.city,
   });
 
   const addAddressMutation = useMutation({
@@ -157,11 +157,11 @@ function CheckoutContent() {
     }, 0) ?? 0;
 
   // Each vendor order gets its own delivery fee: the vendor's own rate for the
-  // delivery city if they've set one, else the admin's platform-wide default
-  // (if they've set one — otherwise it's free) — mirrored exactly in
+  // delivery city if they've set one, else the admin's city-wise default (if
+  // set for this city — otherwise it's free) — mirrored exactly in
   // place_order so this isn't just an estimate.
-  const defaultFee = platformSettings?.default_delivery_fee ?? 0;
-  const freeThreshold = platformSettings?.free_delivery_threshold;
+  const defaultFee = defaultDeliveryRate?.fee ?? 0;
+  const freeThreshold = defaultDeliveryRate?.free_delivery_threshold ?? null;
   const deliveryFee = vendorIds.reduce((sum, vendorId) => {
     const vendorSubtotal = (items ?? [])
       .filter((i) => i.products.vendor_id === vendorId)

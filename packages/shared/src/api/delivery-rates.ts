@@ -4,6 +4,7 @@ import type { Database } from "../types";
 type Client = SupabaseClient<Database>;
 type VendorDeliveryRateRow = Database["public"]["Tables"]["vendor_delivery_rates"]["Row"];
 type DeliveryFeeCapRow = Database["public"]["Tables"]["delivery_fee_caps"]["Row"];
+type DefaultDeliveryRateRow = Database["public"]["Tables"]["default_delivery_rates"]["Row"];
 
 export async function listVendorDeliveryRates(
   supabase: Client,
@@ -111,4 +112,56 @@ export async function setDeliveryFeeCap(
 export async function deleteDeliveryFeeCap(supabase: Client, id: string): Promise<void> {
   const { error } = await supabase.from("delivery_fee_caps").delete().eq("id", id);
   if (error) throw error;
+}
+
+/** Admin's city-wise fallback delivery fee, used only when the vendor hasn't
+ *  set their own rate for that city. Managed on Admin > Settings. */
+export async function listDefaultDeliveryRates(supabase: Client): Promise<DefaultDeliveryRateRow[]> {
+  const { data, error } = await supabase.from("default_delivery_rates").select("*").order("city");
+  if (error) throw error;
+  return data;
+}
+
+export async function setDefaultDeliveryRate(
+  supabase: Client,
+  input: { city: string; fee: number; free_delivery_threshold: number | null },
+): Promise<DefaultDeliveryRateRow> {
+  const { data: existingRow } = await supabase
+    .from("default_delivery_rates")
+    .select("id")
+    .ilike("city", input.city)
+    .maybeSingle();
+
+  const { data, error } = existingRow
+    ? await supabase
+        .from("default_delivery_rates")
+        .update({ fee: input.fee, free_delivery_threshold: input.free_delivery_threshold })
+        .eq("id", existingRow.id)
+        .select("*")
+        .single()
+    : await supabase.from("default_delivery_rates").insert(input).select("*").single();
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteDefaultDeliveryRate(supabase: Client, id: string): Promise<void> {
+  const { error } = await supabase.from("default_delivery_rates").delete().eq("id", id);
+  if (error) throw error;
+}
+
+/** The admin's fallback for one city: its own row if set, else the "Other" row. */
+export async function getDefaultDeliveryRateForCity(
+  supabase: Client,
+  city: string,
+): Promise<{ fee: number; free_delivery_threshold: number | null } | null> {
+  if (!city.trim()) return null;
+  const { data, error } = await supabase
+    .from("default_delivery_rates")
+    .select("city, fee, free_delivery_threshold")
+    .or(`city.ilike.${city.trim()},city.ilike.Other`);
+  if (error) throw error;
+  const exact = data.find((r) => r.city.toLowerCase() === city.trim().toLowerCase());
+  const fallback = data.find((r) => r.city.toLowerCase() === "other");
+  const row = exact ?? fallback;
+  return row ? { fee: row.fee, free_delivery_threshold: row.free_delivery_threshold } : null;
 }

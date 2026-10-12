@@ -1,18 +1,21 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  deleteDefaultDeliveryRate,
   getPlatformSettings,
   getPreviewToken,
   listCategories,
+  listDefaultDeliveryRates,
   listVendors,
   logAdminAction,
   regeneratePreviewToken,
+  setDefaultDeliveryRate,
   updatePlatformSettings,
   uploadPromotionImage,
 } from "@kmo/shared/api";
-import { ConfirmDialog } from "@kmo/shared/ui";
+import { ConfirmDialog, SearchableSelect } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
-import { categoryOptions } from "@kmo/shared/lib";
+import { categoryOptions, DELIVERY_CITY_OPTIONS } from "@kmo/shared/lib";
 import { supabase } from "../lib/supabase";
 
 const CUSTOMER_URL = import.meta.env.VITE_CUSTOMER_URL ?? "https://karachimartonline.com";
@@ -26,8 +29,6 @@ export function SettingsPage() {
   });
 
   const [commission, setCommission] = useState("0");
-  const [defaultDeliveryFee, setDefaultDeliveryFee] = useState("");
-  const [freeDeliveryThreshold, setFreeDeliveryThreshold] = useState("");
   const [whatsappNumber, setWhatsappNumber] = useState("");
   const [codCitywide, setCodCitywide] = useState(true);
   const [membershipFee, setMembershipFee] = useState("499");
@@ -61,10 +62,6 @@ export function SettingsPage() {
       setCommissionFreeMonths(String(settings.commission_free_months));
       setAgreementTitle(settings.vendor_agreement_title);
       setAgreementBody(settings.vendor_agreement_body);
-      setDefaultDeliveryFee(settings.default_delivery_fee === null ? "" : String(settings.default_delivery_fee));
-      setFreeDeliveryThreshold(
-        settings.free_delivery_threshold === null ? "" : String(settings.free_delivery_threshold),
-      );
       setWhatsappNumber(settings.whatsapp_number ?? "");
     }
   }, [settings]);
@@ -127,23 +124,6 @@ export function SettingsPage() {
       if (user) {
         void logAdminAction(supabase, user.id, "settings.commission", "platform_settings", undefined, {
           default_commission_rate: updated.default_commission_rate,
-        });
-      }
-    },
-  });
-
-  const saveDefaultDeliveryFee = useMutation({
-    mutationFn: () =>
-      updatePlatformSettings(supabase, {
-        default_delivery_fee: defaultDeliveryFee.trim() === "" ? null : Number(defaultDeliveryFee),
-        free_delivery_threshold: freeDeliveryThreshold.trim() === "" ? null : Number(freeDeliveryThreshold),
-      }),
-    onSuccess: (updated) => {
-      queryClient.setQueryData(["platform-settings"], updated);
-      if (user) {
-        void logAdminAction(supabase, user.id, "settings.default_delivery_fee", "platform_settings", undefined, {
-          default_delivery_fee: updated.default_delivery_fee,
-          free_delivery_threshold: updated.free_delivery_threshold,
         });
       }
     },
@@ -362,37 +342,7 @@ export function SettingsPage() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-3.5 rounded-xl border border-border bg-surface p-[22px_24px]">
-        <p className="text-[15px] font-bold text-ink">Default delivery fee</p>
-        <p className="text-xs text-muted">
-          Used only when a vendor hasn&rsquo;t set their own delivery charge for a customer&rsquo;s city (Vendors can
-          set their own on their Shipping page). Leave blank to charge no fallback fee until you set one.
-        </p>
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2">
-            <input
-              value={defaultDeliveryFee}
-              onChange={(e) => setDefaultDeliveryFee(e.target.value)}
-              onBlur={() => saveDefaultDeliveryFee.mutate()}
-              placeholder="Not set"
-              autoComplete="off"
-              className="w-24 rounded-lg border border-border px-3 py-2.5 text-[13.5px] outline-none focus:border-primary-light"
-            />
-            <span className="text-[13px] text-muted">Rs. delivery fee</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <input
-              value={freeDeliveryThreshold}
-              onChange={(e) => setFreeDeliveryThreshold(e.target.value)}
-              onBlur={() => saveDefaultDeliveryFee.mutate()}
-              placeholder="Not set"
-              autoComplete="off"
-              className="w-24 rounded-lg border border-border px-3 py-2.5 text-[13.5px] outline-none focus:border-primary-light"
-            />
-            <span className="text-[13px] text-muted">free delivery over Rs.</span>
-          </div>
-        </div>
-      </div>
+      <DefaultDeliveryRatesCard />
 
       <div className="flex flex-col gap-3.5 rounded-xl border border-border bg-surface p-[22px_24px]">
         <p className="text-[15px] font-bold text-ink">WhatsApp support</p>
@@ -625,6 +575,151 @@ export function SettingsPage() {
         loading={toggleMaintenance.isPending}
         onConfirm={() => toggleMaintenance.mutate(pendingMaintenanceToggle!)}
         onCancel={() => setPendingMaintenanceToggle(null)}
+      />
+    </div>
+  );
+}
+
+/** City-wise fallback delivery fee, used when a vendor hasn't set their own
+ *  rate for that city. Pick "Other" to cover every city not listed. */
+function DefaultDeliveryRatesCard() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const queryKey = ["default-delivery-rates"];
+
+  const { data: rates, isLoading } = useQuery({
+    queryKey,
+    queryFn: () => listDefaultDeliveryRates(supabase),
+  });
+
+  const availableCities = DELIVERY_CITY_OPTIONS.filter((c) => !rates?.some((r) => r.city === c));
+  const [city, setCity] = useState("");
+  const [fee, setFee] = useState("");
+  const [freeOver, setFreeOver] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  const saveMutation = useMutation({
+    mutationFn: () =>
+      setDefaultDeliveryRate(supabase, {
+        city,
+        fee: Number(fee),
+        free_delivery_threshold: freeOver.trim() === "" ? null : Number(freeOver),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey });
+      if (user) void logAdminAction(supabase, user.id, "settings.default_delivery_rate", "platform_settings");
+      setCity("");
+      setFee("");
+      setFreeOver("");
+      setError(null);
+    },
+    onError: (err: Error) => setError(err.message),
+  });
+
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; city: string } | null>(null);
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteDefaultDeliveryRate(supabase, id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey });
+      setPendingDelete(null);
+    },
+  });
+
+  const canSave = city.trim() && fee.trim() && Number(fee) >= 0 && !saveMutation.isPending;
+
+  return (
+    <div className="flex flex-col gap-3.5 rounded-xl border border-border bg-surface p-[22px_24px]">
+      <p className="text-[15px] font-bold text-ink">Default delivery fee</p>
+      <p className="text-xs text-muted">
+        Used only when a vendor hasn&rsquo;t set their own delivery charge for a customer&rsquo;s city (vendors set
+        theirs on their Shipping page). Pick <span className="font-semibold text-ink-dark">Other</span> to cover
+        every city you haven&rsquo;t listed individually. A city with no row here and no Other row is free.
+      </p>
+
+      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-[1fr_1fr_1fr_auto]">
+        <SearchableSelect
+          options={availableCities}
+          value={city}
+          onChange={(c) => {
+            setCity(c);
+            setError(null);
+          }}
+          placeholder="City…"
+          className="col-span-2 sm:col-span-1"
+        />
+        <input
+          value={fee}
+          onChange={(e) => {
+            setFee(e.target.value);
+            setError(null);
+          }}
+          placeholder="Fee (Rs.)"
+          autoComplete="off"
+          className="rounded-lg border border-border px-3 py-2 text-[13px] outline-none focus:border-primary-light"
+        />
+        <input
+          value={freeOver}
+          onChange={(e) => {
+            setFreeOver(e.target.value);
+            setError(null);
+          }}
+          placeholder="Free over Rs. (optional)"
+          autoComplete="off"
+          className="rounded-lg border border-border px-3 py-2 text-[13px] outline-none focus:border-primary-light"
+        />
+        <button
+          type="button"
+          disabled={!canSave}
+          onClick={() => saveMutation.mutate()}
+          className="rounded-lg bg-accent px-4 py-2 text-[12.5px] font-bold text-white disabled:opacity-60"
+        >
+          Save
+        </button>
+      </div>
+      {error ? <p className="text-[12.5px] text-danger">{error}</p> : null}
+
+      <div className="overflow-x-auto rounded-lg border border-border">
+        <div className="grid min-w-[420px] grid-cols-[1fr_1fr_1fr_60px] bg-surface-alt px-3.5 py-2.5 font-mono text-[10px] uppercase tracking-[0.08em] text-muted-table">
+          <span>City</span>
+          <span>Fee</span>
+          <span>Free over</span>
+          <span />
+        </div>
+        {isLoading ? (
+          <p className="p-4 text-sm text-muted">Loading…</p>
+        ) : !rates || rates.length === 0 ? (
+          <p className="p-4 text-sm text-muted">No rows yet — delivery is free everywhere until you add one.</p>
+        ) : (
+          rates.map((r) => (
+            <div
+              key={r.id}
+              className="grid min-w-[420px] grid-cols-[1fr_1fr_1fr_60px] items-center border-t border-[#F5F0EE] px-3.5 py-2.5 text-[12.5px]"
+            >
+              <span className="font-bold text-ink-dark">{r.city}</span>
+              <span className="text-ink-dark">Rs. {r.fee.toLocaleString()}</span>
+              <span className="text-muted">
+                {r.free_delivery_threshold != null ? `Rs. ${r.free_delivery_threshold.toLocaleString()}` : "—"}
+              </span>
+              <button
+                type="button"
+                onClick={() => setPendingDelete({ id: r.id, city: r.city })}
+                className="text-right text-[11px] font-bold text-danger"
+              >
+                Remove
+              </button>
+            </div>
+          ))
+        )}
+      </div>
+
+      <ConfirmDialog
+        open={!!pendingDelete}
+        title={`Remove the default for ${pendingDelete?.city}?`}
+        message="Vendors who haven't set their own rate for this city will charge no delivery fee until you add it back."
+        confirmLabel="Remove"
+        loading={deleteMutation.isPending}
+        onConfirm={() => deleteMutation.mutate(pendingDelete!.id)}
+        onCancel={() => setPendingDelete(null)}
       />
     </div>
   );

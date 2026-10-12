@@ -199,6 +199,33 @@ export interface Database {
         };
         Relationships: [];
       };
+      default_delivery_rates: {
+        Row: {
+          id: string;
+          city: string;
+          fee: number;
+          free_delivery_threshold: number | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          city: string;
+          fee: number;
+          free_delivery_threshold?: number | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          city?: string;
+          fee?: number;
+          free_delivery_threshold?: number | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       delivery_fee_caps: {
         Row: {
           id: string;

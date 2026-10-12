@@ -3,9 +3,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   deleteVendorDeliveryRate,
   getMyVendor,
-  getPlatformSettings,
   listCourierRateSlabs,
   listCouriers,
+  listDefaultDeliveryRates,
   listDeliveryFeeCaps,
   listVendorDeliveryRates,
   setVendorDeliveryRate,
@@ -135,18 +135,10 @@ function CustomerDeliveryChargesSection({ vendorId }: { vendorId: string }) {
     queryKey: ["delivery-fee-caps", vendorId],
     queryFn: () => listDeliveryFeeCaps(supabase, vendorId),
   });
-  const { data: platformSettings } = useQuery({
-    queryKey: ["platform-settings"],
-    queryFn: () => getPlatformSettings(supabase),
+  const { data: defaultRates } = useQuery({
+    queryKey: ["default-delivery-rates"],
+    queryFn: () => listDefaultDeliveryRates(supabase),
   });
-  const hasDefaultFee = platformSettings?.default_delivery_fee != null;
-  const defaultFeeText = hasDefaultFee
-    ? `KMO's default applies (Rs. ${platformSettings!.default_delivery_fee!.toLocaleString()}${
-        platformSettings?.free_delivery_threshold != null
-          ? `, free over Rs. ${platformSettings.free_delivery_threshold.toLocaleString()}`
-          : ""
-      }).`
-    : "KMO hasn't set a default delivery fee yet, so cities you don't list here are free until you add a rate.";
 
   const availableCities = DELIVERY_CITY_OPTIONS.filter((c) => !rates?.some((r) => r.city === c));
   const [city, setCity] = useState("");
@@ -162,6 +154,12 @@ function CustomerDeliveryChargesSection({ vendorId }: { vendorId: string }) {
       : undefined) ??
     caps?.find((c) => c.vendor_id === null && c.city.toLowerCase() === city.toLowerCase()) ??
     (city && city !== OTHER_CITY ? caps?.find((c) => c.vendor_id === null && c.city === OTHER_CITY) : undefined);
+
+  // KMO's fallback for the selected city: what a customer would be charged if
+  // this vendor leaves that city unset. Exact city first, then "Other".
+  const matchingDefault =
+    defaultRates?.find((r) => r.city.toLowerCase() === city.toLowerCase()) ??
+    (city && city !== OTHER_CITY ? defaultRates?.find((r) => r.city === OTHER_CITY) : undefined);
 
   const saveMutation = useMutation({
     mutationFn: () => setVendorDeliveryRate(supabase, { vendor_id: vendorId, city: city.trim(), fee: Number(fee) }),
@@ -190,7 +188,8 @@ function CustomerDeliveryChargesSection({ vendorId }: { vendorId: string }) {
       <p className="text-[15px] font-bold text-ink">Your delivery charge to customers</p>
       <p className="text-[12.5px] text-muted">
         Set what a customer pays for delivery, per city. Pick <span className="font-semibold text-ink-dark">Other</span>{" "}
-        to set one rate for every city you haven&rsquo;t listed individually — otherwise {defaultFeeText}
+        to set one rate for every city you haven&rsquo;t listed individually — otherwise KMO&rsquo;s own default for
+        that city applies, or delivery is free if KMO hasn&rsquo;t set one either.
       </p>
 
       <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-[1fr_1fr_auto]">
@@ -230,6 +229,19 @@ function CustomerDeliveryChargesSection({ vendorId }: { vendorId: string }) {
           KMO&rsquo;s cap for {matchingCap.city}: Rs. {matchingCap.max_fee.toLocaleString()}
         </p>
       ) : null}
+      {city && matchingDefault ? (
+        <p className="text-[11.5px] text-muted">
+          If you leave {city} unset, customers are charged KMO&rsquo;s default: Rs.{" "}
+          {matchingDefault.fee.toLocaleString()}
+          {matchingDefault.free_delivery_threshold != null
+            ? ` (free over Rs. ${matchingDefault.free_delivery_threshold.toLocaleString()})`
+            : ""}
+        </p>
+      ) : city && !matchingDefault ? (
+        <p className="text-[11.5px] text-muted">
+          If you leave {city} unset, delivery is free — KMO has no default for it either.
+        </p>
+      ) : null}
       {error ? <p className="text-[12.5px] text-danger">{error}</p> : null}
 
       <div className="overflow-x-auto rounded-lg border border-border">
@@ -242,7 +254,7 @@ function CustomerDeliveryChargesSection({ vendorId }: { vendorId: string }) {
           <p className="p-4 text-sm text-muted">Loading…</p>
         ) : !rates || rates.length === 0 ? (
           <p className="p-4 text-sm text-muted">
-            No custom rates yet — {hasDefaultFee ? "KMO's default applies everywhere." : "delivery is free everywhere."}
+            No custom rates yet — KMO&rsquo;s per-city default applies where you haven&rsquo;t set your own.
           </p>
         ) : (
           rates.map((r) => (
