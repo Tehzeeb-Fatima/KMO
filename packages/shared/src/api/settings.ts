@@ -34,6 +34,7 @@ export async function updatePlatformSettings(
       | "show_testimonials"
       | "default_delivery_fee"
       | "free_delivery_threshold"
+      | "whatsapp_number"
     >
   >,
 ): Promise<SettingsRow> {

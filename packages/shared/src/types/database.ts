@@ -821,6 +821,7 @@ export interface Database {
           show_testimonials: boolean;
           default_delivery_fee: number | null;
           free_delivery_threshold: number | null;
+          whatsapp_number: string | null;
           updated_at: string;
         };
         Insert: {
@@ -840,6 +841,7 @@ export interface Database {
           show_testimonials?: boolean;
           default_delivery_fee?: number | null;
           free_delivery_threshold?: number | null;
+          whatsapp_number?: string | null;
           updated_at?: string;
         };
         Update: {
@@ -859,6 +861,7 @@ export interface Database {
           show_testimonials?: boolean;
           default_delivery_fee?: number | null;
           free_delivery_threshold?: number | null;
+          whatsapp_number?: string | null;
           updated_at?: string;
         };
         Relationships: [];

@@ -28,6 +28,7 @@ export function SettingsPage() {
   const [commission, setCommission] = useState("0");
   const [defaultDeliveryFee, setDefaultDeliveryFee] = useState("");
   const [freeDeliveryThreshold, setFreeDeliveryThreshold] = useState("");
+  const [whatsappNumber, setWhatsappNumber] = useState("");
   const [codCitywide, setCodCitywide] = useState(true);
   const [membershipFee, setMembershipFee] = useState("499");
   const [trialMonths, setTrialMonths] = useState("2");
@@ -64,6 +65,7 @@ export function SettingsPage() {
       setFreeDeliveryThreshold(
         settings.free_delivery_threshold === null ? "" : String(settings.free_delivery_threshold),
       );
+      setWhatsappNumber(settings.whatsapp_number ?? "");
     }
   }, [settings]);
 
@@ -79,6 +81,22 @@ export function SettingsPage() {
       if (user) void logAdminAction(supabase, user.id, "settings.vendor_of_week", "platform_settings");
       setVendorOfWeekSaved(true);
       setTimeout(() => setVendorOfWeekSaved(false), 2500);
+    },
+  });
+
+  const saveWhatsapp = useMutation({
+    mutationFn: () =>
+      updatePlatformSettings(supabase, {
+        whatsapp_number: whatsappNumber.trim() === "" ? null : whatsappNumber.replace(/[^\d+]/g, ""),
+      }),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(["platform-settings"], updated);
+      setWhatsappNumber(updated.whatsapp_number ?? "");
+      if (user) {
+        void logAdminAction(supabase, user.id, "settings.whatsapp_number", "platform_settings", undefined, {
+          whatsapp_number: updated.whatsapp_number,
+        });
+      }
     },
   });
 
@@ -373,6 +391,24 @@ export function SettingsPage() {
             />
             <span className="text-[13px] text-muted">free delivery over Rs.</span>
           </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-3.5 rounded-xl border border-border bg-surface p-[22px_24px]">
+        <p className="text-[15px] font-bold text-ink">WhatsApp support</p>
+        <p className="text-xs text-muted">
+          Shown as a floating WhatsApp button on every storefront page. Leave blank to hide it.
+        </p>
+        <div className="flex items-center gap-2">
+          <input
+            value={whatsappNumber}
+            onChange={(e) => setWhatsappNumber(e.target.value)}
+            onBlur={() => saveWhatsapp.mutate()}
+            placeholder="e.g. +923001234567"
+            autoComplete="off"
+            className="w-56 rounded-lg border border-border px-3 py-2.5 text-[13.5px] outline-none focus:border-primary-light"
+          />
+          <span className="text-[13px] text-muted">with country code</span>
         </div>
       </div>
 
