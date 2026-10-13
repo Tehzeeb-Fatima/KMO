@@ -16,7 +16,7 @@ import {
 } from "@kmo/shared/api";
 import type { ProductStatus } from "@kmo/shared/types";
 import { categoryPath } from "@kmo/shared/lib";
-import { ConfirmDialog } from "@kmo/shared/ui";
+import { BulkUploadProducts, ConfirmDialog } from "@kmo/shared/ui";
 import { supabase } from "../lib/supabase";
 
 const STATUS_TABS: { label: string; value: ProductStatus | "all" }[] = [
@@ -162,6 +162,19 @@ function ProductsList({
       >
         + Add product
       </button>
+
+      {vendorId ? (
+        <div className="mb-4">
+          <BulkUploadProducts
+            supabase={supabase}
+            vendorId={vendorId}
+            categories={(vendorCategories ?? []).concat(
+              (allCategories ?? []).filter((c) => (vendorCategories ?? []).some((v) => v.id === c.parent_id)),
+            )}
+            onUploaded={() => queryClient.invalidateQueries({ queryKey: ["my-products", vendorId] })}
+          />
+        </div>
+      ) : null}
 
       <div className="mb-3.5 flex flex-wrap gap-2">
         {STATUS_TABS.map((tab) => (

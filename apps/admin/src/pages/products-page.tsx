@@ -4,13 +4,15 @@ import {
   bulkArchiveProducts,
   bulkSetProductStatus,
   listAllProductsForModeration,
+  listCategories,
+  listVendorCategories,
   listVendors,
   logAdminAction,
   notifyUser,
   updateProduct,
   type ProductWithMedia,
 } from "@kmo/shared/api";
-import { ConfirmDialog } from "@kmo/shared/ui";
+import { BulkUploadProducts, ConfirmDialog } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "../lib/supabase";
 import { AdminProductForm } from "./admin-product-form";
@@ -34,6 +36,20 @@ export function ProductsModerationPage() {
     queryKey: ["admin-vendors-for-filter"],
     queryFn: () => listVendors(supabase),
   });
+
+  const { data: categories } = useQuery({
+    queryKey: ["admin-categories-for-bulk-upload"],
+    queryFn: () => listCategories(supabase),
+  });
+
+  const { data: vendorFilterCategories } = useQuery({
+    queryKey: ["admin-vendor-categories-for-bulk-upload", vendorFilter],
+    queryFn: () => listVendorCategories(supabase, vendorFilter),
+    enabled: !!vendorFilter,
+  });
+  const bulkUploadCategories = (vendorFilterCategories ?? []).concat(
+    (categories ?? []).filter((c) => (vendorFilterCategories ?? []).some((v) => v.id === c.parent_id)),
+  );
 
   const filtered = useMemo(() => {
     if (!products) return [];
@@ -202,6 +218,21 @@ export function ProductsModerationPage() {
         >
           + Add product
         </button>
+      </div>
+
+      <div className="mb-4">
+        {vendorFilter ? (
+          <BulkUploadProducts
+            supabase={supabase}
+            vendorId={vendorFilter}
+            categories={bulkUploadCategories}
+            onUploaded={() => queryClient.invalidateQueries({ queryKey: ["admin-products"] })}
+          />
+        ) : (
+          <p className="rounded-xl border border-dashed border-border bg-surface p-[14px_18px] text-[12.5px] text-muted">
+            Select a vendor above to bulk upload products for them.
+          </p>
+        )}
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-border bg-surface">

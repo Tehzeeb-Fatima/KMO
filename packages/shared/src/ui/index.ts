@@ -12,3 +12,4 @@ export * from "./product-card";
 export * from "./notification-bell";
 export * from "./turnstile";
 export * from "./searchable-select";
+export * from "./bulk-upload-products";

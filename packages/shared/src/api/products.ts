@@ -1,6 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../types";
 import { nonEmptyCategories } from "../lib/category-tree";
+import { parseCsv, toCsv } from "../lib/csv";
+import { listVendorCategories } from "./vendors";
 
 type Client = SupabaseClient<Database>;
 type ProductRow = Database["public"]["Tables"]["products"]["Row"];
@@ -367,4 +369,235 @@ export async function listAllProductsForModeration(
   const { data, error } = await query;
   if (error) throw error;
   return data as unknown as ProductWithMedia[];
+}
+
+// ── Bulk upload (CSV) ─────────────────────────────────────────────────────
+
+const PRODUCT_TEMPLATE_HEADERS = [
+  "name",
+  "description",
+  "category",
+  "price",
+  "compare_at_price",
+  "stock_quantity",
+  "sku",
+  "brand",
+  "tags",
+  "weight_grams",
+  "image_urls",
+] as const;
+
+/** A reference CSV vendors/admins can fill in and re-upload: headers, one
+ *  filled-in dummy row, and a comment block listing the real category names
+ *  this store uses (so "category" values actually match). */
+export function buildProductTemplateCsv(categories: CategoryRow[]): string {
+  const sampleCategory = categories.find((c) => c.parent_id !== null)?.name ?? categories[0]?.name ?? "";
+  const rows: string[][] = [
+    [...PRODUCT_TEMPLATE_HEADERS],
+    [
+      "Sample Cotton T-Shirt",
+      "Soft 100% cotton t-shirt, available in multiple sizes.",
+      sampleCategory,
+      "999",
+      "1299",
+      "50",
+      "SKU-0001",
+      "Sample Brand",
+      "cotton;casual;unisex",
+      "250",
+      "https://example.com/image1.jpg|https://example.com/image2.jpg",
+    ],
+  ];
+  let csv = toCsv(rows) + "\r\n\r\n";
+  csv += "# This row is a dummy example — replace it (and add more rows) with your own products, then remove this line.\r\n";
+  csv += "# price is required. Leave stock_quantity blank for always-in-stock.\r\n";
+  csv += "# tags: separate multiple with  ;      image_urls: separate multiple with  |\r\n";
+  csv += "# category must match one of the names below exactly (case doesn't matter). Leave blank for uncategorized.\r\n";
+  const names = categories.map((c) => c.name);
+  for (let i = 0; i < names.length; i += 6) {
+    csv += "# " + names.slice(i, i + 6).join(", ") + "\r\n";
+  }
+  return csv;
+}
+
+interface ParsedProductRow {
+  rowNumber: number;
+  name: string;
+  description: string | null;
+  categoryName: string;
+  price: number;
+  compare_at_price: number | null;
+  stock_quantity: number | null;
+  sku: string | null;
+  brand: string | null;
+  tags: string[];
+  weight_grams: number | null;
+  image_urls: string[];
+}
+
+/** Parses the uploaded CSV back into rows, skipping blank lines and lines
+ *  starting with "#" (the template's own comment block). Doesn't touch the
+ *  database — validation + category/slug resolution happens in bulkCreateProducts. */
+export function parseProductCsv(text: string): { rows: ParsedProductRow[]; errors: { row: number; message: string }[] } {
+  const raw = parseCsv(text).filter((r) => r.some((cell) => cell.trim() !== "") && !(r[0] ?? "").trim().startsWith("#"));
+  if (raw.length === 0) return { rows: [], errors: [] };
+
+  const header = raw[0].map((h) => h.trim().toLowerCase());
+  const col = (name: string) => header.indexOf(name);
+  const idx = {
+    name: col("name"),
+    description: col("description"),
+    category: col("category"),
+    price: col("price"),
+    compareAtPrice: col("compare_at_price"),
+    stockQuantity: col("stock_quantity"),
+    sku: col("sku"),
+    brand: col("brand"),
+    tags: col("tags"),
+    weightGrams: col("weight_grams"),
+    imageUrls: col("image_urls"),
+  };
+  if (idx.name === -1 || idx.price === -1) {
+    return { rows: [], errors: [{ row: 1, message: 'The file needs at least "name" and "price" columns.' }] };
+  }
+
+  const rows: ParsedProductRow[] = [];
+  const errors: { row: number; message: string }[] = [];
+  for (let i = 1; i < raw.length; i++) {
+    const r = raw[i];
+    const rowNumber = i + 1; // 1-based, matches what a spreadsheet shows
+    const name = (r[idx.name] ?? "").trim();
+    const priceText = (r[idx.price] ?? "").trim();
+    if (!name && !priceText) continue;
+    if (!name) {
+      errors.push({ row: rowNumber, message: "Missing name." });
+      continue;
+    }
+    const price = Number(priceText);
+    if (!priceText || Number.isNaN(price) || price < 0) {
+      errors.push({ row: rowNumber, message: `Missing or invalid price for "${name}".` });
+      continue;
+    }
+    const compareAtText = idx.compareAtPrice >= 0 ? (r[idx.compareAtPrice] ?? "").trim() : "";
+    const stockText = idx.stockQuantity >= 0 ? (r[idx.stockQuantity] ?? "").trim() : "";
+    const weightText = idx.weightGrams >= 0 ? (r[idx.weightGrams] ?? "").trim() : "";
+
+    rows.push({
+      rowNumber,
+      name,
+      description: idx.description >= 0 ? (r[idx.description] ?? "").trim() || null : null,
+      categoryName: idx.category >= 0 ? (r[idx.category] ?? "").trim() : "",
+      price,
+      compare_at_price: compareAtText ? Number(compareAtText) : null,
+      stock_quantity: stockText ? Number(stockText) : null,
+      sku: idx.sku >= 0 ? (r[idx.sku] ?? "").trim() || null : null,
+      brand: idx.brand >= 0 ? (r[idx.brand] ?? "").trim() || null : null,
+      tags:
+        idx.tags >= 0
+          ? (r[idx.tags] ?? "")
+              .split(";")
+              .map((t) => t.trim())
+              .filter(Boolean)
+          : [],
+      weight_grams: weightText ? Number(weightText) : null,
+      image_urls:
+        idx.imageUrls >= 0
+          ? (r[idx.imageUrls] ?? "")
+              .split("|")
+              .map((u) => u.trim())
+              .filter(Boolean)
+          : [],
+    });
+  }
+  return { rows, errors };
+}
+
+export interface BulkUploadResult {
+  created: number;
+  errors: { row: number; message: string }[];
+}
+
+/** Creates one product per valid row (status "pending" if it has at least one
+ *  image URL, else "draft" — so nothing goes to moderation without a photo).
+ *  Rows that fail validation, or whose category name doesn't match, are
+ *  skipped and reported; nothing partially writes for a bad row. */
+export async function bulkCreateProductsFromCsv(
+  supabase: Client,
+  vendorId: string,
+  csvText: string,
+): Promise<BulkUploadResult> {
+  const { rows, errors } = parseProductCsv(csvText);
+  const allErrors = [...errors];
+  if (rows.length === 0) return { created: 0, errors: allErrors };
+
+  const categories = await listCategories(supabase);
+  const categoryByName = new Map(categories.map((c) => [c.name.trim().toLowerCase(), c.id]));
+
+  // A vendor only sells in the categories an admin assigned them — same rule
+  // the single-product form uses. Allowed = the assigned categories plus
+  // every sub-category under them.
+  const assignedCategories = await listVendorCategories(supabase, vendorId);
+  const assignedIds = new Set(assignedCategories.map((c) => c.id));
+  const allowedCategoryIds = new Set(assignedIds);
+  for (const c of categories) {
+    if (c.parent_id && assignedIds.has(c.parent_id)) allowedCategoryIds.add(c.id);
+  }
+
+  let created = 0;
+  for (const row of rows) {
+    let categoryId: string | null = null;
+    if (row.categoryName) {
+      categoryId = categoryByName.get(row.categoryName.toLowerCase()) ?? null;
+      if (!categoryId) {
+        allErrors.push({ row: row.rowNumber, message: `Category "${row.categoryName}" not found — skipped.` });
+        continue;
+      }
+      if (!allowedCategoryIds.has(categoryId)) {
+        allErrors.push({
+          row: row.rowNumber,
+          message: `You're not assigned category "${row.categoryName}" — ask an admin to assign it, or use one of your own categories. Skipped.`,
+        });
+        continue;
+      }
+    }
+
+    const slug = `${row.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${Date.now().toString(36)}-${row.rowNumber}`;
+    const insert: ProductInsert = {
+      vendor_id: vendorId,
+      category_id: categoryId,
+      name: row.name,
+      slug,
+      description: row.description,
+      price: row.price,
+      compare_at_price: row.compare_at_price,
+      stock_quantity: row.stock_quantity,
+      sku: row.sku,
+      brand: row.brand,
+      tags: row.tags,
+      weight_grams: row.weight_grams,
+      status: row.image_urls.length > 0 ? "pending" : "draft",
+    };
+
+    const { data: product, error } = await supabase.from("products").insert(insert).select("id").single();
+    if (error || !product) {
+      allErrors.push({ row: row.rowNumber, message: error?.message ?? `Could not create "${row.name}".` });
+      continue;
+    }
+
+    if (row.image_urls.length > 0) {
+      const imagesPayload = row.image_urls.map((url, i) => ({
+        product_id: product.id,
+        url,
+        sort_order: i,
+      }));
+      const { error: imgError } = await supabase.from("product_images").insert(imagesPayload);
+      if (imgError) {
+        allErrors.push({ row: row.rowNumber, message: `"${row.name}" was created, but its photos failed to save: ${imgError.message}` });
+      }
+    }
+
+    created++;
+  }
+
+  return { created, errors: allErrors };
 }
