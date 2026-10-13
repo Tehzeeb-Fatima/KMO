@@ -3,8 +3,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   addProductImage,
   bulkArchiveProducts,
+  bulkDeleteProductsPermanently,
   createProduct,
   createProductVariant,
+  deleteProductPermanently,
   getMyVendor,
   listCategories,
   listMyProducts,
@@ -134,18 +136,27 @@ function ProductsList({
     );
   }
 
-  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; status: ProductStatus } | null>(null);
+  const isPermanent = pendingDelete?.status === "archived";
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => bulkArchiveProducts(supabase, [id]),
+    mutationFn: (target: { id: string; status: ProductStatus }) =>
+      target.status === "archived"
+        ? deleteProductPermanently(supabase, target.id)
+        : bulkArchiveProducts(supabase, [target.id]),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["my-products", vendorId] });
-      setPendingDeleteId(null);
+      setPendingDelete(null);
     },
   });
 
   const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
+  const selectedProducts = (products ?? []).filter((p) => selected.has(p.id));
+  const bulkPermanent = selectedProducts.length > 0 && selectedProducts.every((p) => p.status === "archived");
   const bulkDeleteMutation = useMutation({
-    mutationFn: () => bulkArchiveProducts(supabase, Array.from(selected)),
+    mutationFn: () =>
+      bulkPermanent
+        ? bulkDeleteProductsPermanently(supabase, Array.from(selected))
+        : bulkArchiveProducts(supabase, Array.from(selected)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["my-products", vendorId] });
       setSelected(new Set());
@@ -286,7 +297,7 @@ function ProductsList({
                     </button>
                     <button
                       type="button"
-                      onClick={() => setPendingDeleteId(p.id)}
+                      onClick={() => setPendingDelete({ id: p.id, status: p.status })}
                       className="rounded-md border border-border bg-white px-3.5 py-1.5 text-[12px] font-bold text-danger"
                     >
                       Delete
@@ -370,7 +381,7 @@ function ProductsList({
                   </button>
                   <button
                     type="button"
-                    onClick={() => setPendingDeleteId(p.id)}
+                    onClick={() => setPendingDelete({ id: p.id, status: p.status })}
                     className="w-fit rounded-md border border-border bg-white px-2.5 py-1.5 text-[11px] font-bold text-danger"
                   >
                     Delete
@@ -384,19 +395,31 @@ function ProductsList({
       </div>
 
       <ConfirmDialog
-        open={!!pendingDeleteId}
-        title="Remove this product?"
-        message="It will be archived and shoppers won't see it anymore."
+        open={!!pendingDelete}
+        title={isPermanent ? "Permanently delete this product?" : "Remove this product?"}
+        message={
+          isPermanent
+            ? "This can't be undone — the product, its photos and variants will be gone for good."
+            : "It will be archived and shoppers won't see it anymore. Deleting it again from Archived removes it for good."
+        }
         confirmLabel="Delete"
         loading={deleteMutation.isPending}
-        onConfirm={() => deleteMutation.mutate(pendingDeleteId!)}
-        onCancel={() => setPendingDeleteId(null)}
+        onConfirm={() => deleteMutation.mutate(pendingDelete!)}
+        onCancel={() => setPendingDelete(null)}
       />
 
       <ConfirmDialog
         open={bulkDeleteConfirm}
-        title={`Remove ${selected.size} product${selected.size === 1 ? "" : "s"}?`}
-        message="They'll be archived and shoppers won't see them anymore."
+        title={
+          bulkPermanent
+            ? `Permanently delete ${selected.size} product${selected.size === 1 ? "" : "s"}?`
+            : `Remove ${selected.size} product${selected.size === 1 ? "" : "s"}?`
+        }
+        message={
+          bulkPermanent
+            ? "This can't be undone — they're already archived, so deleting them again removes them for good."
+            : "They'll be archived and shoppers won't see them anymore."
+        }
         confirmLabel="Delete selected"
         loading={bulkDeleteMutation.isPending}
         onConfirm={() => bulkDeleteMutation.mutate()}

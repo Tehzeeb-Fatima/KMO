@@ -119,6 +119,19 @@ export async function bulkArchiveProducts(supabase: Client, ids: string[]): Prom
   if (error) throw error;
 }
 
+/** Hard delete — for a product that's already archived. Images, variants,
+ *  reviews etc. cascade with it; past order line items keep their own
+ *  snapshot (name/price) and just lose the product link. Cannot be undone. */
+export async function deleteProductPermanently(supabase: Client, id: string): Promise<void> {
+  const { error } = await supabase.from("products").delete().eq("id", id);
+  if (error) throw error;
+}
+
+export async function bulkDeleteProductsPermanently(supabase: Client, ids: string[]): Promise<void> {
+  const { error } = await supabase.from("products").delete().in("id", ids);
+  if (error) throw error;
+}
+
 /** Bulk approve/reject from moderation. Rejected products are stored as
  *  "archived" — same as the single-item Reject button — there's no separate
  *  "rejected" status in the database. */
