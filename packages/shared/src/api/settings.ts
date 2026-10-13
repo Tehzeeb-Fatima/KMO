@@ -40,6 +40,11 @@ export async function updatePlatformSettings(
       | "loyalty_min_redeem_points"
       | "loyalty_max_redeem_percent"
       | "vendor_tier_benefits"
+      | "loyalty_expiry_months"
+      | "loyalty_repeat_every"
+      | "loyalty_repeat_bonus_points"
+      | "loyalty_referrer_points"
+      | "loyalty_referee_points"
     >
   >,
 ): Promise<SettingsRow> {

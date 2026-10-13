@@ -7,6 +7,7 @@ import {
   listCustomerLedger,
   listLoyaltyBalances,
   listLoyaltyRules,
+  listReferrals,
   saveLoyaltyRule,
   logAdminAction,
   updatePlatformSettings,
@@ -28,6 +29,7 @@ export function LoyaltyPage() {
       <ProgrammeSettings />
       <EarnRules />
       <Balances />
+      <Referrals />
       <VendorTierBenefits />
     </div>
   );
@@ -43,6 +45,11 @@ function ProgrammeSettings() {
   const [pointValue, setPointValue] = useState("");
   const [minPoints, setMinPoints] = useState("");
   const [maxPercent, setMaxPercent] = useState("");
+  const [expiryMonths, setExpiryMonths] = useState("");
+  const [repeatEvery, setRepeatEvery] = useState("");
+  const [repeatBonus, setRepeatBonus] = useState("");
+  const [referrerPoints, setReferrerPoints] = useState("");
+  const [refereePoints, setRefereePoints] = useState("");
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
@@ -51,6 +58,11 @@ function ProgrammeSettings() {
     setPointValue(String(settings.loyalty_point_value));
     setMinPoints(String(settings.loyalty_min_redeem_points));
     setMaxPercent(String(settings.loyalty_max_redeem_percent));
+    setExpiryMonths(String(settings.loyalty_expiry_months));
+    setRepeatEvery(String(settings.loyalty_repeat_every));
+    setRepeatBonus(String(settings.loyalty_repeat_bonus_points));
+    setReferrerPoints(String(settings.loyalty_referrer_points));
+    setRefereePoints(String(settings.loyalty_referee_points));
   }, [settings]);
 
   const save = useMutation({
@@ -60,6 +72,11 @@ function ProgrammeSettings() {
         loyalty_point_value: Number(pointValue) || 0,
         loyalty_min_redeem_points: Math.max(0, Math.floor(Number(minPoints) || 0)),
         loyalty_max_redeem_percent: Math.min(100, Math.max(0, Number(maxPercent) || 0)),
+        loyalty_expiry_months: whole(expiryMonths),
+        loyalty_repeat_every: whole(repeatEvery),
+        loyalty_repeat_bonus_points: whole(repeatBonus),
+        loyalty_referrer_points: whole(referrerPoints),
+        loyalty_referee_points: whole(refereePoints),
       }),
     onSuccess: (updated) => {
       queryClient.setQueryData(["platform-settings"], updated);
@@ -95,7 +112,28 @@ function ProgrammeSettings() {
           <input inputMode="decimal" value={maxPercent} onChange={(e) => setMaxPercent(e.target.value)} className={inputClass} />
         </Field>
       </div>
+      <div className="mt-3 grid gap-3 sm:grid-cols-3">
+        <Field label="Points expire after (months)" hint="0 = never expire">
+          <input inputMode="numeric" value={expiryMonths} onChange={(e) => setExpiryMonths(e.target.value)} className={inputClass} />
+        </Field>
+        <Field label="Repeat bonus: every Nth delivered order" hint="0 = no repeat bonus">
+          <input inputMode="numeric" value={repeatEvery} onChange={(e) => setRepeatEvery(e.target.value)} className={inputClass} />
+        </Field>
+        <Field label="Repeat bonus points">
+          <input inputMode="numeric" value={repeatBonus} onChange={(e) => setRepeatBonus(e.target.value)} className={inputClass} />
+        </Field>
+        <Field label="Referral: points for the customer who invites" hint="Both 0 = referrals off">
+          <input inputMode="numeric" value={referrerPoints} onChange={(e) => setReferrerPoints(e.target.value)} className={inputClass} />
+        </Field>
+        <Field label="Referral: points for the new customer">
+          <input inputMode="numeric" value={refereePoints} onChange={(e) => setRefereePoints(e.target.value)} className={inputClass} />
+        </Field>
+      </div>
       <p className="mt-3 text-[12px] text-muted">
+        Referral and bonus points are given when the order is delivered. A referral code only works for a new customer
+        (account under 30 days old, no orders yet), once, and never their own.
+      </p>
+      <p className="mt-1 text-[12px] text-muted">
         Points are credited when an order is delivered and taken back if it is cancelled or returned. The points discount is
         paid by KMO — the vendor still gets their full price.
       </p>
@@ -108,6 +146,8 @@ function ProgrammeSettings() {
     </Card>
   );
 }
+
+const whole = (v: string) => Math.max(0, Math.floor(Number(v) || 0));
 
 // ================================================================ earning rules
 
@@ -392,6 +432,36 @@ export function CustomerPoints({ customerId }: { customerId: string }) {
         </div>
       ) : null}
     </div>
+  );
+}
+
+// ================================================================ referrals
+
+function Referrals() {
+  const { data: rows } = useQuery({ queryKey: ["loyalty-referrals"], queryFn: () => listReferrals(supabase) });
+  return (
+    <Card title="Customer referrals">
+      {!rows?.length ? (
+        <p className="text-[13px] text-muted">No referrals yet.</p>
+      ) : (
+        <div className="flex flex-col divide-y divide-[#F1EAE6]">
+          {rows.map((r) => (
+            <div key={r.id} className="flex flex-wrap items-center gap-3 py-2.5 text-[12.5px]">
+              <span className="min-w-[220px] flex-1 text-ink-dark">
+                <b>{r.referrer_name ?? "Customer"}</b> invited <b>{r.referee_name ?? "Customer"}</b>
+                <span className="ml-1.5 font-mono text-muted">{r.code}</span>
+              </span>
+              <span className="text-muted">
+                {new Date(r.created_at).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}
+              </span>
+              <StatusBadge variant={r.rewarded_at ? "success" : "warning"}>
+                {r.rewarded_at ? "Rewarded" : "Waiting for first delivery"}
+              </StatusBadge>
+            </div>
+          ))}
+        </div>
+      )}
+    </Card>
   );
 }
 

@@ -16,6 +16,18 @@ export interface MyLoyalty {
   point_value: number;
   min_redeem_points: number;
   max_redeem_percent: number;
+  /** 0 = points never expire. */
+  expiry_months: number;
+  /** Points that will lapse in the next 30 days. */
+  expiring_soon: number;
+  /** Every Nth delivered order earns repeat_bonus_points (0 = off). */
+  repeat_every: number;
+  repeat_bonus_points: number;
+  delivered_orders: number;
+  referrer_points: number;
+  referee_points: number;
+  /** New customer with no orders who hasn't used a referral code yet. */
+  can_claim_referral: boolean;
   rule: { name: string; spend_pkr: number; points: number; ends_at: string | null } | null;
 }
 
@@ -124,3 +136,46 @@ export async function getVendorPerformance(supabase: Client, vendorId: string): 
 }
 
 export const VENDOR_TIER_LABEL = { bronze: "Bronze", silver: "Silver", gold: "Gold" } as const;
+
+// ---------------------------------------------------------------- referrals
+
+export async function getMyReferralCode(supabase: Client): Promise<string> {
+  const { data, error } = await rpc<string>(supabase, "my_referral_code");
+  if (error) throw error;
+  return data;
+}
+
+/** Links the signed-in new customer to a friend's code; returns the friend's first name. */
+export async function claimReferral(supabase: Client, code: string): Promise<string> {
+  const { data, error } = await rpc<string>(supabase, "claim_referral", { p_code: code });
+  if (error) throw error;
+  return data;
+}
+
+export interface ReferralRow {
+  id: string;
+  referrer_name: string | null;
+  referee_name: string | null;
+  code: string;
+  created_at: string;
+  rewarded_at: string | null;
+}
+
+export async function listReferrals(supabase: Client): Promise<ReferralRow[]> {
+  const { data, error } = await rpc<ReferralRow[]>(supabase, "admin_loyalty_referrals");
+  if (error) throw error;
+  return data ?? [];
+}
+
+export interface VendorReferralRow {
+  store_name: string;
+  joined_at: string;
+  verification_status: string;
+}
+
+/** Stores this vendor brought to KMO (recorded by the admin). */
+export async function listVendorReferrals(supabase: Client, vendorId: string): Promise<VendorReferralRow[]> {
+  const { data, error } = await rpc<VendorReferralRow[]>(supabase, "vendor_referrals", { p_vendor: vendorId });
+  if (error) throw error;
+  return data ?? [];
+}

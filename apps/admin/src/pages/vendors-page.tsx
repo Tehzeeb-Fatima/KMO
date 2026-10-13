@@ -622,7 +622,7 @@ function VendorDetail({ vendorId, onBack }: { vendorId: string; onBack: () => vo
             commissionRate={vendor.commission_rate}
           />
 
-          <VendorTierSection vendorId={vendorId} tier={vendor.loyalty_tier} />
+          <VendorTierSection vendorId={vendorId} tier={vendor.loyalty_tier} referredBy={vendor.referred_by_vendor_id} />
 
           <VendorProductsSection vendorId={vendorId} />
 

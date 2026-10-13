@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getPlatformSettings, getVendorPerformance, VENDOR_TIER_LABEL } from "@kmo/shared/api";
+import { getPlatformSettings, getVendorPerformance, listVendorReferrals, VENDOR_TIER_LABEL } from "@kmo/shared/api";
 import type { VendorTier } from "@kmo/shared/types";
 import { supabase } from "../lib/supabase";
 
@@ -9,6 +9,7 @@ const TIER_ICON: Record<VendorTier, string> = { bronze: "🥉", silver: "🥈", 
 export function VendorTierCard({ vendorId, tier }: { vendorId: string; tier: VendorTier | null }) {
   const { data: settings } = useQuery({ queryKey: ["platform-settings"], queryFn: () => getPlatformSettings(supabase) });
   const { data: perf } = useQuery({ queryKey: ["vendor-performance", vendorId], queryFn: () => getVendorPerformance(supabase, vendorId) });
+  const { data: referred } = useQuery({ queryKey: ["vendor-referrals", vendorId], queryFn: () => listVendorReferrals(supabase, vendorId) });
 
   const finished = perf ? perf.orders_delivered + perf.orders_cancelled + perf.orders_returned : 0;
   const cancelPct = perf && finished ? Math.round(((perf.orders_cancelled + perf.orders_returned) / finished) * 100) : null;
@@ -37,8 +38,15 @@ export function VendorTierCard({ vendorId, tier }: { vendorId: string; tier: Ven
           <span>
             Live products: <b className="text-ink-dark">{perf.active_products}</b>
           </span>
+          <span>
+            Stores you referred: <b className="text-ink-dark">{referred?.length ?? 0}</b>
+          </span>
         </div>
       ) : null}
+      <p className="mt-2 text-[12px] text-muted">
+        Know a seller who should be on KMO? Send them our way and tell the KMO team — referring good stores counts toward
+        your tier.
+      </p>
     </div>
   );
 }

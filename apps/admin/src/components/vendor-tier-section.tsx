@@ -1,15 +1,42 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getPlatformSettings, getVendorPerformance, logAdminAction, updateMyVendor, VENDOR_TIER_LABEL } from "@kmo/shared/api";
+import {
+  getPlatformSettings,
+  getVendorPerformance,
+  listVendorReferrals,
+  listVendors,
+  logAdminAction,
+  updateMyVendor,
+  VENDOR_TIER_LABEL,
+} from "@kmo/shared/api";
 import type { VendorTier } from "@kmo/shared/types";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "../lib/supabase";
 
 /** Admin-assigned vendor tier (non-cash benefits) with the numbers to decide it. */
-export function VendorTierSection({ vendorId, tier }: { vendorId: string; tier: VendorTier | null }) {
+export function VendorTierSection({
+  vendorId,
+  tier,
+  referredBy,
+}: {
+  vendorId: string;
+  tier: VendorTier | null;
+  referredBy: string | null;
+}) {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const { data: perf } = useQuery({ queryKey: ["vendor-performance", vendorId], queryFn: () => getVendorPerformance(supabase, vendorId) });
   const { data: settings } = useQuery({ queryKey: ["platform-settings"], queryFn: () => getPlatformSettings(supabase) });
+  const { data: vendors } = useQuery({ queryKey: ["all-vendors-for-referral"], queryFn: () => listVendors(supabase) });
+  const { data: referred } = useQuery({ queryKey: ["vendor-referrals", vendorId], queryFn: () => listVendorReferrals(supabase, vendorId) });
+
+  const saveReferrer = useMutation({
+    mutationFn: (next: string | null) => updateMyVendor(supabase, vendorId, { referred_by_vendor_id: next }),
+    onSuccess: (updated, next) => {
+      queryClient.setQueryData(["admin-vendor", vendorId], updated);
+      queryClient.invalidateQueries({ queryKey: ["vendor-referrals"] });
+      if (user) void logAdminAction(supabase, user.id, "vendor.referred_by", "vendor", vendorId, { referred_by: next });
+    },
+  });
 
   const save = useMutation({
     mutationFn: (next: VendorTier | null) => updateMyVendor(supabase, vendorId, { loyalty_tier: next }),
@@ -46,6 +73,30 @@ export function VendorTierSection({ vendorId, tier }: { vendorId: string; tier: 
       ) : (
         <p className="mt-2 text-[12.5px] text-muted">Only KMO sets this. The vendor sees it in their dashboard; customers don't.</p>
       )}
+
+      <div className="mt-4 flex flex-wrap items-center gap-2 text-[12.5px]">
+        <span className="font-bold text-ink-dark">Referred to KMO by</span>
+        <select
+          value={referredBy ?? ""}
+          disabled={saveReferrer.isPending}
+          onChange={(e) => saveReferrer.mutate(e.target.value || null)}
+          className="rounded-lg border border-border bg-surface px-3 py-1.5 text-[12.5px] text-ink-dark"
+        >
+          <option value="">Nobody / not known</option>
+          {(vendors ?? [])
+            .filter((v) => v.id !== vendorId)
+            .map((v) => (
+              <option key={v.id} value={v.id}>
+                {v.store_name}
+              </option>
+            ))}
+        </select>
+        {referred?.length ? (
+          <span className="text-muted">
+            · Brought {referred.length} store{referred.length === 1 ? "" : "s"}: {referred.map((r) => r.store_name).join(", ")}
+          </span>
+        ) : null}
+      </div>
 
       {perf ? (
         <div className="mt-4 grid grid-cols-2 gap-3 text-[12.5px] sm:grid-cols-4">

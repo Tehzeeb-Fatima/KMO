@@ -8,7 +8,16 @@ export type Json = string | number | boolean | null | { [key: string]: Json } | 
 export type UserRole = "customer" | "vendor" | "admin" | "staff";
 export type VendorVerificationStatus = "pending" | "approved" | "rejected" | "suspended";
 export type VendorTier = "bronze" | "silver" | "gold";
-export type LoyaltyLedgerKind = "earn" | "redeem" | "reverse_earn" | "refund_redeem" | "adjust";
+export type LoyaltyLedgerKind =
+  | "earn"
+  | "redeem"
+  | "reverse_earn"
+  | "refund_redeem"
+  | "adjust"
+  | "expire"
+  | "bonus"
+  | "reverse_bonus"
+  | "referral";
 
 export type WeekDay = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
 
@@ -103,6 +112,7 @@ export interface Database {
           business_hours: BusinessHours;
           commission_rate: number | null;
           loyalty_tier: VendorTier | null;
+          referred_by_vendor_id: string | null;
           preferred_courier: string | null;
           preferred_courier_id: string | null;
           membership_started_at: string;
@@ -126,6 +136,7 @@ export interface Database {
           business_hours?: BusinessHours;
           commission_rate?: number | null;
           loyalty_tier?: VendorTier | null;
+          referred_by_vendor_id?: string | null;
           preferred_courier?: string | null;
           preferred_courier_id?: string | null;
           membership_started_at?: string;
@@ -149,6 +160,7 @@ export interface Database {
           business_hours?: BusinessHours;
           commission_rate?: number | null;
           loyalty_tier?: VendorTier | null;
+          referred_by_vendor_id?: string | null;
           preferred_courier?: string | null;
           preferred_courier_id?: string | null;
           membership_started_at?: string;
@@ -866,6 +878,11 @@ export interface Database {
           loyalty_point_value: number;
           loyalty_min_redeem_points: number;
           loyalty_max_redeem_percent: number;
+          loyalty_expiry_months: number;
+          loyalty_repeat_every: number;
+          loyalty_repeat_bonus_points: number;
+          loyalty_referrer_points: number;
+          loyalty_referee_points: number;
           vendor_tier_benefits: { bronze: string; silver: string; gold: string };
           vendor_agreement_title: string;
           vendor_agreement_body: string;
@@ -891,6 +908,11 @@ export interface Database {
           loyalty_point_value?: number;
           loyalty_min_redeem_points?: number;
           loyalty_max_redeem_percent?: number;
+          loyalty_expiry_months?: number;
+          loyalty_repeat_every?: number;
+          loyalty_repeat_bonus_points?: number;
+          loyalty_referrer_points?: number;
+          loyalty_referee_points?: number;
           vendor_tier_benefits?: { bronze: string; silver: string; gold: string };
           vendor_agreement_title?: string;
           vendor_agreement_body?: string;
@@ -916,6 +938,11 @@ export interface Database {
           loyalty_point_value?: number;
           loyalty_min_redeem_points?: number;
           loyalty_max_redeem_percent?: number;
+          loyalty_expiry_months?: number;
+          loyalty_repeat_every?: number;
+          loyalty_repeat_bonus_points?: number;
+          loyalty_referrer_points?: number;
+          loyalty_referee_points?: number;
           vendor_tier_benefits?: { bronze: string; silver: string; gold: string };
           vendor_agreement_title?: string;
           vendor_agreement_body?: string;
@@ -975,6 +1002,7 @@ export interface Database {
           note: string | null;
           created_by: string | null;
           created_at: string;
+          expires_at: string | null;
         };
         Insert: {
           id?: string;

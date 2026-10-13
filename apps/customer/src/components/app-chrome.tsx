@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { SiteHeader } from "./site-header";
 import { SiteFooter } from "./site-footer";
 import { WhatsAppButton } from "./whatsapp-button";
+import { ReferralCapture } from "./referral-capture";
 
 const NO_CHROME_PREFIXES = ["/login", "/signup"];
 
@@ -16,6 +17,7 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
       <>
         {children}
         <WhatsAppButton />
+        <ReferralCapture />
       </>
     );
   }
@@ -26,6 +28,7 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
       <div className="flex flex-1 flex-col">{children}</div>
       <SiteFooter />
       <WhatsAppButton />
+      <ReferralCapture />
     </>
   );
 }
