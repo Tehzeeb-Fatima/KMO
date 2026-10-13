@@ -110,7 +110,7 @@ export function BookkeepingPage() {
 // ================================================================ lock screen
 
 function LockScreen({ onUnlocked }: { onUnlocked: (s: BkSession) => void }) {
-  const [request, setRequest] = useState<{ id: string; sentTo: string[] } | null>(null);
+  const [request, setRequest] = useState<{ sentTo: string[] } | null>(null);
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [cooldown, setCooldown] = useState(0);
@@ -124,7 +124,7 @@ function LockScreen({ onUnlocked }: { onUnlocked: (s: BkSession) => void }) {
   const send = useMutation({
     mutationFn: sendCodes,
     onSuccess: (r) => {
-      setRequest({ id: r.requestId, sentTo: r.sentTo });
+      setRequest({ sentTo: r.sentTo });
       setCode("");
       setError(null);
       setCooldown(60);
@@ -133,7 +133,7 @@ function LockScreen({ onUnlocked }: { onUnlocked: (s: BkSession) => void }) {
   });
 
   const verify = useMutation({
-    mutationFn: () => verifyCode(request!.id, code),
+    mutationFn: () => verifyCode(code),
     onSuccess: (r) => onUnlocked({ token: r.token, personName: r.personName, expiresAt: r.expiresAt }),
     onError: (e: Error) => setError(e.message),
   });
@@ -158,7 +158,9 @@ function LockScreen({ onUnlocked }: { onUnlocked: (s: BkSession) => void }) {
           }}
         >
           <p className="rounded-lg bg-primary-tint px-3 py-2 text-[12.5px] text-primary">
-            Codes sent to {request.sentTo.join(" and ")}. They expire in 10 minutes.
+            {request.sentTo.length
+              ? `Codes sent to ${request.sentTo.join(" and ")}. Any code from the last 10 minutes works.`
+              : "Enter a code from an email sent in the last 10 minutes."}
           </p>
           <input
             autoFocus
@@ -183,9 +185,21 @@ function LockScreen({ onUnlocked }: { onUnlocked: (s: BkSession) => void }) {
           </button>
         </form>
       ) : (
-        <button type="button" disabled={send.isPending} onClick={() => send.mutate()} className={btnPrimary}>
-          {send.isPending ? "Sending…" : "Email me the codes"}
-        </button>
+        <>
+          <button type="button" disabled={send.isPending} onClick={() => send.mutate()} className={btnPrimary}>
+            {send.isPending ? "Sending…" : "Email me the codes"}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setRequest({ sentTo: [] });
+              setError(null);
+            }}
+            className="text-[12.5px] font-bold text-accent"
+          >
+            I already have a code
+          </button>
+        </>
       )}
 
       {error ? <p className="text-[12.5px] text-danger">{error}</p> : null}

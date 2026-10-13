@@ -3,7 +3,8 @@
 // Email second factor for the super-admin Bookkeeping module.
 //   { action: "send" }                      -> emails a different 6-digit code
 //                                              to each person in bk_people
-//   { action: "verify", requestId, code }   -> on a match, opens a 12-hour
+//   { action: "verify", code }              -> on a match with any code from the
+//                                              last 10 minutes, opens a 12-hour
 //                                              unlock session for that person
 //
 // Rules: codes expire after 10 minutes, a request locks after 5 wrong codes,
@@ -121,6 +122,15 @@ Deno.serve(async (req: Request) => {
     if ((recent?.length ?? 0) >= 6) {
       return json({ error: "Too many code requests. Try again in an hour." }, 429);
     }
+    const { data: openReqs } = await admin
+      .from("bk_code_requests")
+      .select("attempts")
+      .eq("user_id", userId)
+      .is("used_at", null)
+      .gt("expires_at", new Date(now).toISOString());
+    if ((openReqs ?? []).reduce((n, r) => n + r.attempts, 0) >= MAX_ATTEMPTS) {
+      return json({ error: "Too many wrong codes. Wait 10 minutes, then send new codes." }, 429);
+    }
 
     const { data: request, error: reqError } = await admin
       .from("bk_code_requests")
@@ -170,43 +180,56 @@ Deno.serve(async (req: Request) => {
   }
 
   if (body.action === "verify") {
-    const requestId = body.requestId ?? "";
     const code = (body.code ?? "").replace(/\D/g, "");
-    if (!requestId || code.length !== 6) return json({ error: "Enter the 6-digit code." }, 400);
+    if (code.length !== 6) return json({ error: "Enter the 6-digit code." }, 400);
 
-    const { data: request } = await admin
+    // Any code from the last 10 minutes works — sending new codes or reloading
+    // the page must not make a code that is still in someone's inbox useless.
+    const { data: open } = await admin
       .from("bk_code_requests")
-      .select("id, expires_at, attempts, used_at")
-      .eq("id", requestId)
+      .select("id, attempts")
       .eq("user_id", userId)
-      .maybeSingle();
-    if (!request || request.used_at) return json({ error: "These codes are no longer valid. Send new codes." }, 400);
-    if (new Date(request.expires_at).getTime() < Date.now()) {
-      return json({ error: "The code has expired. Send new codes." }, 400);
-    }
-    if (request.attempts >= MAX_ATTEMPTS) {
-      return json({ error: "Too many wrong codes. Send new codes." }, 429);
+      .is("used_at", null)
+      .gt("expires_at", new Date().toISOString())
+      .order("created_at", { ascending: false });
+    if (!open?.length) return json({ error: "The code has expired. Send new codes." }, 400);
+
+    // Wrong guesses are counted across every open request, so asking for new
+    // codes doesn't buy extra tries.
+    const wrongSoFar = open.reduce((n, r) => n + r.attempts, 0);
+    if (wrongSoFar >= MAX_ATTEMPTS) {
+      return json({ error: "Too many wrong codes. Wait 10 minutes, then send new codes." }, 429);
     }
 
-    const hash = await sha256(`${requestId}:${code}`);
-    const { data: match } = await admin
-      .from("bk_codes")
-      .select("person_key")
-      .eq("request_id", requestId)
-      .eq("code_hash", hash)
-      .maybeSingle();
+    let match: { person_key: string } | null = null;
+    for (const r of open) {
+      const { data } = await admin
+        .from("bk_codes")
+        .select("person_key")
+        .eq("request_id", r.id)
+        .eq("code_hash", await sha256(`${r.id}:${code}`))
+        .maybeSingle();
+      if (data) {
+        match = data;
+        break;
+      }
+    }
     if (!match) {
-      const attempts = request.attempts + 1;
-      await admin.from("bk_code_requests").update({ attempts }).eq("id", requestId);
-      await admin.from("bk_activity").insert({ action: "wrong code", details: { attempt: attempts } });
-      const left = MAX_ATTEMPTS - attempts;
+      const latest = open[0];
+      await admin.from("bk_code_requests").update({ attempts: latest.attempts + 1 }).eq("id", latest.id);
+      await admin.from("bk_activity").insert({ action: "wrong code", details: { attempt: wrongSoFar + 1 } });
+      const left = MAX_ATTEMPTS - (wrongSoFar + 1);
       return json(
-        { error: left > 0 ? `Wrong code. ${left} ${left === 1 ? "try" : "tries"} left.` : "Too many wrong codes. Send new codes." },
+        { error: left > 0 ? `Wrong code. ${left} ${left === 1 ? "try" : "tries"} left.` : "Too many wrong codes. Wait 10 minutes, then send new codes." },
         400,
       );
     }
 
-    await admin.from("bk_code_requests").update({ used_at: new Date().toISOString() }).eq("id", requestId);
+    // One unlock closes every open request.
+    await admin
+      .from("bk_code_requests")
+      .update({ used_at: new Date().toISOString() })
+      .in("id", open.map((r) => r.id));
     const token = randomToken();
     const expiresAt = new Date(Date.now() + SESSION_HOURS * 60 * 60 * 1000).toISOString();
     await admin.from("bk_sessions").insert({

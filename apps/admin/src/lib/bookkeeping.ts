@@ -164,8 +164,9 @@ export function sendCodes() {
   return callAuth<{ requestId: string; expiresAt: string; sentTo: string[] }>({ action: "send" });
 }
 
-export function verifyCode(requestId: string, code: string) {
-  return callAuth<{ token: string; personName: string; expiresAt: string }>({ action: "verify", requestId, code });
+/** Accepts a code from any email sent in the last 10 minutes. */
+export function verifyCode(code: string) {
+  return callAuth<{ token: string; personName: string; expiresAt: string }>({ action: "verify", code });
 }
 
 export function lock(token: string) {
