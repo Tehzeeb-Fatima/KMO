@@ -62,7 +62,8 @@ function mailer() {
     host: Deno.env.get("KMO_SMTP_HOST") ?? "smtp.hostinger.com",
     port,
     secure: port === 465,
-    auth: { user, pass: Deno.env.get("KMO_SMTP_PASSWORD") ?? "" },
+    // trim: a pasted secret easily picks up a stray space or newline
+    auth: { user, pass: (Deno.env.get("KMO_SMTP_PASSWORD") ?? "").trim() },
   });
   return { transport, from: `"Karachi Mart Online" <${user}>` };
 }
