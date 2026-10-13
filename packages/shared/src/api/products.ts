@@ -117,6 +117,18 @@ export async function bulkArchiveProducts(supabase: Client, ids: string[]): Prom
   if (error) throw error;
 }
 
+/** Bulk approve/reject from moderation. Rejected products are stored as
+ *  "archived" — same as the single-item Reject button — there's no separate
+ *  "rejected" status in the database. */
+export async function bulkSetProductStatus(
+  supabase: Client,
+  ids: string[],
+  status: "published" | "archived",
+): Promise<void> {
+  const { error } = await supabase.from("products").update({ status }).in("id", ids);
+  if (error) throw error;
+}
+
 export async function addProductImage(
   supabase: Client,
   productId: string,

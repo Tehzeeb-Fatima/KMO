@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   bulkArchiveProducts,
+  bulkSetProductStatus,
   listAllProductsForModeration,
   listVendors,
   logAdminAction,
@@ -13,11 +14,13 @@ import { ConfirmDialog } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "../lib/supabase";
 import { AdminProductForm } from "./admin-product-form";
+import { ProductPreviewModal } from "../components/product-preview-modal";
 
 export function ProductsModerationPage() {
   const [pendingOnly, setPendingOnly] = useState(false);
   const [vendorFilter, setVendorFilter] = useState("");
   const [editing, setEditing] = useState<ProductWithMedia | null | "new">(null);
+  const [previewing, setPreviewing] = useState<ProductWithMedia | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -79,6 +82,40 @@ export function ProductsModerationPage() {
     },
   });
 
+  const bulkApproveMutation = useMutation({
+    mutationFn: () => bulkSetProductStatus(supabase, Array.from(selected), "published"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+      if (user) {
+        void logAdminAction(
+          supabase,
+          user.id,
+          `product.bulk_approve.${selected.size}`,
+          "product",
+          Array.from(selected)[0] ?? "",
+        );
+      }
+      setSelected(new Set());
+    },
+  });
+
+  const bulkRejectMutation = useMutation({
+    mutationFn: () => bulkSetProductStatus(supabase, Array.from(selected), "archived"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+      if (user) {
+        void logAdminAction(
+          supabase,
+          user.id,
+          `product.bulk_reject.${selected.size}`,
+          "product",
+          Array.from(selected)[0] ?? "",
+        );
+      }
+      setSelected(new Set());
+    },
+  });
+
   const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
   const bulkDeleteMutation = useMutation({
     mutationFn: () => bulkArchiveProducts(supabase, Array.from(selected)),
@@ -132,13 +169,31 @@ export function ProductsModerationPage() {
         </select>
         <div className="flex-1" />
         {selected.size > 0 ? (
-          <button
-            type="button"
-            onClick={() => setBulkDeleteConfirm(true)}
-            className="rounded-lg border border-border bg-white px-[16px] py-[10px] text-[13px] font-bold text-danger"
-          >
-            Delete selected ({selected.size})
-          </button>
+          <>
+            <button
+              type="button"
+              disabled={bulkApproveMutation.isPending}
+              onClick={() => bulkApproveMutation.mutate()}
+              className="rounded-lg bg-primary px-[16px] py-[10px] text-[13px] font-bold text-white disabled:opacity-60"
+            >
+              Approve selected ({selected.size})
+            </button>
+            <button
+              type="button"
+              disabled={bulkRejectMutation.isPending}
+              onClick={() => bulkRejectMutation.mutate()}
+              className="rounded-lg border border-border bg-white px-[16px] py-[10px] text-[13px] font-bold text-danger"
+            >
+              Reject selected ({selected.size})
+            </button>
+            <button
+              type="button"
+              onClick={() => setBulkDeleteConfirm(true)}
+              className="rounded-lg border border-border bg-white px-[16px] py-[10px] text-[13px] font-bold text-danger"
+            >
+              Delete selected ({selected.size})
+            </button>
+          </>
         ) : null}
         <button
           type="button"
@@ -151,7 +206,7 @@ export function ProductsModerationPage() {
 
       <div className="overflow-x-auto rounded-xl border border-border bg-surface">
         <div className="min-w-[920px]">
-        <div className="grid grid-cols-[32px_2fr_1.2fr_1fr_1fr_280px] gap-x-4 items-center bg-surface-alt px-5 py-3.5 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
+        <div className="grid grid-cols-[32px_2fr_1.2fr_1fr_1fr_340px] gap-x-4 items-center bg-surface-alt px-5 py-3.5 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
           <input
             type="checkbox"
             checked={filtered.length > 0 && selected.size === filtered.length}
@@ -171,7 +226,7 @@ export function ProductsModerationPage() {
           filtered.map((p) => (
             <div
               key={p.id}
-              className="grid grid-cols-[32px_2fr_1.2fr_1fr_1fr_280px] gap-x-4 items-center border-t border-[#F5F0EE] px-5 py-4 text-[13px]"
+              className="grid grid-cols-[32px_2fr_1.2fr_1fr_1fr_340px] gap-x-4 items-center border-t border-[#F5F0EE] px-5 py-4 text-[13px]"
             >
               <input
                 type="checkbox"
@@ -189,6 +244,13 @@ export function ProductsModerationPage() {
               <span className="text-ink-dark">Rs. {p.price.toLocaleString()}</span>
               <span><span className="rounded-full bg-surface-alt px-2.5 py-1 text-[11.5px] font-semibold capitalize text-ink-dark">{p.status}</span></span>
               <div className="flex flex-nowrap justify-end gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setPreviewing(p)}
+                  className="rounded-md border border-border bg-white px-2.5 py-1.5 text-[11px] font-bold text-ink-dark"
+                >
+                  View
+                </button>
                 {p.status === "pending" ? (
                   <>
                     <button
@@ -247,6 +309,8 @@ export function ProductsModerationPage() {
         onConfirm={() => bulkDeleteMutation.mutate()}
         onCancel={() => setBulkDeleteConfirm(false)}
       />
+
+      {previewing ? <ProductPreviewModal product={previewing} onClose={() => setPreviewing(null)} /> : null}
     </div>
   );
 }
