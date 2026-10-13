@@ -50,7 +50,7 @@ Deno.serve(async (req: Request) => {
   } = await userClient.auth.getUser();
   if (!user) return json({ error: "Not authenticated" }, 401);
 
-  let body: { address_id?: string; payment_method?: string; coupon_code?: string };
+  let body: { address_id?: string; payment_method?: string; coupon_code?: string; redeem_points?: number };
   try {
     body = await req.json();
   } catch {
@@ -147,7 +147,9 @@ Deno.serve(async (req: Request) => {
 
   const { data: settings } = await admin
     .from("platform_settings")
-    .select("default_commission_rate, commission_free_months")
+    .select(
+      "default_commission_rate, commission_free_months, loyalty_enabled, loyalty_point_value, loyalty_min_redeem_points, loyalty_max_redeem_percent",
+    )
     .single();
   const defaultCommissionRate = settings?.default_commission_rate ?? 0;
   const commissionFreeMonths = settings?.commission_free_months ?? 0;
@@ -215,6 +217,22 @@ Deno.serve(async (req: Request) => {
   const checkoutGroup = crypto.randomUUID();
   const createdOrders: { id: string; order_number: string; vendor_id: string; total: number }[] =
     [];
+
+  type Group = {
+    vendorId: string;
+    items: typeof cartItems;
+    subtotal: number;
+    deliveryFee: number;
+    discountAmount: number;
+    appliesHere: boolean;
+    bestPromoId: string | null;
+    promotionDiscountAmount: number;
+    promotionKmoFundedAmount: number;
+    promotionVendorFundedAmount: number;
+    loyaltyPoints: number;
+    loyaltyDiscount: number;
+  };
+  const groups: Group[] = [];
 
   for (const [vendorId, items] of byVendor) {
     const subtotal = items.reduce((sum, item) => {
@@ -295,7 +313,80 @@ Deno.serve(async (req: Request) => {
             : coupon!.amount,
         )
       : 0;
-    const total = subtotal + deliveryFee - discountAmount - promotionDiscountAmount;
+    groups.push({
+      vendorId,
+      items,
+      subtotal,
+      deliveryFee,
+      discountAmount,
+      appliesHere: !!appliesHere,
+      bestPromoId: bestPromo?.id ?? null,
+      promotionDiscountAmount,
+      promotionKmoFundedAmount,
+      promotionVendorFundedAmount,
+      loyaltyPoints: 0,
+      loyaltyDiscount: 0,
+    });
+  }
+
+  // ---- Loyalty points (KMO-funded, so vendor payouts are untouched).
+  const loyaltyOn = settings?.loyalty_enabled === true;
+  const pointValue = Number(settings?.loyalty_point_value ?? 0);
+  const eligibleOf = (g: Group) => Math.max(0, g.subtotal - g.discountAmount - g.promotionDiscountAmount);
+  const eligibleTotal = groups.reduce((s, g) => s + eligibleOf(g), 0);
+  let redeemPoints = Math.floor(Number(body.redeem_points ?? 0));
+  if (redeemPoints > 0) {
+    if (!loyaltyOn || pointValue <= 0) return json({ error: "Loyalty points can't be used right now." }, 400);
+    if (redeemPoints < (settings?.loyalty_min_redeem_points ?? 0)) {
+      return json({ error: `You need at least ${settings?.loyalty_min_redeem_points} points to use them.` }, 400);
+    }
+    // Never more than the allowed share of the order.
+    const maxDiscount = eligibleTotal * (Number(settings?.loyalty_max_redeem_percent ?? 0) / 100);
+    redeemPoints = Math.min(redeemPoints, Math.floor(maxDiscount / pointValue));
+    if (redeemPoints > 0) {
+      const { error: spendError } = await admin.rpc("loyalty_spend", {
+        p_customer: user.id,
+        p_points: redeemPoints,
+        p_group: checkoutGroup,
+      });
+      if (spendError) return json({ error: "You don't have enough points." }, 409);
+      // Split points across vendor orders by their share of the bill.
+      let left = redeemPoints;
+      groups.forEach((g, i) => {
+        const share =
+          i === groups.length - 1 ? left : Math.floor(redeemPoints * (eligibleTotal ? eligibleOf(g) / eligibleTotal : 0));
+        g.loyaltyPoints = Math.min(share, left);
+        g.loyaltyDiscount = Math.round(g.loyaltyPoints * pointValue * 100) / 100;
+        left -= g.loyaltyPoints;
+      });
+    }
+  }
+
+  // Points to earn, from the rule live right now; credited when delivered.
+  let earnRule: { id: string; spend_pkr: number; points: number } | null = null;
+  if (loyaltyOn) {
+    const { data: rule } = await admin.rpc("loyalty_active_rule");
+    const r = rule as { id: string | null; spend_pkr: number; points: number } | null;
+    if (r?.id) earnRule = { id: r.id, spend_pkr: Number(r.spend_pkr), points: Number(r.points) };
+  }
+
+  let pointsAttached = 0;
+  for (const g of groups) {
+    const {
+      vendorId,
+      items,
+      subtotal,
+      deliveryFee,
+      discountAmount,
+      appliesHere,
+      promotionDiscountAmount,
+      promotionKmoFundedAmount,
+      promotionVendorFundedAmount,
+    } = g;
+    const total = subtotal + deliveryFee - discountAmount - promotionDiscountAmount - g.loyaltyDiscount;
+    const pointsToEarn = earnRule
+      ? Math.floor(((eligibleOf(g) - g.loyaltyDiscount) * earnRule.points) / earnRule.spend_pkr)
+      : 0;
     const orderNumber = await generateOrderNumber(admin);
 
     const { data: vendorRow } = await admin
@@ -338,16 +429,32 @@ Deno.serve(async (req: Request) => {
         net_amount: netAmount,
         coupon_code: appliesHere ? coupon!.code : null,
         discount_amount: discountAmount,
-        promotion_id: bestPromo?.id ?? null,
+        promotion_id: g.bestPromoId,
         promotion_discount_amount: promotionDiscountAmount,
         promotion_kmo_funded_amount: promotionKmoFundedAmount,
         promotion_vendor_funded_amount: promotionVendorFundedAmount,
+        loyalty_points_redeemed: g.loyaltyPoints,
+        loyalty_discount_amount: g.loyaltyDiscount,
+        loyalty_points_to_earn: Math.max(0, pointsToEarn),
+        loyalty_rule_id: earnRule?.id ?? null,
       })
       .select("id, order_number, vendor_id, total")
       .single();
     if (orderError || !order) {
+      // Give back points that didn't end up on an order.
+      const unattached = redeemPoints - pointsAttached;
+      if (unattached > 0) {
+        await admin.from("loyalty_ledger").insert({
+          customer_id: user.id,
+          points: unattached,
+          kind: "refund_redeem",
+          checkout_group: checkoutGroup,
+          note: "Checkout failed",
+        });
+      }
       return json({ error: orderError?.message ?? "Failed to create order" }, 500);
     }
+    pointsAttached += g.loyaltyPoints;
 
     const orderItemsPayload = items.map((item) => {
       const product = item.products as unknown as { id: string; name: string; price: number };

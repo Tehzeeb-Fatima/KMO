@@ -1,12 +1,15 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { listCustomers } from "@kmo/shared/api";
 import { supabase } from "../lib/supabase";
+import { CustomerPoints } from "./loyalty-page";
 
 export function CustomersPage() {
   const { data: customers, isLoading } = useQuery({
     queryKey: ["admin-customers"],
     queryFn: () => listCustomers(supabase),
   });
+  const [open, setOpen] = useState<string | null>(null);
 
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-surface">
@@ -23,12 +26,26 @@ export function CustomersPage() {
       ) : (
         customers.map((c) => (
           <div key={c.id} className="grid grid-cols-4 items-center border-t border-[#F5F0EE] px-5 py-4 text-[13px]">
-            <span className="font-bold text-ink-dark">{c.full_name ?? "Customer"}</span>
+            <span className="font-bold text-ink-dark">
+              {c.full_name ?? "Customer"}
+              <button
+                type="button"
+                onClick={() => setOpen(open === c.id ? null : c.id)}
+                className="ml-2 text-[11.5px] font-bold text-accent"
+              >
+                {open === c.id ? "Hide points" : "Points"}
+              </button>
+            </span>
             <span className="text-ink-dark">{c.order_count}</span>
             <span className="text-ink-dark">Rs. {c.total_spend.toLocaleString()}</span>
             <span className="text-muted">
               {new Date(c.created_at).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}
             </span>
+            {open === c.id ? (
+              <div className="col-span-4">
+                <CustomerPoints customerId={c.id} />
+              </div>
+            ) : null}
           </div>
         ))
       )}

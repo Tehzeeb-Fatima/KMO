@@ -24,6 +24,7 @@ const TITLES: Record<string, { title: string; subtitle?: string }> = {
   "/categories": { title: "Categories", subtitle: "Storefront category tree" },
   "/couriers": { title: "Couriers", subtitle: "Courier fee slabs by city and weight" },
   "/promotions": { title: "Promotions", subtitle: "Homepage deals with a countdown" },
+  "/loyalty": { title: "Loyalty", subtitle: "Customer reward points and vendor tiers" },
   "/returns": { title: "Returns", subtitle: "Review return requests" },
   "/reviews": { title: "Reviews", subtitle: "Review moderation" },
   "/contact-messages": { title: "Contact requests", subtitle: "Messages from the contact form" },

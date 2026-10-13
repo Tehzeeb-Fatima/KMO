@@ -7,11 +7,13 @@ import {
   claimGuestAccount,
   createAddress,
   getDefaultDeliveryRateForCity,
+  getMyLoyalty,
   getVendorDeliveryRatesForCity,
   listActivePromotions,
   listAddresses,
   listCartItems,
   placeOrder,
+  pointsForAmount,
   previewCoupon,
   toPricingPromotions,
 } from "@kmo/shared/api";
@@ -23,6 +25,7 @@ import { RequireAuth } from "@/components/require-auth";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/i18n/language-context";
 import type { TranslationTree } from "@/lib/i18n/translations";
+import { fill } from "@/lib/fill";
 
 function paymentOptions(t: TranslationTree): { value: PaymentMethod; label: string; sub: string }[] {
   return [
@@ -68,6 +71,12 @@ function CheckoutContent() {
   const [addressCity, setAddressCity] = useState("");
 
   const isGuest = !!user?.is_anonymous;
+  const [usePoints, setUsePoints] = useState(false);
+  const { data: loyalty } = useQuery({
+    queryKey: ["my-loyalty"],
+    queryFn: () => getMyLoyalty(supabase),
+    enabled: !!user && !isGuest,
+  });
   const [email, setEmail] = useState(user?.email ?? "");
 
   const [couponInput, setCouponInput] = useState("");
@@ -140,6 +149,7 @@ function CheckoutContent() {
         addressId: effectiveAddressId,
         paymentMethod,
         couponCode: coupon?.code,
+        redeemPoints: pointsToUse || undefined,
       });
     },
     onSuccess: (result) => {
@@ -226,7 +236,21 @@ function CheckoutContent() {
       )
     : 0;
 
-  const total = subtotal + deliveryFee - discount - promotionDiscount;
+  // Reward points: a KMO-funded discount, capped like place_order caps it.
+  const pointsEligible = Math.max(0, subtotal - discount - promotionDiscount);
+  const loyaltyOn = !!loyalty?.enabled && loyalty.point_value > 0;
+  const usablePoints = loyaltyOn
+    ? Math.min(
+        loyalty!.balance,
+        Math.floor((pointsEligible * (loyalty!.max_redeem_percent / 100)) / loyalty!.point_value),
+      )
+    : 0;
+  const canUsePoints = loyaltyOn && usablePoints >= loyalty!.min_redeem_points;
+  const pointsToUse = canUsePoints && usePoints ? usablePoints : 0;
+  const loyaltyDiscount = Math.round(pointsToUse * (loyalty?.point_value ?? 0) * 100) / 100;
+  const pointsToEarn = loyaltyOn ? pointsForAmount(pointsEligible - loyaltyDiscount, loyalty!.rule) : 0;
+
+  const total = subtotal + deliveryFee - discount - promotionDiscount - loyaltyDiscount;
 
   return (
     <div className="mx-auto w-full max-w-[1100px] px-4 py-6 sm:px-6 lg:px-10">
@@ -460,10 +484,44 @@ function CheckoutContent() {
           )}
           {couponError ? <p className="text-xs text-danger">{couponError}</p> : null}
 
+          {loyaltyOn && loyalty!.balance > 0 ? (
+            <div className="flex flex-col gap-1.5 rounded-lg bg-primary-tint px-3.5 py-3">
+              <p className="text-[12.5px] font-bold text-primary">
+                {fill(t.loyalty.youHave, {
+                  points: loyalty!.balance.toLocaleString(),
+                  value: Math.floor(loyalty!.balance * loyalty!.point_value).toLocaleString(),
+                })}
+              </p>
+              {canUsePoints ? (
+                <label className="flex cursor-pointer items-center gap-2 text-[13px] text-ink-dark">
+                  <input type="checkbox" checked={usePoints} onChange={(e) => setUsePoints(e.target.checked)} />
+                  {fill(t.loyalty.usePoints, {
+                    points: usablePoints.toLocaleString(),
+                    value: Math.round(usablePoints * loyalty!.point_value).toLocaleString(),
+                  })}
+                </label>
+              ) : (
+                <p className="text-xs text-muted">{fill(t.loyalty.needMore, { min: loyalty!.min_redeem_points })}</p>
+              )}
+            </div>
+          ) : null}
+
+          {loyaltyDiscount > 0 ? (
+            <div className="flex justify-between text-[13.5px]">
+              <span className="text-muted">{t.loyalty.pointsDiscount}</span>
+              <span className="font-semibold text-accent">− Rs. {loyaltyDiscount.toLocaleString()}</span>
+            </div>
+          ) : null}
+
           <div className="flex justify-between border-t border-[#F1EAE6] pt-3.5 text-lg font-extrabold">
             <span className="text-ink">{t.checkout.total}</span>
             <span className="text-accent">Rs. {total.toLocaleString()}</span>
           </div>
+          {pointsToEarn > 0 ? (
+            <p className="-mt-1 text-xs font-semibold text-success">
+              ★ {fill(t.loyalty.willEarn, { points: pointsToEarn.toLocaleString() })}
+            </p>
+          ) : null}
           {error ? <p className="text-sm text-danger">{error}</p> : null}
           <Button
             className="w-full"

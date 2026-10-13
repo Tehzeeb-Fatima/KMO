@@ -26,3 +26,4 @@ export * from "./vendor-membership";
 export * from "./users";
 export * from "./auth-flows";
 export * from "./delivery-rates";
+export * from "./loyalty";

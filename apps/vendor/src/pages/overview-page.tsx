@@ -3,6 +3,7 @@ import { getMyVendor, getVendorOverviewStats, listVendorOrders } from "@kmo/shar
 import { StatusBadge } from "@kmo/shared/ui";
 import { ORDER_STATUS_META } from "@kmo/shared/lib";
 import { supabase } from "../lib/supabase";
+import { VendorTierCard } from "../components/vendor-tier-card";
 
 export function OverviewPage() {
   const { data: vendor } = useQuery({ queryKey: ["my-vendor"], queryFn: () => getMyVendor(supabase) });
@@ -21,6 +22,7 @@ export function OverviewPage() {
 
   return (
     <div>
+      {vendor ? <VendorTierCard vendorId={vendor.id} tier={vendor.loyalty_tier} /> : null}
       <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <StatTile label="Sales this month" value={`Rs. ${(stats?.salesThisMonth ?? 0).toLocaleString()}`} />
         <StatTile label="Orders this month" value={String(stats?.ordersThisMonth ?? 0)} />

@@ -22,6 +22,7 @@ import { ContactMessagesPage } from "./pages/contact-messages-page";
 import { UsersPage } from "./pages/users-page";
 import { DeliveryCapsPage } from "./pages/delivery-caps-page";
 import { BookkeepingPage } from "./pages/bookkeeping-page";
+import { LoyaltyPage } from "./pages/loyalty-page";
 
 export default function App() {
   return (
@@ -46,6 +47,7 @@ export default function App() {
         <Route path="couriers" element={<ModuleRoute module="couriers"><CouriersPage /></ModuleRoute>} />
         <Route path="delivery-caps" element={<ModuleRoute module="delivery-caps"><DeliveryCapsPage /></ModuleRoute>} />
         <Route path="promotions" element={<ModuleRoute module="promotions"><PromotionsPage /></ModuleRoute>} />
+        <Route path="loyalty" element={<ModuleRoute module="loyalty"><LoyaltyPage /></ModuleRoute>} />
         <Route path="banners" element={<ModuleRoute module="banners"><BannersPage /></ModuleRoute>} />
         <Route path="testimonials" element={<ModuleRoute module="testimonials"><TestimonialsPage /></ModuleRoute>} />
         <Route path="returns" element={<ModuleRoute module="returns"><ReturnsPage /></ModuleRoute>} />

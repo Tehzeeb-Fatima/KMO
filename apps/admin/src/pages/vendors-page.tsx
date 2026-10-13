@@ -28,6 +28,7 @@ import { useAuth } from "@kmo/shared/auth";
 import { mainCategories } from "@kmo/shared/lib";
 import { supabase } from "../lib/supabase";
 import { VendorAccountSection } from "../components/vendor-account-section";
+import { VendorTierSection } from "../components/vendor-tier-section";
 
 const STATUS_META: Record<
   VendorVerificationStatus,
@@ -620,6 +621,8 @@ function VendorDetail({ vendorId, onBack }: { vendorId: string; onBack: () => vo
             membershipStartedAt={vendor.membership_started_at}
             commissionRate={vendor.commission_rate}
           />
+
+          <VendorTierSection vendorId={vendorId} tier={vendor.loyalty_tier} />
 
           <VendorProductsSection vendorId={vendorId} />
 

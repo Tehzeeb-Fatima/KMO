@@ -7,6 +7,8 @@ export type Json = string | number | boolean | null | { [key: string]: Json } | 
 
 export type UserRole = "customer" | "vendor" | "admin" | "staff";
 export type VendorVerificationStatus = "pending" | "approved" | "rejected" | "suspended";
+export type VendorTier = "bronze" | "silver" | "gold";
+export type LoyaltyLedgerKind = "earn" | "redeem" | "reverse_earn" | "refund_redeem" | "adjust";
 
 export type WeekDay = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
 
@@ -100,6 +102,7 @@ export interface Database {
           policies: VendorPolicies;
           business_hours: BusinessHours;
           commission_rate: number | null;
+          loyalty_tier: VendorTier | null;
           preferred_courier: string | null;
           preferred_courier_id: string | null;
           membership_started_at: string;
@@ -122,6 +125,7 @@ export interface Database {
           policies?: VendorPolicies;
           business_hours?: BusinessHours;
           commission_rate?: number | null;
+          loyalty_tier?: VendorTier | null;
           preferred_courier?: string | null;
           preferred_courier_id?: string | null;
           membership_started_at?: string;
@@ -144,6 +148,7 @@ export interface Database {
           policies?: VendorPolicies;
           business_hours?: BusinessHours;
           commission_rate?: number | null;
+          loyalty_tier?: VendorTier | null;
           preferred_courier?: string | null;
           preferred_courier_id?: string | null;
           membership_started_at?: string;
@@ -657,6 +662,12 @@ export interface Database {
           ship_address_line: string | null;
           ship_area: string | null;
           ship_city: string | null;
+          loyalty_points_redeemed: number;
+          loyalty_discount_amount: number;
+          loyalty_points_to_earn: number;
+          loyalty_rule_id: string | null;
+          loyalty_points_awarded: boolean;
+          loyalty_redeem_refunded: boolean;
           payment_method: PaymentMethod;
           status: OrderStatus;
           subtotal: number;
@@ -686,6 +697,12 @@ export interface Database {
           ship_address_line?: string | null;
           ship_area?: string | null;
           ship_city?: string | null;
+          loyalty_points_redeemed?: number;
+          loyalty_discount_amount?: number;
+          loyalty_points_to_earn?: number;
+          loyalty_rule_id?: string | null;
+          loyalty_points_awarded?: boolean;
+          loyalty_redeem_refunded?: boolean;
           payment_method?: PaymentMethod;
           status?: OrderStatus;
           subtotal: number;
@@ -715,6 +732,12 @@ export interface Database {
           ship_address_line?: string | null;
           ship_area?: string | null;
           ship_city?: string | null;
+          loyalty_points_redeemed?: number;
+          loyalty_discount_amount?: number;
+          loyalty_points_to_earn?: number;
+          loyalty_rule_id?: string | null;
+          loyalty_points_awarded?: boolean;
+          loyalty_redeem_refunded?: boolean;
           payment_method?: PaymentMethod;
           status?: OrderStatus;
           subtotal?: number;
@@ -839,6 +862,11 @@ export interface Database {
           vendor_membership_fee: number;
           vendor_free_trial_months: number;
           commission_free_months: number;
+          loyalty_enabled: boolean;
+          loyalty_point_value: number;
+          loyalty_min_redeem_points: number;
+          loyalty_max_redeem_percent: number;
+          vendor_tier_benefits: { bronze: string; silver: string; gold: string };
           vendor_agreement_title: string;
           vendor_agreement_body: string;
           vendor_of_week_id: string | null;
@@ -859,6 +887,11 @@ export interface Database {
           vendor_membership_fee?: number;
           vendor_free_trial_months?: number;
           commission_free_months?: number;
+          loyalty_enabled?: boolean;
+          loyalty_point_value?: number;
+          loyalty_min_redeem_points?: number;
+          loyalty_max_redeem_percent?: number;
+          vendor_tier_benefits?: { bronze: string; silver: string; gold: string };
           vendor_agreement_title?: string;
           vendor_agreement_body?: string;
           vendor_of_week_id?: string | null;
@@ -879,6 +912,11 @@ export interface Database {
           vendor_membership_fee?: number;
           vendor_free_trial_months?: number;
           commission_free_months?: number;
+          loyalty_enabled?: boolean;
+          loyalty_point_value?: number;
+          loyalty_min_redeem_points?: number;
+          loyalty_max_redeem_percent?: number;
+          vendor_tier_benefits?: { bronze: string; silver: string; gold: string };
           vendor_agreement_title?: string;
           vendor_agreement_body?: string;
           vendor_of_week_id?: string | null;
@@ -890,6 +928,68 @@ export interface Database {
           free_delivery_threshold?: number | null;
           whatsapp_number?: string | null;
           updated_at?: string;
+        };
+        Relationships: [];
+      };
+      loyalty_earn_rules: {
+        Row: {
+          id: string;
+          name: string;
+          spend_pkr: number;
+          points: number;
+          starts_at: string;
+          ends_at: string | null;
+          is_active: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          spend_pkr: number;
+          points: number;
+          starts_at: string;
+          ends_at?: string | null;
+          is_active?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          spend_pkr?: number;
+          points?: number;
+          starts_at?: string;
+          ends_at?: string | null;
+          is_active?: boolean;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      loyalty_ledger: {
+        Row: {
+          id: string;
+          customer_id: string;
+          points: number;
+          kind: LoyaltyLedgerKind;
+          order_id: string | null;
+          checkout_group: string | null;
+          note: string | null;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          customer_id: string;
+          points: number;
+          kind: LoyaltyLedgerKind;
+          order_id?: string | null;
+          checkout_group?: string | null;
+          note?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          points?: number;
+          note?: string | null;
         };
         Relationships: [];
       };

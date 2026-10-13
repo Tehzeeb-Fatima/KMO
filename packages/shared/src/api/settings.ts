@@ -35,6 +35,11 @@ export async function updatePlatformSettings(
       | "default_delivery_fee"
       | "free_delivery_threshold"
       | "whatsapp_number"
+      | "loyalty_enabled"
+      | "loyalty_point_value"
+      | "loyalty_min_redeem_points"
+      | "loyalty_max_redeem_percent"
+      | "vendor_tier_benefits"
     >
   >,
 ): Promise<SettingsRow> {

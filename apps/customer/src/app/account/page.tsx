@@ -21,6 +21,7 @@ function links(t: TranslationTree) {
     { href: "/account/following", label: t.account.followedStores, sub: t.account.followedStoresSub },
     { href: "/account/addresses", label: t.account.addresses, sub: t.account.addressesSub },
     { href: "/account/messages", label: t.account.messages, sub: t.account.messagesSub },
+    { href: "/account/points", label: t.loyalty.myPoints, sub: t.loyalty.myPointsSub },
   ];
 }
 
