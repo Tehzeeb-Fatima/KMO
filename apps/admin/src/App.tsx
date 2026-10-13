@@ -21,6 +21,7 @@ import { AuditLogPage } from "./pages/audit-log-page";
 import { ContactMessagesPage } from "./pages/contact-messages-page";
 import { UsersPage } from "./pages/users-page";
 import { DeliveryCapsPage } from "./pages/delivery-caps-page";
+import { BookkeepingPage } from "./pages/bookkeeping-page";
 
 export default function App() {
   return (
@@ -52,6 +53,7 @@ export default function App() {
         <Route path="contact-messages" element={<ModuleRoute module="contact"><ContactMessagesPage /></ModuleRoute>} />
         <Route path="audit-log" element={<ModuleRoute module="audit-log"><AuditLogPage /></ModuleRoute>} />
         <Route path="settings" element={<ModuleRoute module="settings"><SettingsPage /></ModuleRoute>} />
+        <Route path="bookkeeping" element={<BookkeepingPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

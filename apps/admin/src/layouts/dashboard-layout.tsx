@@ -7,7 +7,8 @@ import {
   markAllNotificationsRead,
   markNotificationRead,
 } from "@kmo/shared/api";
-import { ADMIN_NAV_ITEMS, visibleNavItems } from "../dashboard-nav";
+import { ADMIN_NAV_ITEMS, BOOKKEEPING_NAV_ITEM, visibleNavItems } from "../dashboard-nav";
+import { isSuperAdmin } from "../lib/bookkeeping";
 import kmoIcon from "../assets/kmo-icon.png";
 import { supabase } from "../lib/supabase";
 
@@ -28,6 +29,7 @@ const TITLES: Record<string, { title: string; subtitle?: string }> = {
   "/contact-messages": { title: "Contact requests", subtitle: "Messages from the contact form" },
   "/audit-log": { title: "Audit log", subtitle: "Recent admin actions" },
   "/settings": { title: "Settings", subtitle: "Platform configuration" },
+  "/bookkeeping": { title: "Bookkeeping", subtitle: "Expenses and partner accounts — super admin only" },
 };
 
 function HeaderNotifications() {
@@ -67,8 +69,16 @@ function HeaderNotifications() {
 export function DashboardLayout() {
   const { profile, signOut } = useAuth();
   const location = useLocation();
+  // Bookkeeping is listed only for the super admin account.
+  const { data: superAdmin } = useQuery({
+    queryKey: ["is-super-admin"],
+    queryFn: isSuperAdmin,
+    enabled: profile?.role === "admin",
+    staleTime: 5 * 60 * 1000,
+  });
+  const navItems = superAdmin ? [...visibleNavItems(profile), BOOKKEEPING_NAV_ITEM] : visibleNavItems(profile);
   const activeItem =
-    ADMIN_NAV_ITEMS.find((item) =>
+    [...ADMIN_NAV_ITEMS, BOOKKEEPING_NAV_ITEM].find((item) =>
       item.to === "/" ? location.pathname === "/" : location.pathname.startsWith(item.to),
     ) ?? ADMIN_NAV_ITEMS[0];
   const meta = TITLES[location.pathname] ?? { title: activeItem.label };
@@ -83,7 +93,7 @@ export function DashboardLayout() {
   return (
     <DashboardShell
       logoSrc={kmoIcon}
-      navItems={visibleNavItems(profile)}
+      navItems={navItems}
       activeKey={activeItem.key}
       title={meta.title}
       subtitle={meta.subtitle}

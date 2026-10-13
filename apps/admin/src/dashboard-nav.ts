@@ -22,6 +22,9 @@ export const ADMIN_NAV_ITEMS: DashboardNavItem[] = [
   { key: "settings", label: "Settings", to: "/settings" },
 ];
 
+/** Shown only to the super admin (checked on the server); never grantable to staff. */
+export const BOOKKEEPING_NAV_ITEM: DashboardNavItem = { key: "bookkeeping", label: "Bookkeeping", to: "/bookkeeping" };
+
 /** Modules every staff user can open, whatever the admin granted. */
 const STAFF_BASE_MODULES = ["overview"];
 
