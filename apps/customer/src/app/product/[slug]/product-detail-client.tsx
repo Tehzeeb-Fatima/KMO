@@ -19,7 +19,15 @@ import {
   listActivePromotions,
   toPricingPromotions,
 } from "@kmo/shared/api";
-import { bestPromotionForProduct, cardPricing, mainImageUrl } from "@kmo/shared/lib";
+import {
+  bestPromotionForProduct,
+  cardPricing,
+  findVariant,
+  isColourOption,
+  mainImageUrl,
+  optionGroups,
+  variantOptions,
+} from "@kmo/shared/lib";
 import { Breadcrumbs, Button, ProductCard } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "@/lib/supabase";
@@ -44,16 +52,9 @@ export default function ProductDetailClient() {
     queryFn: () => listActivePromotions(supabase, 100),
   });
 
-  const variantGroups = useMemo(() => {
-    if (!product) return {};
-    return product.product_variants.reduce<Record<string, typeof product.product_variants>>(
-      (acc, v) => {
-        (acc[v.option_name] ??= []).push(v);
-        return acc;
-      },
-      {},
-    );
-  }, [product]);
+  // [["Colour", ["Ivory","Mint"]], ["Size", ["M","L"]]] — a row can hold one
+  // option or a colour/size combination, see variant-options.
+  const variantGroups = useMemo(() => (product ? optionGroups(product.product_variants) : []), [product]);
 
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
   const [qty, setQty] = useState(1);
@@ -61,31 +62,28 @@ export default function ProductDetailClient() {
 
   /** The variant row for the colour the shopper picked, if any — media can be
    *  tied to it so the product imagery changes with the colour. */
-  const selectedColourVariantId = useMemo(() => {
-    if (!product) return null;
-    const row = product.product_variants.find(
-      (v) =>
-        ["color", "colour"].includes(v.option_name.toLowerCase()) &&
-        selectedOptions[v.option_name] === v.option_value,
-    );
-    return row?.id ?? null;
-  }, [product, selectedOptions]);
+  const colourOption = variantGroups.find(([name]) => isColourOption(name))?.[0] ?? null;
+  const selectedColour = colourOption ? (selectedOptions[colourOption] ?? null) : null;
+  /** Every variant row of the picked colour: a photo tied to any of them
+   *  belongs to that colour (combination rows share their colour's photos). */
+  const selectedColourVariantIds = useMemo(() => {
+    if (!product || !colourOption || !selectedColour) return [] as string[];
+    return product.product_variants
+      .filter((v) => variantOptions(v)[colourOption] === selectedColour)
+      .map((v) => v.id);
+  }, [product, colourOption, selectedColour]);
 
   // A colour change swaps the photo set, so the old index may not exist.
   useEffect(() => {
     setActiveImage(0);
-  }, [selectedColourVariantId]);
+  }, [selectedColour]);
 
-  const selectedVariant = useMemo(() => {
-    if (!product || product.product_variants.length === 0) return null;
-    return (
-      product.product_variants.find((v) =>
-        Object.entries(selectedOptions).every(
-          ([name, value]) => !(name === v.option_name) || v.option_value === value,
-        ),
-      ) ?? null
-    );
-  }, [product, selectedOptions]);
+  const selectedVariant = useMemo(
+    () => (product && product.product_variants.length ? findVariant(product.product_variants, selectedOptions) : null),
+    [product, selectedOptions],
+  );
+  // With options, every one must be picked before adding to the cart.
+  const missingOption = variantGroups.find(([name]) => !selectedOptions[name])?.[0] ?? null;
 
   const addMutation = useMutation({
     mutationFn: async () => {
@@ -193,8 +191,8 @@ export default function ProductDetailClient() {
 
   // Photos tied to the picked colour win; otherwise the shared photos show.
   const allImages = product.product_images.slice().sort((a, b) => a.sort_order - b.sort_order);
-  const colourImages = selectedColourVariantId
-    ? allImages.filter((i) => i.variant_id === selectedColourVariantId)
+  const colourImages = selectedColourVariantIds.length
+    ? allImages.filter((i) => i.variant_id && selectedColourVariantIds.includes(i.variant_id))
     : [];
   const sharedImages = allImages.filter((i) => i.variant_id === null);
   // Products whose photos were all tied to a colour still need a gallery
@@ -384,7 +382,7 @@ export default function ProductDetailClient() {
                 : `${t.product.inStock} (${stock} ${t.product.available})`}
           </p>
 
-          {Object.entries(variantGroups).map(([optionName, variants]) => (
+          {variantGroups.map(([optionName, values]) => (
             <div key={optionName} className="flex flex-col gap-2">
               <span className="text-[13px] text-muted">
                 {optionName}:{" "}
@@ -393,15 +391,35 @@ export default function ProductDetailClient() {
                 </strong>
               </span>
               <div className="flex flex-wrap gap-2">
-                {variants.map((v) => {
-                  const selected = selectedOptions[optionName] === v.option_value;
-                  const isColor = ["color", "colour"].includes(optionName.toLowerCase());
+                {values.map((value) => {
+                  const selected = selectedOptions[optionName] === value;
+                  const isColor = isColourOption(optionName);
+                  // Grey out a value no variant offers with the other picks.
+                  const offered = product.product_variants.some((v) => {
+                    const opts = variantOptions(v);
+                    return (
+                      opts[optionName] === value &&
+                      Object.entries(selectedOptions).every(([n, val]) => n === optionName || !(n in opts) || opts[n] === val)
+                    );
+                  });
                   return (
                     <button
-                      key={v.id}
+                      key={value}
                       type="button"
                       onClick={() =>
-                        setSelectedOptions((prev) => ({ ...prev, [optionName]: v.option_value }))
+                        setSelectedOptions((prev) => {
+                          const next = { ...prev, [optionName]: value };
+                          // drop other picks this choice doesn't come with
+                          for (const n of Object.keys(next)) {
+                            if (n === optionName) continue;
+                            const ok = product.product_variants.some((v) => {
+                              const o = variantOptions(v);
+                              return o[optionName] === value && (!(n in o) || o[n] === next[n]);
+                            });
+                            if (!ok) delete next[n];
+                          }
+                          return next;
+                        })
                       }
                       className={
                         isColor
@@ -411,16 +429,21 @@ export default function ProductDetailClient() {
                       style={
                         selected
                           ? { background: "var(--color-accent)", color: "#fff" }
-                          : { background: "#fff", border: "1.5px solid var(--color-border)", color: "var(--color-ink-secondary)" }
+                          : {
+                              background: "#fff",
+                              border: "1.5px solid var(--color-border)",
+                              color: "var(--color-ink-secondary)",
+                              opacity: offered ? 1 : 0.4,
+                            }
                       }
                     >
                       {isColor ? (
                         <span
-                          className="h-4 w-4 shrink-0 rounded-full border border-white/40"
-                          style={{ background: v.option_value.toLowerCase() }}
+                          className="h-4 w-4 shrink-0 rounded-full border border-black/10"
+                          style={{ background: value.toLowerCase() }}
                         />
                       ) : null}
-                      {v.option_value}
+                      {value}
                     </button>
                   );
                 })}
@@ -448,11 +471,17 @@ export default function ProductDetailClient() {
             </div>
           </div>
 
+          {missingOption && !outOfStock ? (
+            <p className="-mb-1 text-[12.5px] font-semibold text-accent">
+              {t.product.select} {missingOption}
+            </p>
+          ) : null}
+
           <div className="flex flex-wrap gap-3">
             <Button
               variant="secondary"
               className="min-w-0 flex-1 basis-[calc(50%-38px)] sm:basis-auto"
-              disabled={outOfStock || addMutation.isPending}
+              disabled={outOfStock || !!missingOption || addMutation.isPending}
               onClick={() => addMutation.mutate()}
             >
               {addMutation.isPending ? t.product.adding : t.common.addToCart}
@@ -460,7 +489,7 @@ export default function ProductDetailClient() {
             <Button
               variant="primary"
               className="min-w-0 flex-1 basis-[calc(50%-38px)] sm:basis-auto"
-              disabled={outOfStock}
+              disabled={outOfStock || !!missingOption}
               onClick={() =>
                 addMutation.mutate(undefined, {
                   onSuccess: () => router.push("/cart"),

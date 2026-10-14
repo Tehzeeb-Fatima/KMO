@@ -9,6 +9,7 @@ import { RequireAuth } from "@/components/require-auth";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/i18n/language-context";
 import { CartSkeleton } from "@/components/page-loader";
+import { variantLabel } from "@kmo/shared/lib";
 
 export default function CartPage() {
   return (
@@ -127,7 +128,7 @@ function CartContent() {
                         </span>
                         {item.product_variants ? (
                           <span className="text-xs text-muted">
-                            {item.product_variants.option_name}: {item.product_variants.option_value}
+                            {variantLabel(item.product_variants)}
                           </span>
                         ) : null}
                         <button

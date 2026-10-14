@@ -469,7 +469,7 @@ Deno.serve(async (req: Request) => {
         product_id: product.id,
         variant_id: variant?.id ?? null,
         product_name: product.name,
-        variant_label: variant ? `${variant.option_name}: ${variant.option_value}` : null,
+        variant_label: variant ? variantLabel(variant) : null,
         unit_price: variant?.price_override ?? product.price,
         quantity: item.quantity,
       };
@@ -533,4 +533,11 @@ function json(body: unknown, status: number): Response {
     status,
     headers: { "Content-Type": "application/json", ...CORS_HEADERS },
   });
+}
+
+// Same as @kmo/shared variantLabel: "Colour / Size" + "Ivory / M" -> "Colour: Ivory, Size: M".
+function variantLabel(v: { option_name: string; option_value: string }): string {
+  const names = v.option_name.split(" / ");
+  const values = v.option_value.split(" / ");
+  return names.map((n, i) => `${n.trim()}: ${(values[i] ?? "").trim()}`).join(", ");
 }

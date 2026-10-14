@@ -17,7 +17,7 @@ import {
   uploadProductImage,
 } from "@kmo/shared/api";
 import type { ProductStatus } from "@kmo/shared/types";
-import { categoryPath, mainImageUrl } from "@kmo/shared/lib";
+import { categoryPath, mainImageUrl, OPTION_SEPARATOR, variantLabel } from "@kmo/shared/lib";
 import { BulkUploadProducts, ConfirmDialog } from "@kmo/shared/ui";
 import { supabase } from "../lib/supabase";
 
@@ -432,7 +432,7 @@ function ProductsList({
 type FormImage = { key: string; url: string; id?: string; file?: File };
 type FormVariant = { key: string; option_name: string; option_value: string; stock_quantity: number | null; id?: string };
 
-const VARIANT_TYPES = ["Size", "Colour", "Other"] as const;
+const VARIANT_TYPES = ["Size", "Colour", "Colour + Size", "Other"] as const;
 const inputClass =
   "w-full rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light";
 
@@ -574,9 +574,32 @@ function ProductForm({
   }
 
   const optionName = variantType === "Other" ? customType.trim() : variantType;
-  const canAddVariant = !!optionName && !!variantValue.trim();
+  const isCombo = variantType === "Colour + Size";
+  const splitList = (v: string) => [...new Set(v.split(",").map((x) => x.trim()).filter(Boolean))];
+  const canAddVariant = isCombo
+    ? splitList(variantValue).length > 0 && splitList(customType).length > 0
+    : !!optionName && !!variantValue.trim();
   function addVariant() {
     if (!canAddVariant) return;
+    if (isCombo) {
+      // One row per colour-and-size pair so an order keeps both choices.
+      const rows: FormVariant[] = [];
+      for (const colour of splitList(variantValue)) {
+        for (const size of splitList(customType)) {
+          rows.push({
+            key: crypto.randomUUID(),
+            option_name: `Colour${OPTION_SEPARATOR}Size`,
+            option_value: `${colour}${OPTION_SEPARATOR}${size}`,
+            stock_quantity: parseStock(variantQty),
+          });
+        }
+      }
+      setVariants((prev) => [...prev, ...rows]);
+      setVariantValue("");
+      setCustomType("");
+      setVariantQty("");
+      return;
+    }
     setVariants((prev) => [
       ...prev,
       {
@@ -852,8 +875,7 @@ function ProductForm({
               <div className="flex flex-col divide-y divide-[#F1EAE6] rounded-lg border border-border">
                 {variants.map((v) => (
                   <div key={v.key} className="flex items-center gap-3 px-3.5 py-2.5 text-[13px]">
-                    <span className="w-[70px] shrink-0 text-muted">{v.option_name}</span>
-                    <span className="flex-1 font-bold text-ink-dark">{v.option_value}</span>
+                    <span className="flex-1 font-bold text-ink-dark">{variantLabel(v)}</span>
                     <span className="text-muted">{stockLabel(v.stock_quantity)}</span>
                     <button
                       type="button"
@@ -894,8 +916,24 @@ function ProductForm({
                     className={inputClass}
                   />
                 ) : null}
+                {isCombo ? (
+                  <input
+                    placeholder="Sizes, e.g. S, M, L"
+                    value={customType}
+                    onChange={(e) => setCustomType(e.target.value)}
+                    className={inputClass}
+                  />
+                ) : null}
                 <input
-                  placeholder={variantType === "Colour" ? "e.g. Black" : variantType === "Size" ? "e.g. Medium" : "e.g. Cotton"}
+                  placeholder={
+                    isCombo
+                      ? "Colours, e.g. Ivory, Mint"
+                      : variantType === "Colour"
+                        ? "e.g. Black"
+                        : variantType === "Size"
+                          ? "e.g. Medium"
+                          : "e.g. Cotton"
+                  }
                   value={variantValue}
                   onChange={(e) => setVariantValue(e.target.value)}
                   onKeyDown={(e) => {
@@ -904,7 +942,7 @@ function ProductForm({
                       addVariant();
                     }
                   }}
-                  className={`${inputClass} ${variantType === "Other" ? "" : "sm:col-span-2"}`}
+                  className={`${inputClass} ${variantType === "Other" || isCombo ? "" : "sm:col-span-2"}`}
                 />
                 <input
                   inputMode="numeric"

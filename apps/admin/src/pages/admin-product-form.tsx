@@ -20,6 +20,7 @@ import { ConfirmDialog } from "@kmo/shared/ui";
 
 type PhotoSet = { variantId: string | null; label: string };
 import { supabase } from "../lib/supabase";
+import { isColourOption, variantLabel, variantOptions } from "@kmo/shared/lib";
 
 /**
  * Admin's own "add/edit product" form. Unlike the vendor dashboard's
@@ -145,12 +146,18 @@ export function AdminProductForm({
 
   /* ── photo sets, one per colour variant plus a shared fallback ────────── */
 
-  const colourVariants = variants.filter((v) =>
-    ["color", "colour"].includes(v.option_name.toLowerCase()),
-  );
+  // One photo set per colour. With colour/size combination rows the first
+  // row of each colour holds that colour's photos (the storefront shows them
+  // for every size of that colour).
+  const colourSets = new Map<string, string>();
+  for (const v of variants) {
+    const opts = variantOptions(v);
+    const colourKey = Object.keys(opts).find(isColourOption);
+    if (colourKey && !colourSets.has(opts[colourKey])) colourSets.set(opts[colourKey], v.id);
+  }
   const sets360: PhotoSet[] = [
     { variantId: null, label: "All colours" },
-    ...colourVariants.map((v) => ({ variantId: v.id, label: v.option_value })),
+    ...[...colourSets.entries()].map(([label, variantId]) => ({ variantId, label })),
   ];
 
   const saveMutation = useMutation({
@@ -507,8 +514,7 @@ export function AdminProductForm({
                             style={{ background: v.option_value.toLowerCase() }}
                           />
                         ) : null}
-                        <span className="text-muted">{v.option_name}:</span>
-                        <span className="font-bold text-ink-dark">{v.option_value}</span>
+                        <span className="font-bold text-ink-dark">{variantLabel(v)}</span>
                         <span className="text-muted-table">({v.stock_quantity ?? "not counted"})</span>
                         <button
                           type="button"
