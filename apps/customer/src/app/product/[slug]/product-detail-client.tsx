@@ -200,16 +200,14 @@ export default function ProductDetailClient() {
     );
   }
 
-  // Photos tied to the picked colour win; otherwise the shared photos show.
+  // Before a colour is picked every photo shows (shared first, then each
+  // colour's); picking a colour narrows it to that colour's photos.
   const allImages = product.product_images.slice().sort((a, b) => a.sort_order - b.sort_order);
   const colourImages = selectedColourVariantIds.length
     ? allImages.filter((i) => i.variant_id && selectedColourVariantIds.includes(i.variant_id))
     : [];
   const sharedImages = allImages.filter((i) => i.variant_id === null);
-  // Products whose photos were all tied to a colour still need a gallery
-  // before a colour is picked, so fall back to every photo.
-  const images =
-    colourImages.length > 0 ? colourImages : sharedImages.length > 0 ? sharedImages : allImages;
+  const images = colourImages.length > 0 ? colourImages : selectedColour && sharedImages.length > 0 ? sharedImages : allImages;
   const stock = selectedVariant ? selectedVariant.stock_quantity : product.stock_quantity;
   // null stock = the vendor doesn't track it, so it's always available
   const outOfStock = stock !== null && stock <= 0;
@@ -294,8 +292,8 @@ export default function ProductDetailClient() {
       />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[500px_minmax(0,1fr)_316px] lg:items-start lg:gap-[26px]">
-        {/* gallery: stays in view beside a long description */}
-        <div className="lg:sticky lg:top-6">
+        {/* gallery: scrolls with the page, no inner scroll areas */}
+        <div>
           <div
             className="relative aspect-square w-full overflow-hidden rounded-[10px] border border-border bg-surface"
             style={{
@@ -335,7 +333,7 @@ export default function ProductDetailClient() {
                   key={img.id}
                   type="button"
                   onClick={() => setActiveImage(i)}
-                  className="h-14 flex-1 shrink-0 rounded-lg sm:h-20"
+                  className="h-14 w-14 shrink-0 rounded-lg sm:h-20 sm:w-20"
                   style={{
                     background: `url(${img.url}) center/cover`,
                     border: i === activeImage ? "2px solid var(--color-accent)" : "2px solid transparent",
@@ -543,7 +541,7 @@ export default function ProductDetailClient() {
         </div>
 
         {/* sidebar */}
-        <div className="flex flex-col gap-4 lg:sticky lg:top-6">
+        <div className="flex flex-col gap-4">
           <div className="rounded-[10px] border border-border bg-surface p-5">
             <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-table">
               {t.product.deliveryPayment}
