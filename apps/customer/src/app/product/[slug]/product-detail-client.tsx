@@ -26,6 +26,7 @@ import {
   isColourOption,
   mainImageUrl,
   optionGroups,
+  swatchColour,
   variantOptions,
 } from "@kmo/shared/lib";
 import { Breadcrumbs, Button, ProductCard } from "@kmo/shared/ui";
@@ -441,7 +442,7 @@ export default function ProductDetailClient() {
                       {isColor ? (
                         <span
                           className="h-4 w-4 shrink-0 rounded-full border border-black/10"
-                          style={{ background: value.toLowerCase() }}
+                          style={{ background: swatchColour(value) }}
                         />
                       ) : null}
                       {value}
