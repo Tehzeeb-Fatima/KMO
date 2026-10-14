@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { createClient } from "@supabase/supabase-js";
 import ProductDetailClient from "./product-detail-client";
@@ -40,5 +41,10 @@ export async function generateMetadata({
 }
 
 export default function ProductDetailPage() {
-  return <ProductDetailClient />;
+  // Suspense: the client reads ?colour= with useSearchParams.
+  return (
+    <Suspense>
+      <ProductDetailClient />
+    </Suspense>
+  );
 }

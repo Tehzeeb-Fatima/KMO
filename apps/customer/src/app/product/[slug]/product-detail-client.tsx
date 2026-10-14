@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -60,6 +60,16 @@ export default function ProductDetailClient() {
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
   const [qty, setQty] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
+
+  // ?colour=White (from a colour search) opens the product on that colour.
+  const searchParams = useSearchParams();
+  const colourParam = searchParams.get("colour");
+  useEffect(() => {
+    if (!colourParam) return;
+    const group = variantGroups.find(([name]) => isColourOption(name));
+    const value = group?.[1].find((v) => v.toLowerCase() === colourParam.toLowerCase());
+    if (group && value) setSelectedOptions((prev) => (prev[group[0]] ? prev : { ...prev, [group[0]]: value }));
+  }, [colourParam, variantGroups]);
 
   /** The variant row for the colour the shopper picked, if any — media can be
    *  tied to it so the product imagery changes with the colour. */

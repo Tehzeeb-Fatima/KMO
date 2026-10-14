@@ -69,3 +69,30 @@ export function swatchColour(name: string): string {
   const key = name.trim().toLowerCase();
   return SWATCH[key] ?? key;
 }
+
+/** The product colour a search names ("white slipper" → "White"), longest
+ *  match first so "Black Green" beats "Black". Null when none is named. */
+export function colourInSearch(variants: VariantLike[], search: string): string | null {
+  const words = ` ${search.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ")} `;
+  const colours = optionGroups(variants)
+    .filter(([name]) => isColourOption(name))
+    .flatMap(([, values]) => values)
+    .sort((a, b) => b.length - a.length);
+  return colours.find((c) => c && words.includes(` ${c.toLowerCase()} `)) ?? null;
+}
+
+/** First photo of one colour (photos are tied to that colour's variant rows). */
+export function colourImageUrl(
+  variants: (VariantLike & { id: string })[],
+  images: { url: string; sort_order: number; variant_id?: string | null }[] | null | undefined,
+  colour: string,
+): string | undefined {
+  const ids = new Set(
+    variants
+      .filter((v) => Object.entries(variantOptions(v)).some(([n, val]) => isColourOption(n) && val === colour))
+      .map((v) => v.id),
+  );
+  const own = (images ?? []).filter((i) => i.variant_id && ids.has(i.variant_id));
+  if (!own.length) return undefined;
+  return own.reduce((best, img) => (img.sort_order < best.sort_order ? img : best)).url;
+}

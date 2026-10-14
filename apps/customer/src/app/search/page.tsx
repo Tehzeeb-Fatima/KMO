@@ -12,7 +12,7 @@ import {
   promotionProductFilter,
   toPricingPromotions,
 } from "@kmo/shared/api";
-import { cardPricing, mainCategories, mainImageUrl } from "@kmo/shared/lib";
+import { cardPricing, colourImageUrl, colourInSearch, mainCategories, mainImageUrl } from "@kmo/shared/lib";
 import { ProductCard } from "@kmo/shared/ui";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/i18n/language-context";
@@ -354,12 +354,15 @@ function SearchPageContent() {
                     { id: p.id, vendorId: p.vendor_id, categoryId: p.category_id, price: p.price, compareAtPrice: p.compare_at_price },
                     pricingPromotions,
                   );
+                  // "white slipper": show the white one and open the product on it.
+                  const colour = q ? colourInSearch(p.product_variants, q) : null;
+                  const colourPhoto = colour ? colourImageUrl(p.product_variants, p.product_images, colour) : undefined;
                   return (
                     <ProductCard
                       key={p.id}
-                      href={`/product/${p.slug}`}
+                      href={colour ? `/product/${p.slug}?colour=${encodeURIComponent(colour)}` : `/product/${p.slug}`}
                       LinkComponent={Link}
-                      imageUrl={mainImageUrl(p.product_images)}
+                      imageUrl={colourPhoto ?? mainImageUrl(p.product_images)}
                       vendorName={p.vendors?.store_name}
                       name={p.name}
                       price={cp.price}
