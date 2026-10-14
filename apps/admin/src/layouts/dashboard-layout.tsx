@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { DashboardShell, NotificationBell, type NotificationItem } from "@kmo/shared/ui";
@@ -70,6 +71,11 @@ function HeaderNotifications() {
 export function DashboardLayout() {
   const { profile, signOut } = useAuth();
   const location = useLocation();
+
+  // A new page starts at the top, not wherever the last one was scrolled to.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
   // Bookkeeping is listed only for the super admin account.
   const { data: superAdmin } = useQuery({
     queryKey: ["is-super-admin"],
