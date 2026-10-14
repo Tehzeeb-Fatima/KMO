@@ -3,14 +3,22 @@
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronLeft } from "lucide-react";
-import { listCustomerConversations, listMessages, sendMessage } from "@kmo/shared/api";
+import { ChevronLeft, Headset } from "lucide-react";
+import {
+  getCustomerAdminConversation,
+  getOrCreateAdminCustomerConversation,
+  listCustomerConversations,
+  listMessages,
+  sendMessage,
+} from "@kmo/shared/api";
 import { useAuth } from "@kmo/shared/auth";
 import { RequireAuth } from "@/components/require-auth";
 import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n/language-context";
 import { PageLoader, ListSkeleton } from "@/components/page-loader";
+
+type Active = { id: string; kind: "vendor" | "admin" };
 
 export default function MessagesPage() {
   return (
@@ -25,9 +33,10 @@ export default function MessagesPage() {
 function MessagesContent() {
   const { user } = useAuth();
   const { t } = useLanguage();
+  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const preselected = searchParams.get("c");
-  const [activeId, setActiveId] = useState<string | null>(preselected);
+  const [active, setActive] = useState<Active | null>(preselected ? { id: preselected, kind: "vendor" } : null);
   const [mobileThreadOpen, setMobileThreadOpen] = useState(!!preselected);
 
   const { data: conversations, isLoading } = useQuery({
@@ -35,13 +44,39 @@ function MessagesContent() {
     queryFn: () => listCustomerConversations(supabase, user!.id),
     enabled: !!user,
   });
+  const { data: adminConv } = useQuery({
+    queryKey: ["customer-admin-conversation", user?.id],
+    queryFn: () => getCustomerAdminConversation(supabase, user!.id),
+    enabled: !!user,
+  });
 
-  const active = conversations?.find((c) => c.id === activeId) ?? conversations?.[0];
+  const startAdminChat = useMutation({
+    mutationFn: () => getOrCreateAdminCustomerConversation(supabase, user!.id),
+    onSuccess: (conv) => {
+      queryClient.invalidateQueries({ queryKey: ["customer-admin-conversation", user?.id] });
+      setActive({ id: conv.id, kind: "admin" });
+      setMobileThreadOpen(true);
+    },
+  });
+
+  function openAdminChat() {
+    if (adminConv) {
+      setActive({ id: adminConv.id, kind: "admin" });
+      setMobileThreadOpen(true);
+    } else {
+      startAdminChat.mutate();
+    }
+  }
 
   function openConversation(id: string) {
-    setActiveId(id);
+    setActive({ id, kind: "vendor" });
     setMobileThreadOpen(true);
   }
+
+  const effectiveActive: Active | null =
+    active ?? (conversations && conversations.length > 0 ? { id: conversations[0].id, kind: "vendor" } : null);
+  const activeVendorConv =
+    effectiveActive?.kind === "vendor" ? conversations?.find((c) => c.id === effectiveActive.id) : undefined;
 
   return (
     <div className="mx-auto w-full max-w-[900px] px-4 py-8 sm:px-6">
@@ -51,10 +86,6 @@ function MessagesContent() {
 
       {isLoading ? (
         <ListSkeleton rows={4} rowClassName="h-16" />
-      ) : !conversations || conversations.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border p-10 text-center text-sm text-muted">
-          {t.account.noConversationsYet}
-        </div>
       ) : (
         <div className="grid h-[560px] grid-cols-1 overflow-hidden rounded-xl border border-border bg-surface sm:grid-cols-[240px_minmax(0,1fr)]">
           <div
@@ -63,32 +94,57 @@ function MessagesContent() {
               mobileThreadOpen ? "hidden" : "block",
             )}
           >
-            {conversations.map((c) => {
-              const last = c.messages.at(-1);
-              const isActive = active?.id === c.id;
-              return (
-                <button
-                  key={c.id}
-                  type="button"
-                  onClick={() => openConversation(c.id)}
-                  className="flex w-full flex-col gap-1 border-b border-[#F5F0EE] p-3.5 text-left"
-                  style={{ background: isActive ? "var(--color-primary-tint)" : "transparent" }}
-                >
-                  <span className="text-[13px] font-bold text-ink-dark">{c.vendors?.store_name}</span>
-                  <p className="line-clamp-1 text-xs text-muted">{last?.body ?? t.account.noMessagesShort}</p>
-                </button>
-              );
-            })}
+            <button
+              type="button"
+              onClick={openAdminChat}
+              className="flex w-full items-center gap-2.5 border-b border-[#F5F0EE] p-3.5 text-left"
+              style={{ background: effectiveActive?.kind === "admin" ? "var(--color-primary-tint)" : "transparent" }}
+            >
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent text-white">
+                <Headset className="h-4 w-4" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <span className="block text-[13px] font-bold text-ink-dark">KMO Support</span>
+                <p className="line-clamp-1 text-xs text-muted">
+                  {adminConv?.messages.at(-1)?.body ?? "Message the KMO team"}
+                </p>
+              </div>
+            </button>
+
+            {!conversations || conversations.length === 0 ? (
+              <p className="p-3.5 text-xs text-muted">{t.account.noConversationsYet}</p>
+            ) : (
+              conversations.map((c) => {
+                const last = c.messages.at(-1);
+                const isActive = effectiveActive?.kind === "vendor" && effectiveActive.id === c.id;
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => openConversation(c.id)}
+                    className="flex w-full flex-col gap-1 border-b border-[#F5F0EE] p-3.5 text-left"
+                    style={{ background: isActive ? "var(--color-primary-tint)" : "transparent" }}
+                  >
+                    <span className="text-[13px] font-bold text-ink-dark">{c.vendors?.store_name}</span>
+                    <p className="line-clamp-1 text-xs text-muted">{last?.body ?? t.account.noMessagesShort}</p>
+                  </button>
+                );
+              })
+            )}
           </div>
-          {active ? (
+          {effectiveActive ? (
             <div className={cn("flex-col sm:flex", mobileThreadOpen ? "flex" : "hidden")}>
               <Thread
-                conversationId={active.id}
-                storeName={active.vendors?.store_name}
+                conversationId={effectiveActive.id}
+                title={effectiveActive.kind === "admin" ? "KMO Support" : activeVendorConv?.vendors?.store_name}
                 onBack={() => setMobileThreadOpen(false)}
               />
             </div>
-          ) : null}
+          ) : (
+            <div className="hidden items-center justify-center p-8 text-center text-sm text-muted sm:flex">
+              Select a conversation, or message KMO Support.
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -97,11 +153,11 @@ function MessagesContent() {
 
 function Thread({
   conversationId,
-  storeName,
+  title,
   onBack,
 }: {
   conversationId: string;
-  storeName?: string;
+  title?: string | null;
   onBack: () => void;
 }) {
   const { user } = useAuth();
@@ -119,6 +175,7 @@ function Thread({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["messages", conversationId] });
       queryClient.invalidateQueries({ queryKey: ["customer-conversations"] });
+      queryClient.invalidateQueries({ queryKey: ["customer-admin-conversation"] });
       setDraft("");
     },
   });
@@ -133,7 +190,7 @@ function Thread({
         >
           <ChevronLeft className="h-[18px] w-[18px] text-ink-dark" />
         </button>
-        <span className="truncate text-[13px] font-bold text-ink-dark">{storeName}</span>
+        <span className="truncate text-[13px] font-bold text-ink-dark">{title}</span>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4">

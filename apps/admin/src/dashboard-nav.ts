@@ -19,6 +19,7 @@ export const ADMIN_NAV_ITEMS: DashboardNavItem[] = [
   { key: "returns", label: "Returns", to: "/returns" },
   { key: "reviews", label: "Reviews", to: "/reviews" },
   { key: "contact", label: "Contact requests", to: "/contact-messages" },
+  { key: "messages", label: "Messages", to: "/messages" },
   { key: "audit-log", label: "Audit log", to: "/audit-log" },
   { key: "settings", label: "Settings", to: "/settings" },
 ];

@@ -31,6 +31,7 @@ const STAFF_MODULES: { key: string; label: string }[] = [
   { key: "returns", label: "Returns" },
   { key: "reviews", label: "Reviews" },
   { key: "contact", label: "Contact requests" },
+  { key: "messages", label: "Messages" },
   { key: "audit-log", label: "Audit log" },
   { key: "settings", label: "Settings" },
 ];

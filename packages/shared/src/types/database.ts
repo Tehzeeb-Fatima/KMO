@@ -1270,20 +1270,23 @@ export interface Database {
       conversations: {
         Row: {
           id: string;
-          customer_id: string;
-          vendor_id: string;
+          customer_id: string | null;
+          vendor_id: string | null;
+          channel: "customer_vendor" | "admin_customer" | "admin_vendor";
           created_at: string;
         };
         Insert: {
           id?: string;
-          customer_id: string;
-          vendor_id: string;
+          customer_id?: string | null;
+          vendor_id?: string | null;
+          channel?: "customer_vendor" | "admin_customer" | "admin_vendor";
           created_at?: string;
         };
         Update: {
           id?: string;
-          customer_id?: string;
-          vendor_id?: string;
+          customer_id?: string | null;
+          vendor_id?: string | null;
+          channel?: "customer_vendor" | "admin_customer" | "admin_vendor";
           created_at?: string;
         };
         Relationships: [];

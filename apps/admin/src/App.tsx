@@ -19,6 +19,7 @@ import { ProductsModerationPage } from "./pages/products-page";
 import { NotFoundPage } from "./pages/not-found-page";
 import { AuditLogPage } from "./pages/audit-log-page";
 import { ContactMessagesPage } from "./pages/contact-messages-page";
+import { MessagesPage } from "./pages/messages-page";
 import { UsersPage } from "./pages/users-page";
 import { DeliveryCapsPage } from "./pages/delivery-caps-page";
 import { BookkeepingPage } from "./pages/bookkeeping-page";
@@ -53,6 +54,7 @@ export default function App() {
         <Route path="returns" element={<ModuleRoute module="returns"><ReturnsPage /></ModuleRoute>} />
         <Route path="reviews" element={<ModuleRoute module="reviews"><ReviewsPage /></ModuleRoute>} />
         <Route path="contact-messages" element={<ModuleRoute module="contact"><ContactMessagesPage /></ModuleRoute>} />
+        <Route path="messages" element={<ModuleRoute module="messages"><MessagesPage /></ModuleRoute>} />
         <Route path="audit-log" element={<ModuleRoute module="audit-log"><AuditLogPage /></ModuleRoute>} />
         <Route path="settings" element={<ModuleRoute module="settings"><SettingsPage /></ModuleRoute>} />
         <Route path="bookkeeping" element={<BookkeepingPage />} />
