@@ -19,7 +19,6 @@ import { Breadcrumbs, PillTabs, ProductCard } from "@kmo/shared/ui";
 import { WEEK_DAYS, type BusinessHours, type VendorPolicies } from "@kmo/shared/types";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "@/lib/supabase";
-import { ensureCustomerId } from "@/lib/ensure-customer-id";
 import { useLanguage } from "@/lib/i18n/language-context";
 import { StorePageSkeleton } from "@/components/page-loader";
 import { DEFAULT_VENDOR_BANNER } from "@/lib/vendor-banner";
@@ -84,18 +83,37 @@ export default function StoreClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vendor?.id, user?.id, user?.is_anonymous]);
 
+  const PENDING_CHAT_KEY = "kmo_pending_chat_vendor";
+
   const chatMutation = useMutation({
     mutationFn: async () => {
-      if (!vendor) throw new Error("Not ready");
-      const customerId = await ensureCustomerId(user);
-      return getOrCreateConversation(supabase, customerId, vendor.id);
+      if (!vendor || !user) throw new Error("Not ready");
+      return getOrCreateConversation(supabase, user.id, vendor.id);
     },
     onSuccess: (conversation) => router.push(`/account/messages?c=${conversation.id}`),
   });
 
   function handleChat() {
+    if (!vendor) return;
+    if (!user || user.is_anonymous) {
+      sessionStorage.setItem(PENDING_CHAT_KEY, vendor.id);
+      router.push(`/login?next=${encodeURIComponent(`/store/${params.slug}`)}`);
+      return;
+    }
     chatMutation.mutate();
   }
+
+  // Coming back from a login the "Chat" button triggered — open the chat
+  // automatically instead of making the customer click it again.
+  useEffect(() => {
+    if (!vendor || !user || user.is_anonymous) return;
+    const pendingVendorId = sessionStorage.getItem(PENDING_CHAT_KEY);
+    if (pendingVendorId === vendor.id) {
+      sessionStorage.removeItem(PENDING_CHAT_KEY);
+      chatMutation.mutate();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vendor?.id, user?.id, user?.is_anonymous]);
 
   if (isLoading) {
     return <StorePageSkeleton />;
