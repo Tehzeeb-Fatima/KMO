@@ -12,7 +12,7 @@ import {
   promotionProductFilter,
   toPricingPromotions,
 } from "@kmo/shared/api";
-import { cardPricing, mainCategories } from "@kmo/shared/lib";
+import { cardPricing, mainCategories, mainImageUrl } from "@kmo/shared/lib";
 import { ProductCard } from "@kmo/shared/ui";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/i18n/language-context";
@@ -359,7 +359,7 @@ function SearchPageContent() {
                       key={p.id}
                       href={`/product/${p.slug}`}
                       LinkComponent={Link}
-                      imageUrl={p.product_images[0]?.url}
+                      imageUrl={mainImageUrl(p.product_images)}
                       vendorName={p.vendors?.store_name}
                       name={p.name}
                       price={cp.price}

@@ -17,7 +17,7 @@ import {
   uploadProductImage,
 } from "@kmo/shared/api";
 import type { ProductStatus } from "@kmo/shared/types";
-import { categoryPath } from "@kmo/shared/lib";
+import { categoryPath, mainImageUrl } from "@kmo/shared/lib";
 import { BulkUploadProducts, ConfirmDialog } from "@kmo/shared/ui";
 import { supabase } from "../lib/supabase";
 
@@ -262,7 +262,7 @@ function ProductsList({
         ) : (
           filtered.map((p) => {
             const badge = STATUS_BADGE[p.status];
-            const thumb = p.product_images?.[0]?.url;
+            const thumb = mainImageUrl(p.product_images);
             return (
               <div key={p.id} className="flex gap-3 rounded-xl border border-border bg-surface p-3">
                 <span
@@ -332,7 +332,7 @@ function ProductsList({
         ) : (
           filtered.map((p) => {
             const badge = STATUS_BADGE[p.status];
-            const thumb = p.product_images?.[0]?.url;
+            const thumb = mainImageUrl(p.product_images);
             return (
               <div
                 key={p.id}

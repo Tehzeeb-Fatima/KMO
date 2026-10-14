@@ -19,7 +19,7 @@ import {
   listActivePromotions,
   toPricingPromotions,
 } from "@kmo/shared/api";
-import { bestPromotionForProduct, cardPricing } from "@kmo/shared/lib";
+import { bestPromotionForProduct, cardPricing, mainImageUrl } from "@kmo/shared/lib";
 import { Breadcrumbs, Button, ProductCard } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "@/lib/supabase";
@@ -728,7 +728,7 @@ export default function ProductDetailClient() {
                     key={p.id}
                     href={`/product/${p.slug}`}
                     LinkComponent={Link}
-                    imageUrl={p.product_images[0]?.url}
+                    imageUrl={mainImageUrl(p.product_images)}
                     name={p.name}
                     price={cp.price}
                     compareAtPrice={cp.compareAtPrice}
@@ -759,7 +759,7 @@ export default function ProductDetailClient() {
                     key={p.id}
                     href={`/product/${p.slug}`}
                     LinkComponent={Link}
-                    imageUrl={p.product_images[0]?.url}
+                    imageUrl={mainImageUrl(p.product_images)}
                     vendorName={p.vendors?.store_name}
                     name={p.name}
                     price={cp.price}

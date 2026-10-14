@@ -14,7 +14,7 @@ import {
   toPricingPromotions,
   unfollowVendor,
 } from "@kmo/shared/api";
-import { cardPricing } from "@kmo/shared/lib";
+import { cardPricing, mainImageUrl } from "@kmo/shared/lib";
 import { Breadcrumbs, PillTabs, ProductCard } from "@kmo/shared/ui";
 import { WEEK_DAYS, type BusinessHours, type VendorPolicies } from "@kmo/shared/types";
 import { useAuth } from "@kmo/shared/auth";
@@ -325,7 +325,7 @@ function ProductsTab({ vendorId }: { vendorId: string }) {
                 key={p.id}
                 href={`/product/${p.slug}`}
                 LinkComponent={Link}
-                imageUrl={p.product_images[0]?.url}
+                imageUrl={mainImageUrl(p.product_images)}
                 vendorName={p.vendors?.store_name}
                 name={p.name}
                 price={cp.price}

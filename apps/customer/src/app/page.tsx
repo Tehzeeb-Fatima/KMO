@@ -20,7 +20,7 @@ import {
   toPricingPromotions,
   type TopCategory,
 } from "@kmo/shared/api";
-import { CATEGORY_ICONS, cardPricing, mainCategories, type CategoryIconKey } from "@kmo/shared/lib";
+import { CATEGORY_ICONS, cardPricing, mainCategories, type CategoryIconKey, mainImageUrl } from "@kmo/shared/lib";
 import { Countdown, ProductCard } from "@kmo/shared/ui";
 import { supabase } from "@/lib/supabase";
 import { HorizontalSlider } from "@/components/horizontal-slider";
@@ -642,7 +642,7 @@ function PromoProductCard({
     <ProductCard
       href={`/product/${p.slug}`}
       LinkComponent={Link}
-      imageUrl={p.product_images[0]?.url}
+      imageUrl={mainImageUrl(p.product_images)}
       vendorName={p.vendors?.store_name}
       name={p.name}
       price={cp.price}
@@ -768,7 +768,7 @@ function FeaturedProducts({
                 key={p.id}
                 href={`/product/${p.slug}`}
                 LinkComponent={Link}
-                imageUrl={p.product_images[0]?.url}
+                imageUrl={mainImageUrl(p.product_images)}
                 vendorName={p.vendors?.store_name}
                 name={p.name}
                 price={cp.price}

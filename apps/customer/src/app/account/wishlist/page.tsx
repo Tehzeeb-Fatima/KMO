@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { listActivePromotions, listWishlist, removeFromWishlist, toPricingPromotions } from "@kmo/shared/api";
-import { cardPricing } from "@kmo/shared/lib";
+import { cardPricing, mainImageUrl } from "@kmo/shared/lib";
 import { ConfirmDialog, ProductCard } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { RequireAuth } from "@/components/require-auth";
@@ -74,7 +74,7 @@ function WishlistContent() {
               <ProductCard
                 href={`/product/${item.products.slug}`}
                 LinkComponent={Link}
-                imageUrl={item.products.product_images[0]?.url}
+                imageUrl={mainImageUrl(item.products.product_images)}
                 vendorName={item.products.vendors?.store_name}
                 name={item.products.name}
                 price={cp.price}

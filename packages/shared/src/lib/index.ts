@@ -5,3 +5,4 @@ export * from "./category-icons";
 export * from "./category-tree";
 export * from "./pakistan-cities";
 export * from "./csv";
+export * from "./product-image";
