@@ -327,7 +327,7 @@ export default function ProductDetailClient() {
             ) : null}
           </div>
           {images.length > 1 ? (
-            <div className="mt-2.5 flex gap-2 overflow-x-auto sm:gap-[10px]">
+            <div className="mt-2.5 flex flex-wrap gap-2 sm:gap-[10px]">
               {images.map((img, i) => (
                 <button
                   key={img.id}
@@ -518,26 +518,6 @@ export default function ProductDetailClient() {
               {wishlisted ? "♥" : "♡"}
             </button>
           </div>
-
-          {shownDescription ? (
-            <div className="border-t border-[#F1EAE6] pt-4">
-              <h2 className="mb-2 text-[15px] font-bold text-ink">{t.product.description}</h2>
-              <p className="whitespace-pre-line break-words text-sm leading-[1.75] text-ink-dark">{shownDescription}</p>
-            </div>
-          ) : null}
-
-          {product.tags && product.tags.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {product.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="rounded-full bg-surface-alt px-3 py-1 text-xs font-medium text-muted"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          ) : null}
         </div>
 
         {/* sidebar */}
@@ -604,6 +584,29 @@ export default function ProductDetailClient() {
           ) : null}
         </div>
       </div>
+
+      {/* description: full width under the buy area so the columns above stay short */}
+      {shownDescription || (product.tags && product.tags.length > 0) ? (
+        <div className="mt-8 rounded-[10px] border border-border bg-surface p-6">
+          {shownDescription ? (
+            <>
+              <h2 className="mb-2 text-lg font-bold text-ink">{t.product.description}</h2>
+              <p className="max-w-[900px] whitespace-pre-line break-words text-sm leading-[1.75] text-ink-dark">
+                {shownDescription}
+              </p>
+            </>
+          ) : null}
+          {product.tags && product.tags.length > 0 ? (
+            <div className={`flex flex-wrap gap-2 ${shownDescription ? "mt-4" : ""}`}>
+              {product.tags.map((tag) => (
+                <span key={tag} className="rounded-full bg-surface-alt px-3 py-1 text-xs font-medium text-muted">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       {/* reviews */}
       <div className="mt-8 rounded-[10px] border border-border bg-surface p-6">
