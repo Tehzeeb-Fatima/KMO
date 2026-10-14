@@ -193,6 +193,15 @@ export const listCapital = (t: string) => rpc<BkCapital[]>("bk_capital_list", { 
 export const saveCapital = (t: string, c: Record<string, unknown>) => rpc<string>("bk_save_capital", { p_session: t, p: c });
 export const deleteCapital = (t: string, id: string) => rpc<void>("bk_delete_capital", { p_session: t, p_id: id });
 
+export interface BkMarginMonth {
+  month: string;
+  delivered_orders: number;
+  sales: number;
+  vendor_cost: number;
+  margin: number;
+}
+/** KMO margin on delivered orders of products with a vendor price, by month. */
+export const listMargin = (t: string) => rpc<BkMarginMonth[]>("bk_margin_summary", { p_session: t });
 export const listActivity = (t: string) => rpc<BkActivity[]>("bk_activity_list", { p_session: t });
 
 // ---------------------------------------------------------------- receipts

@@ -371,6 +371,15 @@ Deno.serve(async (req: Request) => {
   }
 
   let pointsAttached = 0;
+  // Vendor prices for products KMO lists on a vendor's behalf (super-admin
+  // only data). The vendor is paid on the vendor price; the difference is KMO's.
+  const cartProductIds = [...new Set(cartItems.map((i) => i.product_id as string))];
+  const { data: costRows } = await admin
+    .from("product_costs")
+    .select("product_id, vendor_price")
+    .in("product_id", cartProductIds);
+  const vendorPriceOf = new Map((costRows ?? []).map((r) => [r.product_id as string, Number(r.vendor_price)]));
+
   for (const g of groups) {
     const {
       vendorId,
@@ -403,8 +412,16 @@ Deno.serve(async (req: Request) => {
     // Commission is always on the pre-discount price — on every promotion
     // model. A vendor's commission never moves because of a promotion, only
     // their net payout does (via promotionVendorFundedAmount below).
-    const commissionAmount = Math.round(subtotal * (commissionRate / 100) * 100) / 100;
-    const netAmount = subtotal - commissionAmount - promotionVendorFundedAmount;
+    // What the vendor is owed for these items: their vendor price where KMO set
+    // one, otherwise the selling price. Commission is on that amount.
+    const vendorBase = items.reduce((sum, item) => {
+      const product = item.products as unknown as { id: string; price: number };
+      const variant = item.product_variants as unknown as { price_override: number | null } | null;
+      const unit = vendorPriceOf.get(product.id) ?? variant?.price_override ?? product.price;
+      return sum + unit * item.quantity;
+    }, 0);
+    const commissionAmount = Math.round(vendorBase * (commissionRate / 100) * 100) / 100;
+    const netAmount = vendorBase - commissionAmount - promotionVendorFundedAmount;
 
     const { data: order, error: orderError } = await admin
       .from("orders")
@@ -474,7 +491,24 @@ Deno.serve(async (req: Request) => {
         quantity: item.quantity,
       };
     });
-    await admin.from("order_items").insert(orderItemsPayload);
+    const { data: insertedItems } = await admin
+      .from("order_items")
+      .insert(orderItemsPayload)
+      .select("id, product_id, unit_price, quantity");
+    const costLines = (insertedItems ?? [])
+      .filter((it) => vendorPriceOf.has(it.product_id as string))
+      .map((it) => {
+        const vendorUnit = vendorPriceOf.get(it.product_id as string)!;
+        return {
+          order_item_id: it.id,
+          order_id: order.id,
+          vendor_unit_price: vendorUnit,
+          unit_price: it.unit_price,
+          quantity: it.quantity,
+          margin_amount: Math.round((Number(it.unit_price) - vendorUnit) * Number(it.quantity) * 100) / 100,
+        };
+      });
+    if (costLines.length) await admin.from("order_item_costs").insert(costLines);
 
     // Decrement stock (untracked stock, null, stays null).
     for (const item of items) {

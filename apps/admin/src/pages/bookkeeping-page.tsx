@@ -17,6 +17,7 @@ import {
   listCapital,
   listCategories,
   listExpenses,
+  listMargin,
   listRecurring,
   lock,
   monthKey,
@@ -331,6 +332,8 @@ function partnerTotals(capital: BkCapital[], expenses: BkExpense[]) {
 }
 
 function SummaryTab({ ctx, expenses, capital }: { ctx: Ctx; expenses: BkExpense[]; capital: BkCapital[] }) {
+  const { data: margin } = useQuery({ queryKey: ["bk", "margin"], queryFn: ctx.guard(() => listMargin(ctx.token)) });
+  const marginTotal = (margin ?? []).reduce((s, m) => s + Number(m.margin), 0);
   const thisMonth = monthKey(todayIso());
   const total = expenses.reduce((s, e) => s + Number(e.amount_pkr), 0);
   const totalUsd = expenses.reduce((s, e) => s + Number(e.amount_usd ?? 0), 0);
@@ -361,6 +364,47 @@ function SummaryTab({ ctx, expenses, capital }: { ctx: Ctx; expenses: BkExpense[
       <p className="-mt-2 text-[12px] text-muted">
         "Put in" = money invested + expenses paid from own pocket − withdrawals. Expenses paid by KMO: {pkr(kmoPaid)}.
       </p>
+
+      <Card title="Income: KMO margin on products listed for vendors">
+        <p className="-mt-1 mb-3 text-[12px] text-muted">
+          Selling price minus vendor price, on delivered orders only. Set the vendor price on a product in Products (only
+          you see it).
+        </p>
+        {!margin?.length ? (
+          <Empty>No delivered orders with a vendor price yet.</Empty>
+        ) : (
+          <div className="-mx-2 overflow-x-auto">
+            <table className="w-full min-w-[520px] text-left text-[12.5px]">
+              <thead className="font-mono text-[10px] uppercase tracking-[0.08em] text-muted-table">
+                <tr>
+                  <th className="px-2 py-2">Month</th>
+                  <th className="px-2 py-2 text-right">Orders</th>
+                  <th className="px-2 py-2 text-right">Sales</th>
+                  <th className="px-2 py-2 text-right">Paid to vendors</th>
+                  <th className="px-2 py-2 text-right">KMO margin</th>
+                </tr>
+              </thead>
+              <tbody>
+                {margin.map((m) => (
+                  <tr key={m.month} className="border-t border-[#F1EAE6]">
+                    <td className="px-2 py-2 text-ink-dark">{monthLabel(m.month.slice(0, 7))}</td>
+                    <td className="px-2 py-2 text-right">{m.delivered_orders}</td>
+                    <td className="px-2 py-2 text-right">{pkr(Number(m.sales))}</td>
+                    <td className="px-2 py-2 text-right">{pkr(Number(m.vendor_cost))}</td>
+                    <td className="px-2 py-2 text-right font-bold text-success">{pkr(Number(m.margin))}</td>
+                  </tr>
+                ))}
+                <tr className="border-t border-border">
+                  <td className="px-2 py-2 font-bold" colSpan={4}>
+                    Total margin
+                  </td>
+                  <td className="px-2 py-2 text-right font-extrabold text-success">{pkr(marginTotal)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
 
       <div className="grid gap-5 lg:grid-cols-2">
         <Card title="Spending by category">

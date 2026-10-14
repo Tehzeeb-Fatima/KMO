@@ -18,7 +18,7 @@ import {
 } from "@kmo/shared/api";
 import type { ProductStatus } from "@kmo/shared/types";
 import { categoryPath, mainImageUrl, OPTION_SEPARATOR, variantLabel } from "@kmo/shared/lib";
-import { BulkUploadProducts, ConfirmDialog } from "@kmo/shared/ui";
+import { BulkUploadProducts, ConfirmDialog, ProductVideoField } from "@kmo/shared/ui";
 import { supabase } from "../lib/supabase";
 
 const STATUS_TABS: { label: string; value: ProductStatus | "all" }[] = [
@@ -462,6 +462,10 @@ function ProductForm({
     queryFn: () => listMyProducts(supabase, vendorId),
   });
   const product = productId ? existing?.find((p) => p.id === productId) : null;
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  useEffect(() => {
+    setVideoUrl(product?.video_url ?? null);
+  }, [product?.video_url]);
 
   const { data: allCategories } = useQuery({
     queryKey: ["categories"],
@@ -813,6 +817,11 @@ function ProductForm({
                 className={`${inputClass} resize-y font-sans`}
               />
             </FormField>
+          </Section>
+
+          {/* video */}
+          <Section title="Video (optional)" hint="A short clip of the product. Shoppers tap to play it, so it doesn't slow the page.">
+            <ProductVideoField supabase={supabase} productId={productId} videoUrl={videoUrl} onChange={setVideoUrl} />
           </Section>
 
           {/* 2. photos */}

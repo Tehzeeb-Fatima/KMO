@@ -446,6 +446,7 @@ export interface Database {
           slug: string;
           description: string | null;
           description_ur: string | null;
+          video_url: string | null;
           price: number;
           compare_at_price: number | null;
           sku: string | null;
@@ -468,6 +469,7 @@ export interface Database {
           slug: string;
           description?: string | null;
           description_ur?: string | null;
+          video_url?: string | null;
           price: number;
           compare_at_price?: number | null;
           sku?: string | null;
@@ -490,6 +492,7 @@ export interface Database {
           slug?: string;
           description?: string | null;
           description_ur?: string | null;
+          video_url?: string | null;
           price?: number;
           compare_at_price?: number | null;
           sku?: string | null;
@@ -1019,6 +1022,12 @@ export interface Database {
           points?: number;
           note?: string | null;
         };
+        Relationships: [];
+      };
+      product_costs: {
+        Row: { product_id: string; vendor_price: number; updated_at: string };
+        Insert: { product_id: string; vendor_price: number; updated_at?: string };
+        Update: { vendor_price?: number; updated_at?: string };
         Relationships: [];
       };
       payouts: {

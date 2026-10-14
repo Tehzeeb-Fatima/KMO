@@ -614,3 +614,46 @@ export async function bulkCreateProductsFromCsv(
 
   return { created, errors: allErrors };
 }
+
+// ---------------------------------------------------------------- vendor price (super admin only)
+
+/** What KMO pays the vendor for a product it lists on their behalf. RLS lets
+ *  only the super admin read or write it; for anyone else this returns null. */
+export async function getVendorPrice(supabase: Client, productId: string): Promise<number | null> {
+  const { data } = await supabase.from("product_costs").select("vendor_price").eq("product_id", productId).maybeSingle();
+  return data ? Number(data.vendor_price) : null;
+}
+
+/** Set (or with null, clear) a product's vendor price. */
+export async function setVendorPrice(supabase: Client, productId: string, vendorPrice: number | null): Promise<void> {
+  const table = supabase.from("product_costs");
+  const { error } =
+    vendorPrice === null
+      ? await table.delete().eq("product_id", productId)
+      : await table.upsert({ product_id: productId, vendor_price: vendorPrice, updated_at: new Date().toISOString() });
+  if (error) throw error;
+}
+
+// ---------------------------------------------------------------- product video
+
+export const MAX_VIDEO_MB = 50;
+
+/** Uploads an MP4/WebM and stores it on the product. */
+export async function uploadProductVideo(supabase: Client, productId: string, file: File): Promise<string> {
+  if (file.size > MAX_VIDEO_MB * 1024 * 1024) throw new Error(`Video must be under ${MAX_VIDEO_MB} MB.`);
+  const ext = (file.name.split(".").pop() ?? "mp4").toLowerCase();
+  const path = `${productId}/video-${crypto.randomUUID()}.${ext}`;
+  const { error } = await supabase.storage.from("product-media").upload(path, file, { contentType: file.type || "video/mp4" });
+  if (error) throw error;
+  const url = supabase.storage.from("product-media").getPublicUrl(path).data.publicUrl;
+  const { error: ue } = await supabase.from("products").update({ video_url: url }).eq("id", productId);
+  if (ue) throw ue;
+  return url;
+}
+
+export async function removeProductVideo(supabase: Client, productId: string, url: string): Promise<void> {
+  const path = url.split("/product-media/")[1]?.split("?")[0];
+  if (path) await supabase.storage.from("product-media").remove([path]);
+  const { error } = await supabase.from("products").update({ video_url: null }).eq("id", productId);
+  if (error) throw error;
+}

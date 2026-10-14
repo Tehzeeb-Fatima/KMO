@@ -4,6 +4,7 @@ import {
   addProductImage,
   createProduct,
   createProductVariant,
+  getVendorPrice,
   listCategories,
   listProductCategories,
   listVendorCategories,
@@ -11,12 +12,14 @@ import {
   removeProductImage,
   removeProductVariant,
   setProductCategories,
+  setVendorPrice as saveVendorPrice,
   updateProduct,
   uploadProductImage,
   type ProductWithMedia,
 } from "@kmo/shared/api";
 import type { ProductStatus } from "@kmo/shared/types";
-import { ConfirmDialog } from "@kmo/shared/ui";
+import { ConfirmDialog, ProductVideoField } from "@kmo/shared/ui";
+import { isSuperAdmin } from "../lib/bookkeeping";
 
 type PhotoSet = { variantId: string | null; label: string };
 import { supabase } from "../lib/supabase";
@@ -115,6 +118,20 @@ export function AdminProductForm({
   const [variantOptionValue, setVariantOptionValue] = useState("");
   const [variantStock, setVariantStock] = useState("");
   const [currentProductId, setCurrentProductId] = useState<string | null>(product?.id ?? null);
+  const [videoUrl, setVideoUrl] = useState<string | null>(product?.video_url ?? null);
+
+  // Vendor price: what KMO pays the vendor when KMO lists the product on
+  // their behalf. Only the super admin sees or sets it (enforced by RLS).
+  const { data: superAdmin } = useQuery({ queryKey: ["is-super-admin"], queryFn: isSuperAdmin });
+  const [vendorPrice, setVendorPrice] = useState("");
+  const { data: savedVendorPrice } = useQuery({
+    queryKey: ["vendor-price", product?.id],
+    queryFn: () => getVendorPrice(supabase, product!.id),
+    enabled: !!superAdmin && !!product,
+  });
+  useEffect(() => {
+    if (savedVendorPrice != null) setVendorPrice(String(savedVendorPrice));
+  }, [savedVendorPrice]);
   const [savedNotice, setSavedNotice] = useState<string | null>(null);
 
   // Switching vendors mid-form invalidates whatever categories were picked
@@ -191,6 +208,11 @@ export function AdminProductForm({
         setCurrentProductId(created.id);
       }
       await setProductCategories(supabase, savedId!, categoryIdList.slice(1));
+      if (superAdmin) {
+        const vp = vendorPrice.trim() === "" ? null : Number(vendorPrice);
+        if (vp !== null && !(vp >= 0)) throw new Error("Enter a valid vendor price.");
+        await saveVendorPrice(supabase, savedId!, vp);
+      }
       return { wasNew: !currentProductId };
     },
     onSuccess: ({ wasNew }) => {
@@ -338,6 +360,24 @@ export function AdminProductForm({
             </FormField>
           </div>
 
+          {superAdmin ? (
+            <div className="rounded-lg border border-dashed border-accent/50 bg-accent-tint px-4 py-3">
+              <FormField label="Vendor price — only you see this">
+                <input
+                  placeholder="What you pay the vendor, e.g. 12000"
+                  value={vendorPrice}
+                  onChange={(e) => setVendorPrice(e.target.value)}
+                  className="max-w-[260px] rounded-lg border border-border bg-white px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
+                />
+              </FormField>
+              <p className="mt-1.5 text-[11.5px] text-muted">
+                {Number(vendorPrice) > 0 && Number(price) > 0
+                  ? `KMO margin: Rs. ${(Number(price) - Number(vendorPrice)).toLocaleString()} per item. The vendor is paid the vendor price; the margin shows in Bookkeeping when the order is delivered.`
+                  : "Leave empty if the vendor listed it themselves. Hidden from vendors and customers."}
+              </p>
+            </div>
+          ) : null}
+
           <FormField label={`Categories${categoryIds.size > 0 ? ` (${categoryIds.size} selected)` : ""}`}>
             {!vendorId ? (
               <p className="text-[11.5px] text-muted">Choose a vendor first.</p>
@@ -409,6 +449,10 @@ export function AdminProductForm({
               onChange={(e) => setDescriptionUr(e.target.value)}
               className="resize-y rounded-lg border border-border px-[13px] py-[11px] font-sans text-[13px] outline-none focus:border-primary-light"
             />
+          </FormField>
+
+          <FormField label="Product video (optional)">
+            <ProductVideoField supabase={supabase} productId={currentProductId} videoUrl={videoUrl} onChange={setVideoUrl} />
           </FormField>
 
           <FormField label="Product images">

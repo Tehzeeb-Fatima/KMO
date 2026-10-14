@@ -333,6 +333,7 @@ export default function ProductDetailClient() {
               ))}
             </div>
           ) : null}
+          {product.video_url ? <ProductVideo url={product.video_url} /> : null}
         </div>
 
         {/* info */}
@@ -801,5 +802,22 @@ export default function ProductDetailClient() {
         </div>
       ) : null}
     </div>
+  );
+}
+
+/** Loads the video only when the shopper asks for it, to save their data. */
+function ProductVideo({ url }: { url: string }) {
+  const [open, setOpen] = useState(false);
+  return open ? (
+    <video src={url} controls autoPlay playsInline className="mt-2.5 w-full rounded-[10px] bg-black" />
+  ) : (
+    <button
+      type="button"
+      onClick={() => setOpen(true)}
+      className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-[10px] border border-border bg-surface py-3 text-[13.5px] font-bold text-primary"
+    >
+      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-[11px] text-white">▶</span>
+      Watch video
+    </button>
   );
 }
