@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
@@ -50,7 +50,6 @@ function SearchPageContent() {
   const maxPrice = searchParams.get("max") ?? "";
   const sort = (searchParams.get("sort") as Sort) ?? "newest";
 
-  const [searchInput, setSearchInput] = useState(q);
   const [filtersOpen, setFiltersOpen] = useState(false);
   // Sub-category lists the shopper opened or closed by hand; otherwise the
   // group of the category being browsed is open.
@@ -64,14 +63,6 @@ function SearchPageContent() {
     }
     router.push(`/search?${params.toString()}`);
   }
-
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      if (searchInput !== q) updateParams({ q: searchInput || null });
-    }, 400);
-    return () => clearTimeout(timeout);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchInput]);
 
   // Storefront list: empty categories are hidden until they get products.
   const { data: categories } = useQuery({
@@ -260,13 +251,8 @@ function SearchPageContent() {
 
   return (
     <div className="mx-auto w-full max-w-[1358px] px-4 py-6 sm:px-6 lg:px-10">
-      <div className="mb-5 flex items-center rounded-full border border-border bg-surface-alt py-1.5 pl-[18px] pr-1.5">
-        <input
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-          placeholder={t.search.searchPlaceholder}
-          className="flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-muted-table"
-        />
+      {/* The header search does the searching; this row only opens filters on mobile. */}
+      <div className="mb-5 flex justify-end lg:hidden">
         <button
           type="button"
           onClick={() => setFiltersOpen(true)}
