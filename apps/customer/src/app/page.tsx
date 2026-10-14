@@ -20,7 +20,7 @@ import {
   toPricingPromotions,
   type TopCategory,
 } from "@kmo/shared/api";
-import { CATEGORY_ICONS, cardPricing, mainCategories, type CategoryIconKey, mainImageUrl } from "@kmo/shared/lib";
+import { CATEGORY_ICONS, cardPricing, mainCategories, type CategoryIconKey, mainImageUrl, uniqueByName } from "@kmo/shared/lib";
 import { Countdown, ProductCard } from "@kmo/shared/ui";
 import { supabase } from "@/lib/supabase";
 import { HorizontalSlider } from "@/components/horizontal-slider";
@@ -38,7 +38,8 @@ export default function Home() {
   });
   const { data: products } = useQuery({
     queryKey: ["featured-products"],
-    queryFn: () => listPublishedProducts(supabase, { sort: "newest", limit: 8 }),
+    // fetch extra: the same item from two vendors shows once, then trim to 8
+    queryFn: async () => uniqueByName(await listPublishedProducts(supabase, { sort: "newest", limit: 32 })).slice(0, 8),
   });
   const { data: vendors } = useQuery({
     queryKey: ["featured-vendors"],
@@ -528,7 +529,7 @@ function PromotionBlock({
   const sliderRef = useRef<HTMLDivElement>(null);
   const { data: products } = useQuery({
     queryKey: ["promotion-block-products", promo.id],
-    queryFn: () => listPublishedProducts(supabase, { ...promotionProductFilter(promo), limit: 24 }),
+    queryFn: async () => uniqueByName(await listPublishedProducts(supabase, { ...promotionProductFilter(promo), limit: 36 })).slice(0, 24),
   });
   const useSlider = (products?.length ?? 0) > 6;
 
@@ -678,7 +679,7 @@ function TopCategorySection({
   const { t } = useLanguage();
   const { data: products } = useQuery({
     queryKey: ["top-category-products", category.id],
-    queryFn: () => listPublishedProducts(supabase, { categoryId: category.id, limit: 12 }),
+    queryFn: async () => uniqueByName(await listPublishedProducts(supabase, { categoryId: category.id, limit: 36 })).slice(0, 12),
   });
 
   if (!products || products.length === 0) return null;
