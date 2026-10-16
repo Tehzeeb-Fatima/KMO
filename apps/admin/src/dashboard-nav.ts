@@ -11,6 +11,7 @@ export const ADMIN_NAV_ITEMS: DashboardNavItem[] = [
   { key: "payouts", label: "Payouts", to: "/payouts" },
   { key: "categories", label: "Categories", to: "/categories" },
   { key: "couriers", label: "Couriers", to: "/couriers" },
+  { key: "courier", label: "Courier requests", to: "/courier-requests" },
   { key: "delivery-caps", label: "Delivery caps", to: "/delivery-caps" },
   { key: "promotions", label: "Promotions", to: "/promotions" },
   { key: "loyalty", label: "Loyalty", to: "/loyalty" },

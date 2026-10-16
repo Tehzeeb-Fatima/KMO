@@ -24,6 +24,7 @@ import { UsersPage } from "./pages/users-page";
 import { DeliveryCapsPage } from "./pages/delivery-caps-page";
 import { BookkeepingPage } from "./pages/bookkeeping-page";
 import { LoyaltyPage } from "./pages/loyalty-page";
+import { CourierRequestsPage } from "./pages/courier-requests-page";
 
 export default function App() {
   return (
@@ -46,6 +47,7 @@ export default function App() {
         <Route path="payouts" element={<ModuleRoute module="payouts"><PayoutsPage /></ModuleRoute>} />
         <Route path="categories" element={<ModuleRoute module="categories"><CategoriesPage /></ModuleRoute>} />
         <Route path="couriers" element={<ModuleRoute module="couriers"><CouriersPage /></ModuleRoute>} />
+        <Route path="courier-requests" element={<ModuleRoute module="courier"><CourierRequestsPage /></ModuleRoute>} />
         <Route path="delivery-caps" element={<ModuleRoute module="delivery-caps"><DeliveryCapsPage /></ModuleRoute>} />
         <Route path="promotions" element={<ModuleRoute module="promotions"><PromotionsPage /></ModuleRoute>} />
         <Route path="loyalty" element={<ModuleRoute module="loyalty"><LoyaltyPage /></ModuleRoute>} />

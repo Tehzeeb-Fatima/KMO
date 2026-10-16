@@ -1,10 +1,23 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getMyVendor, listVendorOrders, notifyAdmins, updateOrderStatus } from "@kmo/shared/api";
+import {
+  getMyVendor,
+  listVendorOrders,
+  notifyAdmins,
+  requestCourierBooking,
+  updateOrderStatus,
+} from "@kmo/shared/api";
 import type { OrderStatus } from "@kmo/shared/types";
 import { StatusBadge } from "@kmo/shared/ui";
 import { ORDER_STATUS_META, ORDER_STATUS_FLOW } from "@kmo/shared/lib";
 import { supabase } from "../lib/supabase";
+
+const COURIER_STATUS_META: Record<string, { label: string; variant: "success" | "warning" | "danger" | "info" }> = {
+  not_requested: { label: "Not sent to courier", variant: "info" },
+  pending_review: { label: "Awaiting admin review", variant: "warning" },
+  rejected: { label: "Courier request rejected", variant: "danger" },
+  booked: { label: "Booked with courier", variant: "success" },
+};
 
 const VENDOR_STATUS_OPTIONS: { value: OrderStatus; label: string }[] = [
   { value: "confirmed", label: "Confirm order" },
@@ -39,6 +52,7 @@ export function OrdersPage() {
 function OrdersList({ vendorId, onOpen }: { vendorId: string; onOpen: (id: string) => void }) {
   const [filter, setFilter] = useState<OrderStatus | "all">("all");
   const [search, setSearch] = useState("");
+  const queryClient = useQueryClient();
 
   const { data: orders, isLoading } = useQuery({
     queryKey: ["vendor-orders", vendorId],
@@ -56,6 +70,34 @@ function OrdersList({ vendorId, onOpen }: { vendorId: string; onOpen: (id: strin
       return true;
     });
   }, [orders, filter, search]);
+
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const selectableIds = useMemo(
+    () => filtered.filter((o) => o.courier_booking_status === "not_requested" || o.courier_booking_status === "rejected").map((o) => o.id),
+    [filtered],
+  );
+  const allSelectableSelected = selectableIds.length > 0 && selectableIds.every((id) => selected.has(id));
+
+  function toggleSelected(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleAllSelectable() {
+    setSelected(allSelectableSelected ? new Set() : new Set(selectableIds));
+  }
+
+  const requestMutation = useMutation({
+    mutationFn: (ids: string[]) => requestCourierBooking(supabase, ids),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["vendor-orders", vendorId] });
+      setSelected(new Set());
+    },
+  });
 
   return (
     <div>
@@ -86,14 +128,43 @@ function OrdersList({ vendorId, onOpen }: { vendorId: string; onOpen: (id: strin
         />
       </div>
 
+      {selected.size > 0 ? (
+        <div className="mb-3 flex items-center gap-2.5 rounded-xl border border-border bg-primary-tint p-3">
+          <span className="text-[13px] font-bold text-ink-dark">{selected.size} selected</span>
+          <button
+            type="button"
+            disabled={requestMutation.isPending}
+            onClick={() => requestMutation.mutate([...selected])}
+            className="rounded-md bg-accent px-3 py-1.5 text-[12px] font-bold text-white disabled:opacity-60"
+          >
+            {requestMutation.isPending ? "Sending…" : "Request courier booking"}
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelected(new Set())}
+            className="ml-auto text-[12px] font-bold text-muted"
+          >
+            Clear
+          </button>
+        </div>
+      ) : null}
+
       <div className="overflow-x-auto rounded-xl border border-border bg-surface">
-        <div className="min-w-[720px]">
-          <div className="grid grid-cols-[1fr_1.3fr_1fr_1fr_1fr] items-center bg-surface-alt px-5 py-3.5 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
+        <div className="min-w-[820px]">
+          <div className="grid grid-cols-[28px_1fr_1.3fr_1fr_1fr_1fr_1.2fr] items-center bg-surface-alt px-5 py-3.5 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
+            <input
+              type="checkbox"
+              aria-label="Select all eligible orders"
+              checked={allSelectableSelected}
+              disabled={selectableIds.length === 0}
+              onChange={toggleAllSelectable}
+            />
             <span>Order</span>
             <span>Customer</span>
             <span>Date</span>
             <span className="text-right">Total</span>
             <span className="text-center">Status</span>
+            <span className="text-center">Courier</span>
           </div>
 
           {isLoading ? (
@@ -103,17 +174,27 @@ function OrdersList({ vendorId, onOpen }: { vendorId: string; onOpen: (id: strin
           ) : (
             filtered.map((o) => {
               const meta = ORDER_STATUS_META[o.status];
+              const courierMeta = COURIER_STATUS_META[o.courier_booking_status];
+              const selectable = o.courier_booking_status === "not_requested" || o.courier_booking_status === "rejected";
               return (
-                <button
+                <div
                   key={o.id}
-                  type="button"
-                  onClick={() => onOpen(o.id)}
-                  className="grid w-full grid-cols-[1fr_1.3fr_1fr_1fr_1fr] items-center border-t border-[#F5F0EE] px-5 py-4 text-left"
+                  className="grid min-w-[820px] grid-cols-[28px_1fr_1.3fr_1fr_1fr_1fr_1.2fr] items-center border-t border-[#F5F0EE] px-5 py-4 text-left"
                 >
-                  <span className="text-[13px] font-bold text-primary">#{o.order_number}</span>
-                  <span className="text-[12.5px] text-ink-dark">
+                  <input
+                    type="checkbox"
+                    aria-label={`Select order ${o.order_number}`}
+                    checked={selected.has(o.id)}
+                    disabled={!selectable}
+                    onChange={() => toggleSelected(o.id)}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                  <button type="button" onClick={() => onOpen(o.id)} className="truncate text-left">
+                    <span className="text-[13px] font-bold text-primary">#{o.order_number}</span>
+                  </button>
+                  <button type="button" onClick={() => onOpen(o.id)} className="truncate text-left text-[12.5px] text-ink-dark">
                     {o.ship_name ?? o.profiles?.full_name ?? "Customer"}
-                  </span>
+                  </button>
                   <span className="text-[12.5px] text-muted">
                     {new Date(o.created_at).toLocaleDateString(undefined, { day: "numeric", month: "short" })}
                   </span>
@@ -123,7 +204,10 @@ function OrdersList({ vendorId, onOpen }: { vendorId: string; onOpen: (id: strin
                   <span className="flex justify-center">
                     <StatusBadge variant={meta.variant}>{meta.label}</StatusBadge>
                   </span>
-                </button>
+                  <span className="flex justify-center">
+                    <StatusBadge variant={courierMeta.variant}>{courierMeta.label}</StatusBadge>
+                  </span>
+                </div>
               );
             })
           )}
@@ -215,6 +299,8 @@ function OrderDetail({
         <div className="flex flex-col gap-4">
           <DeliverToCard order={order} />
 
+          <CourierCard order={order} vendorId={vendorId} />
+
           <div className="rounded-xl border border-border bg-surface p-5">
             <p className="mb-2 font-mono text-xs font-bold uppercase tracking-[0.06em] text-muted-table">
               Fulfilment
@@ -295,6 +381,48 @@ function nextInFlow(status: OrderStatus): OrderStatus | null {
   const idx = ORDER_STATUS_FLOW.indexOf(status);
   if (idx === -1 || idx === ORDER_STATUS_FLOW.length - 1) return null;
   return ORDER_STATUS_FLOW[idx + 1];
+}
+
+function CourierCard({
+  order,
+  vendorId,
+}: {
+  order: { id: string; courier_booking_status: string; courier_tracking_id: string | null; courier_rejection_note: string | null };
+  vendorId: string;
+}) {
+  const queryClient = useQueryClient();
+  const meta = COURIER_STATUS_META[order.courier_booking_status];
+  const mutation = useMutation({
+    mutationFn: () => requestCourierBooking(supabase, [order.id]),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["vendor-orders", vendorId] }),
+  });
+
+  return (
+    <div className="rounded-xl border border-border bg-surface p-5">
+      <div className="flex items-center justify-between">
+        <p className="font-mono text-xs font-bold uppercase tracking-[0.06em] text-muted-table">Courier</p>
+        <StatusBadge variant={meta.variant}>{meta.label}</StatusBadge>
+      </div>
+      {order.courier_booking_status === "booked" && order.courier_tracking_id ? (
+        <p className="mt-2 text-[13px] text-ink-dark">
+          Tracking #: <span className="font-bold">{order.courier_tracking_id}</span>
+        </p>
+      ) : null}
+      {order.courier_booking_status === "rejected" && order.courier_rejection_note ? (
+        <p className="mt-2 text-[12.5px] text-danger">Admin note: {order.courier_rejection_note}</p>
+      ) : null}
+      {order.courier_booking_status === "not_requested" || order.courier_booking_status === "rejected" ? (
+        <button
+          type="button"
+          onClick={() => mutation.mutate()}
+          disabled={mutation.isPending}
+          className="mt-3 w-full rounded-[9px] bg-accent px-3 py-2.5 text-[13px] font-bold text-white disabled:opacity-60"
+        >
+          {mutation.isPending ? "Sending…" : "Request courier booking"}
+        </button>
+      ) : null}
+    </div>
+  );
 }
 
 /** Where to send the parcel: copied onto the order at checkout. */

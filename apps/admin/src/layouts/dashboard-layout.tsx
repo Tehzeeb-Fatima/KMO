@@ -24,6 +24,7 @@ const TITLES: Record<string, { title: string; subtitle?: string }> = {
   "/payouts": { title: "Payouts", subtitle: "Vendor payouts and commission" },
   "/categories": { title: "Categories", subtitle: "Storefront category tree" },
   "/couriers": { title: "Couriers", subtitle: "Courier fee slabs by city and weight" },
+  "/courier-requests": { title: "Courier requests", subtitle: "Review and push vendor booking requests to Courier Fast Service" },
   "/promotions": { title: "Promotions", subtitle: "Homepage deals with a countdown" },
   "/loyalty": { title: "Loyalty", subtitle: "Customer reward points and vendor tiers" },
   "/returns": { title: "Returns", subtitle: "Review return requests" },

@@ -29,6 +29,7 @@ import { mainCategories } from "@kmo/shared/lib";
 import { supabase } from "../lib/supabase";
 import { VendorAccountSection } from "../components/vendor-account-section";
 import { VendorTierSection } from "../components/vendor-tier-section";
+import { VendorCourierSection } from "../components/vendor-courier-section";
 
 const STATUS_META: Record<
   VendorVerificationStatus,
@@ -613,6 +614,8 @@ function VendorDetail({ vendorId, onBack }: { vendorId: string; onBack: () => vo
           </div>
 
           <VendorAccountSection vendorId={vendorId} ownerId={vendor.owner_id} />
+
+          <VendorCourierSection vendorId={vendorId} courierConnected={vendor.courier_connected} />
 
           <VendorDeliveryRatesSection vendorId={vendorId} />
 

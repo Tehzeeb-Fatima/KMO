@@ -11,6 +11,7 @@ import {
 import { VENDOR_NAV_ITEMS } from "../dashboard-nav";
 import kmoIcon from "../assets/kmo-icon.png";
 import { supabase } from "../lib/supabase";
+import { CourierConnectModal } from "../components/courier-connect-modal";
 
 const CUSTOMER_URL = import.meta.env.VITE_CUSTOMER_URL ?? "https://karachimartonline.com";
 
@@ -95,6 +96,7 @@ export function DashboardLayout() {
       LinkComponent={NavLink}
     >
       <Outlet />
+      <CourierConnectModal />
     </DashboardShell>
   );
 }

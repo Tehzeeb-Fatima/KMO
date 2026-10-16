@@ -59,6 +59,7 @@ export type PayoutStatus = "pending" | "paid";
 export type ReturnStatus = "requested" | "approved" | "rejected" | "processing" | "resolved";
 export type DiscountType = "percentage" | "fixed";
 export type CouponStatus = "active" | "disabled";
+export type CourierBookingStatus = "not_requested" | "pending_review" | "rejected" | "booked";
 
 export interface Database {
   public: {
@@ -115,6 +116,7 @@ export interface Database {
           referred_by_vendor_id: string | null;
           preferred_courier: string | null;
           preferred_courier_id: string | null;
+          courier_connected: boolean;
           membership_started_at: string;
           created_at: string;
         };
@@ -139,6 +141,7 @@ export interface Database {
           referred_by_vendor_id?: string | null;
           preferred_courier?: string | null;
           preferred_courier_id?: string | null;
+          courier_connected?: boolean;
           membership_started_at?: string;
           created_at?: string;
         };
@@ -163,7 +166,35 @@ export interface Database {
           referred_by_vendor_id?: string | null;
           preferred_courier?: string | null;
           preferred_courier_id?: string | null;
+          courier_connected?: boolean;
           membership_started_at?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      vendor_courier_accounts: {
+        Row: {
+          vendor_id: string;
+          pending_password: string | null;
+          api_token: string | null;
+          courier_merchant_id: string | null;
+          connected_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          vendor_id: string;
+          pending_password?: string | null;
+          api_token?: string | null;
+          courier_merchant_id?: string | null;
+          connected_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          vendor_id?: string;
+          pending_password?: string | null;
+          api_token?: string | null;
+          courier_merchant_id?: string | null;
+          connected_at?: string | null;
           created_at?: string;
         };
         Relationships: [];
@@ -698,6 +729,12 @@ export interface Database {
           promotion_discount_amount: number;
           promotion_kmo_funded_amount: number;
           promotion_vendor_funded_amount: number;
+          courier_booking_status: CourierBookingStatus;
+          courier_tracking_id: string | null;
+          courier_booking_id: string | null;
+          courier_rejection_note: string | null;
+          courier_requested_at: string | null;
+          courier_approved_at: string | null;
           created_at: string;
         };
         Insert: {
@@ -733,6 +770,12 @@ export interface Database {
           promotion_discount_amount?: number;
           promotion_kmo_funded_amount?: number;
           promotion_vendor_funded_amount?: number;
+          courier_booking_status?: CourierBookingStatus;
+          courier_tracking_id?: string | null;
+          courier_booking_id?: string | null;
+          courier_rejection_note?: string | null;
+          courier_requested_at?: string | null;
+          courier_approved_at?: string | null;
           created_at?: string;
         };
         Update: {
@@ -768,6 +811,12 @@ export interface Database {
           promotion_discount_amount?: number;
           promotion_kmo_funded_amount?: number;
           promotion_vendor_funded_amount?: number;
+          courier_booking_status?: CourierBookingStatus;
+          courier_tracking_id?: string | null;
+          courier_booking_id?: string | null;
+          courier_rejection_note?: string | null;
+          courier_requested_at?: string | null;
+          courier_approved_at?: string | null;
           created_at?: string;
         };
         Relationships: [];
