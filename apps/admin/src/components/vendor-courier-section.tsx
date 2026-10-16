@@ -1,11 +1,20 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getVendorCourierAccount, setVendorCourierPassword } from "@kmo/shared/api";
+import { getVendorCourierAccount, setVendorCourierPassword, setVendorCourierPopupReady } from "@kmo/shared/api";
 import { supabase } from "../lib/supabase";
 
 /** Lets admin assign (or reset) the one-time password a vendor uses to link
- * their own Courier Fast Service account from the KMO vendor dashboard. */
-export function VendorCourierSection({ vendorId, courierConnected }: { vendorId: string; courierConnected: boolean }) {
+ * their own Courier Fast Service account from the KMO vendor dashboard, and
+ * control whether the connect popup is allowed to show yet. */
+export function VendorCourierSection({
+  vendorId,
+  courierConnected,
+  popupReady,
+}: {
+  vendorId: string;
+  courierConnected: boolean;
+  popupReady: boolean;
+}) {
   const queryClient = useQueryClient();
   const { data: account } = useQuery({
     queryKey: ["vendor-courier-account", vendorId],
@@ -18,6 +27,14 @@ export function VendorCourierSection({ vendorId, courierConnected }: { vendorId:
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["vendor-courier-account", vendorId] });
       setPassword("");
+    },
+  });
+
+  const readyMutation = useMutation({
+    mutationFn: (ready: boolean) => setVendorCourierPopupReady(supabase, vendorId, ready),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-vendor", vendorId] });
+      queryClient.invalidateQueries({ queryKey: ["admin-vendors"] });
     },
   });
 
@@ -65,6 +82,28 @@ export function VendorCourierSection({ vendorId, courierConnected }: { vendorId:
           {mutation.isPending ? "Saving…" : "Set password"}
         </button>
       </div>
+
+      {!courierConnected ? (
+        <div className="mt-3 flex items-center justify-between rounded-md border border-border px-3 py-2">
+          <span className="text-[12.5px] text-ink-dark">
+            Show connect popup to vendor?{" "}
+            <span className="text-muted">(turn on only after telling them the password)</span>
+          </span>
+          <button
+            type="button"
+            disabled={readyMutation.isPending}
+            onClick={() => readyMutation.mutate(!popupReady)}
+            className="shrink-0 rounded-md px-3 py-1.5 text-[11px] font-bold disabled:opacity-60"
+            style={
+              popupReady
+                ? { background: "var(--color-primary)", color: "#fff" }
+                : { background: "var(--color-surface-alt)", color: "var(--color-muted)" }
+            }
+          >
+            {popupReady ? "Yes" : "No"}
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }

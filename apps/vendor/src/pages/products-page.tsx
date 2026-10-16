@@ -1000,6 +1000,18 @@ function ProductForm({
                 </span>
               </FormField>
             )}
+            <FormField label="Weight in grams (optional)">
+              <input
+                inputMode="numeric"
+                placeholder="e.g. 250 — leave empty to use a default"
+                value={weight}
+                onChange={(e) => setWeight(e.target.value)}
+                className={`${inputClass} max-w-[300px]`}
+              />
+              <span className="text-[12px] text-muted">
+                Used to calculate the courier charge when this order is booked for delivery.
+              </span>
+            </FormField>
           </Section>
 
           {/* 5. extras */}
@@ -1025,9 +1037,6 @@ function ProductForm({
                       onChange={(e) => setTagsInput(e.target.value)}
                       className={inputClass}
                     />
-                  </FormField>
-                  <FormField label="Weight (grams)">
-                    <input inputMode="numeric" placeholder="e.g. 250" value={weight} onChange={(e) => setWeight(e.target.value)} className={inputClass} />
                   </FormField>
                   <FormField label="Warn me when stock falls below">
                     <input

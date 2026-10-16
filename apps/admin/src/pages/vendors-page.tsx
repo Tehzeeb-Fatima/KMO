@@ -615,7 +615,11 @@ function VendorDetail({ vendorId, onBack }: { vendorId: string; onBack: () => vo
 
           <VendorAccountSection vendorId={vendorId} ownerId={vendor.owner_id} />
 
-          <VendorCourierSection vendorId={vendorId} courierConnected={vendor.courier_connected} />
+          <VendorCourierSection
+            vendorId={vendorId}
+            courierConnected={vendor.courier_connected}
+            popupReady={vendor.courier_popup_ready}
+          />
 
           <VendorDeliveryRatesSection vendorId={vendorId} />
 

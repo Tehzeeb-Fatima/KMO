@@ -117,6 +117,7 @@ export interface Database {
           preferred_courier: string | null;
           preferred_courier_id: string | null;
           courier_connected: boolean;
+          courier_popup_ready: boolean;
           membership_started_at: string;
           created_at: string;
         };
@@ -142,6 +143,7 @@ export interface Database {
           preferred_courier?: string | null;
           preferred_courier_id?: string | null;
           courier_connected?: boolean;
+          courier_popup_ready?: boolean;
           membership_started_at?: string;
           created_at?: string;
         };
@@ -167,6 +169,7 @@ export interface Database {
           preferred_courier?: string | null;
           preferred_courier_id?: string | null;
           courier_connected?: boolean;
+          courier_popup_ready?: boolean;
           membership_started_at?: string;
           created_at?: string;
         };

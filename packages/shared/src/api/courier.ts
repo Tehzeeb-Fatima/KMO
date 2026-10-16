@@ -6,15 +6,19 @@ type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
 
 // ── vendor side ──────────────────────────────────────────────────────────
 
-/** Whether this vendor has linked a Courier Fast Service account yet. */
-export async function getVendorCourierConnected(supabase: Client, vendorId: string): Promise<boolean> {
+/** Whether this vendor has linked a Courier Fast Service account yet, and
+ * whether admin has marked them ready to see the connect popup at all. */
+export async function getVendorCourierStatus(
+  supabase: Client,
+  vendorId: string,
+): Promise<{ connected: boolean; popupReady: boolean }> {
   const { data, error } = await supabase
     .from("vendors")
-    .select("courier_connected")
+    .select("courier_connected, courier_popup_ready")
     .eq("id", vendorId)
     .single();
   if (error) throw error;
-  return data.courier_connected;
+  return { connected: data.courier_connected, popupReady: data.courier_popup_ready };
 }
 
 /** Vendor enters the password admin gave them; the edge function links the
@@ -27,16 +31,17 @@ export async function connectVendorToCourier(
     body: { password },
   });
   if (error) {
+    let message = error.message;
     const res = (error as { context?: Response }).context;
     if (res && typeof res.json === "function") {
       try {
         const body = (await res.json()) as { error?: string };
-        if (body?.error) throw new Error(body.error);
+        if (body?.error) message = body.error;
       } catch {
-        // body wasn't JSON — fall through to the generic message
+        // body wasn't JSON — keep the generic message
       }
     }
-    throw error;
+    throw new Error(message);
   }
   return data as { connected: true };
 }
@@ -67,6 +72,17 @@ export async function setVendorCourierPassword(
   const { error } = await supabase
     .from("vendor_courier_accounts")
     .upsert({ vendor_id: vendorId, pending_password: password }, { onConflict: "vendor_id" });
+  if (error) throw error;
+}
+
+/** Admin flips this once the vendor's password is ready to use — only then
+ * does the connect popup show on the vendor's dashboard. */
+export async function setVendorCourierPopupReady(
+  supabase: Client,
+  vendorId: string,
+  ready: boolean,
+): Promise<void> {
+  const { error } = await supabase.from("vendors").update({ courier_popup_ready: ready }).eq("id", vendorId);
   if (error) throw error;
 }
 
@@ -138,16 +154,17 @@ export async function pushCourierBookings(
     body: { order_ids: orderIds },
   });
   if (error) {
+    let message = error.message;
     const res = (error as { context?: Response }).context;
     if (res && typeof res.json === "function") {
       try {
         const body = (await res.json()) as { error?: string };
-        if (body?.error) throw new Error(body.error);
+        if (body?.error) message = body.error;
       } catch {
-        // body wasn't JSON — fall through to the generic message
+        // body wasn't JSON — keep the generic message
       }
     }
-    throw error;
+    throw new Error(message);
   }
   return data as PushCourierBookingsResult;
 }

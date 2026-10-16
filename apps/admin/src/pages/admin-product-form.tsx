@@ -93,6 +93,7 @@ export function AdminProductForm({
     product?.compare_at_price ? String(product.compare_at_price) : "",
   );
   const [stock, setStock] = useState(product?.stock_quantity != null ? String(product.stock_quantity) : "");
+  const [weight, setWeight] = useState(product?.weight_grams ? String(product.weight_grams) : "");
   const [categoryIds, setCategoryIds] = useState<Set<string>>(
     new Set(product?.category_id ? [product.category_id] : []),
   );
@@ -190,6 +191,7 @@ export function AdminProductForm({
         compare_at_price: compareAtPrice ? Number(compareAtPrice) : null,
         // empty = stock not tracked (always available)
         stock_quantity: stock.trim() === "" ? null : Number(stock) || 0,
+        weight_grams: weight.trim() === "" ? null : Number(weight) || null,
         category_id: categoryIdList[0] ?? null,
         description,
         description_ur: descriptionUr.trim() || null,
@@ -333,7 +335,7 @@ export function AdminProductForm({
             />
           </FormField>
 
-          <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-4">
             <FormField label="Price">
               <input
                 placeholder="Rs. 4,999"
@@ -357,6 +359,17 @@ export function AdminProductForm({
                 onChange={(e) => setStock(e.target.value)}
                 className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
               />
+            </FormField>
+            <FormField label="Weight in grams (optional)">
+              <input
+                placeholder="e.g. 250"
+                value={weight}
+                onChange={(e) => setWeight(e.target.value)}
+                className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
+              />
+              <span className="text-[11px] text-muted">
+                Overrides the vendor&rsquo;s weight for courier booking if they left theirs empty.
+              </span>
             </FormField>
           </div>
 

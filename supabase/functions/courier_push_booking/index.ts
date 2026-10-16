@@ -20,6 +20,14 @@ const CORS_HEADERS = {
 const COURIER_API_BASE_URL = Deno.env.get("COURIER_API_BASE_URL") ?? "https://portal.courierfastservice.com/api";
 
 Deno.serve(async (req: Request) => {
+  try {
+    return await handle(req);
+  } catch (err) {
+    return json({ error: err instanceof Error ? err.message : "Unexpected server error" }, 500);
+  }
+});
+
+async function handle(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS_HEADERS });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
@@ -154,7 +162,7 @@ Deno.serve(async (req: Request) => {
   }
 
   return json({ results }, 200);
-});
+}
 
 function json(body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), {
