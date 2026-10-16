@@ -19,16 +19,32 @@ export function CourierConnectModal() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const [justConnected, setJustConnected] = useState(false);
 
   const mutation = useMutation({
     mutationFn: () => connectVendorToCourier(supabase, password),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["vendor-courier-status", vendor?.id] });
       setPassword("");
+      setJustConnected(true);
+      setTimeout(() => setDismissed(true), 1800);
     },
   });
 
-  if (!vendor || !status || status.connected || !status.popupReady || dismissed) return null;
+  if (!vendor || !status || (status.connected && !justConnected) || !status.popupReady || dismissed) return null;
+
+  if (justConnected) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+        <div className="w-full max-w-[420px] rounded-xl bg-white p-6 text-center shadow-xl">
+          <p className="text-[16px] font-bold text-success">Connected ✓</p>
+          <p className="mt-1.5 text-[13px] text-muted">
+            Your Courier Fast Service account is linked — you can now send orders there from KMO.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
