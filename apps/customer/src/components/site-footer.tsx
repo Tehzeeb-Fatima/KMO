@@ -46,7 +46,7 @@ export function SiteFooter() {
   ];
 
   return (
-    <footer className="bg-sidebar">
+    <footer className="bg-sidebar print:hidden">
       <div className="mx-auto grid w-full max-w-[1358px] grid-cols-2 gap-8 px-4 py-12 sm:grid-cols-3 sm:px-10 lg:grid-cols-5">
         <div className="col-span-2 flex flex-col gap-3 sm:col-span-1">
           <Link href="/" aria-label="Karachi Mart home" className="flex w-fit items-center gap-[11px]">

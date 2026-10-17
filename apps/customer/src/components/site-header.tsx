@@ -55,7 +55,7 @@ export function SiteHeader() {
   }
 
   return (
-    <header>
+    <header className="print:hidden">
       {/* row 1 — logo / search / deliver-to / sign in / cart */}
       <div className="flex items-center gap-4 bg-surface px-4 py-[18px] sm:gap-7 sm:px-10">
         <Link href="/" className="flex shrink-0 items-center gap-2">
