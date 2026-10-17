@@ -26,6 +26,7 @@ import {
   isColourOption,
   mainImageUrl,
   optionGroups,
+  uniqueByName,
   swatchColour,
   variantOptions,
 } from "@kmo/shared/lib";
@@ -171,20 +172,36 @@ export default function ProductDetailClient() {
   });
 
   const { data: moreFromVendor } = useQuery({
-    queryKey: ["more-from-vendor", product?.vendors?.id],
-    queryFn: () =>
-      listPublishedProducts(supabase, { vendorId: product!.vendors!.id, limit: 5 }),
+    queryKey: ["more-from-vendor", product?.vendors?.id, product?.id],
+    queryFn: async () =>
+      (await listPublishedProducts(supabase, { vendorId: product!.vendors!.id, limit: 6 }))
+        .filter((p) => p.id !== product!.id)
+        .slice(0, 5),
     enabled: !!product?.vendors,
   });
 
+  // Suggested = other vendors first, so it never repeats "More from this
+  // vendor": same sub-category, then the wider main category, and only then
+  // this vendor's products that aren't already shown above.
   const { data: suggested } = useQuery({
-    queryKey: ["suggested-products", product?.category_id],
-    queryFn: () =>
-      listPublishedProducts(supabase, {
-        categoryId: product!.category_id ?? undefined,
-        limit: 5,
-      }),
-    enabled: !!product,
+    queryKey: ["suggested-products", product?.id, moreFromVendor?.map((p) => p.id).join(",")],
+    queryFn: async () => {
+      const shown = new Set([product!.id, ...(moreFromVendor ?? []).map((p) => p.id)]);
+      const { data: cat } = await supabase
+        .from("categories")
+        .select("parent_id")
+        .eq("id", product!.category_id!)
+        .maybeSingle();
+      const pools = await Promise.all([
+        listPublishedProducts(supabase, { categoryId: product!.category_id ?? undefined, limit: 40 }),
+        cat?.parent_id ? listPublishedProducts(supabase, { categoryId: cat.parent_id, limit: 60 }) : Promise.resolve([]),
+      ]);
+      const all = uniqueByName([...pools[0], ...pools[1]]).filter((p) => !shown.has(p.id));
+      const others = all.filter((p) => p.vendor_id !== product!.vendor_id);
+      const same = all.filter((p) => p.vendor_id === product!.vendor_id);
+      return [...others, ...same].slice(0, 5);
+    },
+    enabled: !!product?.category_id && (!product?.vendors || !!moreFromVendor),
   });
 
   if (isLoading) {
@@ -753,7 +770,7 @@ export default function ProductDetailClient() {
       </div>
 
       {/* more from this vendor */}
-      {moreFromVendor && moreFromVendor.length > 1 ? (
+      {moreFromVendor && moreFromVendor.length > 0 ? (
         <div className="mt-8">
           <h2 className="mb-4 text-lg font-bold text-ink">{t.product.moreFromVendor}</h2>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
@@ -784,7 +801,7 @@ export default function ProductDetailClient() {
       ) : null}
 
       {/* suggested products */}
-      {suggested && suggested.length > 1 ? (
+      {suggested && suggested.length > 0 ? (
         <div className="mt-8">
           <h2 className="mb-4 text-lg font-bold text-ink">{t.product.suggestedProducts}</h2>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
