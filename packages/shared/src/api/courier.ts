@@ -168,3 +168,55 @@ export async function pushCourierBookings(
   }
   return data as PushCourierBookingsResult;
 }
+
+export interface SyncCourierStatusesResult {
+  updated: number;
+  results: { order_id: string; ok: boolean; status?: string; error?: string }[];
+}
+
+/** Pulls the latest status for already-booked orders from Courier (it has
+ * no outgoing webhook, so this has to be polled). Pass no orderIds to sync
+ * every booked order. */
+export async function syncCourierStatuses(
+  supabase: Client,
+  orderIds?: string[],
+): Promise<SyncCourierStatusesResult> {
+  const { data, error } = await supabase.functions.invoke("courier_sync_statuses", {
+    body: { order_ids: orderIds },
+  });
+  if (error) {
+    let message = error.message;
+    const res = (error as { context?: Response }).context;
+    if (res && typeof res.json === "function") {
+      try {
+        const body = (await res.json()) as { error?: string };
+        if (body?.error) message = body.error;
+      } catch {
+        // body wasn't JSON — keep the generic message
+      }
+    }
+    throw new Error(message);
+  }
+  return data as SyncCourierStatusesResult;
+}
+
+export interface BookedCourierOrderRow extends OrderRow {
+  vendors: { store_name: string } | null;
+  profiles: { full_name: string | null } | null;
+}
+
+/** Admin's view of already-booked orders, to check/sync their live status. */
+export async function listBookedCourierOrders(
+  supabase: Client,
+  opts?: { vendorId?: string },
+): Promise<BookedCourierOrderRow[]> {
+  let query = supabase
+    .from("orders")
+    .select("*, vendors(store_name), profiles(full_name)")
+    .eq("courier_booking_status", "booked")
+    .order("courier_approved_at", { ascending: false });
+  if (opts?.vendorId) query = query.eq("vendor_id", opts.vendorId);
+  const { data, error } = await query;
+  if (error) throw error;
+  return data as unknown as BookedCourierOrderRow[];
+}

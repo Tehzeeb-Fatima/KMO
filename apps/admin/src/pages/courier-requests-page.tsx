@@ -1,21 +1,66 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  listBookedCourierOrders,
   listCourierRequests,
   listVendors,
   pushCourierBookings,
   rejectCourierBooking,
+  syncCourierStatuses,
 } from "@kmo/shared/api";
 import { supabase } from "../lib/supabase";
 
 export function CourierRequestsPage() {
-  const queryClient = useQueryClient();
+  const [tab, setTab] = useState<"pending" | "booked">("pending");
   const [vendorId, setVendorId] = useState<string>("");
 
   const { data: vendors } = useQuery({
     queryKey: ["all-vendors-for-courier-requests"],
     queryFn: () => listVendors(supabase, { status: "approved" }),
   });
+  const vendorOptions = useMemo(() => vendors ?? [], [vendors]);
+
+  return (
+    <div>
+      <div className="mb-[18px] flex flex-wrap items-center gap-2.5">
+        <div className="flex gap-1.5">
+          {(["pending", "booked"] as const).map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setTab(t)}
+              className="rounded-full px-[15px] py-2 text-[12.5px] font-bold"
+              style={
+                tab === t
+                  ? { background: "var(--color-primary)", color: "#fff", border: "1px solid var(--color-primary)" }
+                  : { background: "#fff", color: "var(--color-primary)", border: "1px solid var(--color-border)" }
+              }
+            >
+              {t === "pending" ? "Pending review" : "Booked"}
+            </button>
+          ))}
+        </div>
+        <select
+          value={vendorId}
+          onChange={(e) => setVendorId(e.target.value)}
+          className="rounded-lg border border-border px-[14px] py-[10px] text-[13px] text-ink"
+        >
+          <option value="">All vendors</option>
+          {vendorOptions.map((v) => (
+            <option key={v.id} value={v.id}>
+              {v.store_name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {tab === "pending" ? <PendingTab vendorId={vendorId} /> : <BookedTab vendorId={vendorId} />}
+    </div>
+  );
+}
+
+function PendingTab({ vendorId }: { vendorId: string }) {
+  const queryClient = useQueryClient();
 
   const { data: requests, isLoading } = useQuery({
     queryKey: ["courier-requests", vendorId],
@@ -63,25 +108,8 @@ export function CourierRequestsPage() {
     },
   });
 
-  const vendorOptions = useMemo(() => vendors ?? [], [vendors]);
-
   return (
     <div>
-      <div className="mb-[18px] flex flex-wrap items-center gap-2.5">
-        <select
-          value={vendorId}
-          onChange={(e) => setVendorId(e.target.value)}
-          className="rounded-lg border border-border px-[14px] py-[10px] text-[13px] text-ink"
-        >
-          <option value="">All vendors</option>
-          {vendorOptions.map((v) => (
-            <option key={v.id} value={v.id}>
-              {v.store_name}
-            </option>
-          ))}
-        </select>
-      </div>
-
       {pushResultMessage ? (
         <p className="mb-3 text-[12.5px] font-semibold text-ink-dark">
           {pushResultMessage}{" "}
@@ -215,6 +243,91 @@ export function CourierRequestsPage() {
           </div>
         </div>
       ) : null}
+    </div>
+  );
+}
+
+function BookedTab({ vendorId }: { vendorId: string }) {
+  const queryClient = useQueryClient();
+
+  const { data: orders, isLoading } = useQuery({
+    queryKey: ["courier-booked-orders", vendorId],
+    queryFn: () => listBookedCourierOrders(supabase, { vendorId: vendorId || undefined }),
+  });
+
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
+  const syncMutation = useMutation({
+    mutationFn: (ids?: string[]) => syncCourierStatuses(supabase, ids),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ["courier-booked-orders"] });
+      const failed = res.results.filter((r) => !r.ok);
+      setSyncMessage(
+        `${res.updated} status${res.updated === 1 ? "" : "es"} updated.` +
+          (failed.length ? ` ${failed.length} failed: ${failed.map((f) => f.error).join("; ")}` : ""),
+      );
+    },
+  });
+
+  return (
+    <div>
+      <div className="mb-3 flex items-center gap-2.5">
+        <button
+          type="button"
+          disabled={syncMutation.isPending || !orders?.length}
+          onClick={() => syncMutation.mutate(orders?.map((o) => o.id))}
+          className="rounded-md bg-accent px-3 py-2 text-[12.5px] font-bold text-white disabled:opacity-60"
+        >
+          {syncMutation.isPending ? "Syncing…" : "Sync status from Courier"}
+        </button>
+        {syncMessage ? (
+          <p className="text-[12.5px] font-semibold text-ink-dark">
+            {syncMessage}{" "}
+            <button type="button" onClick={() => setSyncMessage(null)} className="text-accent">
+              Dismiss
+            </button>
+          </p>
+        ) : null}
+      </div>
+
+      <div className="overflow-x-auto rounded-xl border border-border bg-surface">
+        <div className="min-w-[860px]">
+          <div className="grid grid-cols-[1fr_1.4fr_1fr_1fr_1fr_1fr] items-center bg-surface-alt px-5 py-3.5 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
+            <span>Order</span>
+            <span>Vendor</span>
+            <span>Tracking #</span>
+            <span>Courier status</span>
+            <span>Expected delivery</span>
+            <span className="text-right">Total</span>
+          </div>
+
+          {isLoading ? (
+            <p className="p-5 text-sm text-muted">Loading…</p>
+          ) : !orders || orders.length === 0 ? (
+            <p className="p-5 text-sm text-muted">No booked orders yet.</p>
+          ) : (
+            orders.map((o) => (
+              <div
+                key={o.id}
+                className="grid min-w-[860px] grid-cols-[1fr_1.4fr_1fr_1fr_1fr_1fr] items-center border-t border-[#F5F0EE] px-5 py-4 text-[12.5px]"
+              >
+                <span className="font-bold text-primary">#{o.order_number}</span>
+                <span className="truncate text-ink-dark">{o.vendors?.store_name ?? "—"}</span>
+                <span className="font-mono text-[11.5px] text-ink-dark">{o.courier_tracking_id ?? "—"}</span>
+                <span className="text-ink-dark">{o.courier_live_status ?? "Not synced yet"}</span>
+                <span className="text-muted">
+                  {o.courier_expected_delivery
+                    ? new Date(o.courier_expected_delivery).toLocaleDateString(undefined, {
+                        day: "numeric",
+                        month: "short",
+                      })
+                    : "—"}
+                </span>
+                <span className="text-right font-bold text-ink-dark">Rs. {o.total.toLocaleString()}</span>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
     </div>
   );
 }

@@ -738,6 +738,8 @@ export interface Database {
           courier_rejection_note: string | null;
           courier_requested_at: string | null;
           courier_approved_at: string | null;
+          courier_live_status: string | null;
+          courier_expected_delivery: string | null;
           created_at: string;
         };
         Insert: {
@@ -779,6 +781,8 @@ export interface Database {
           courier_rejection_note?: string | null;
           courier_requested_at?: string | null;
           courier_approved_at?: string | null;
+          courier_live_status?: string | null;
+          courier_expected_delivery?: string | null;
           created_at?: string;
         };
         Update: {
@@ -820,6 +824,8 @@ export interface Database {
           courier_rejection_note?: string | null;
           courier_requested_at?: string | null;
           courier_approved_at?: string | null;
+          courier_live_status?: string | null;
+          courier_expected_delivery?: string | null;
           created_at?: string;
         };
         Relationships: [];
