@@ -24,7 +24,7 @@ const EN = {
     },
     {
       title: "Items that can't be returned",
-      body: "Perishable goods (such as groceries), personal care items that have been opened, and made-to-order products are generally not eligible for return unless they arrive damaged or significantly different from what was listed.",
+      body: "Perishable goods, personal care items that have been opened, and made-to-order products are generally not eligible for return unless they arrive damaged or significantly different from what was listed.",
     },
   ],
 };
@@ -51,7 +51,7 @@ const UR = {
     },
     {
       title: "وہ اشیاء جو واپس نہیں کی جا سکتیں",
-      body: "خراب ہونے والی اشیاء (جیسے گروسری)، کھولی گئی پرسنل کیئر اشیاء، اور آرڈر پر بنائی گئی پراڈکٹس عام طور پر واپسی کے اہل نہیں ہیں جب تک وہ خراب حالت میں یا درج کردہ سے کافی مختلف نہ پہنچیں۔",
+      body: "خراب ہونے والی اشیاء، کھولی گئی پرسنل کیئر اشیاء، اور آرڈر پر بنائی گئی پراڈکٹس عام طور پر واپسی کے اہل نہیں ہیں جب تک وہ خراب حالت میں یا درج کردہ سے کافی مختلف نہ پہنچیں۔",
     },
   ],
 };

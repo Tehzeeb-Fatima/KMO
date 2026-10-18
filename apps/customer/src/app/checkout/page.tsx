@@ -23,6 +23,7 @@ import { Button, SearchableSelect } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { RequireAuth } from "@/components/require-auth";
 import { supabase } from "@/lib/supabase";
+import { friendlyError } from "@/lib/friendly-error";
 import { useLanguage } from "@/lib/i18n/language-context";
 import type { TranslationTree } from "@/lib/i18n/translations";
 import { fill } from "@/lib/fill";
@@ -30,8 +31,6 @@ import { fill } from "@/lib/fill";
 function paymentOptions(t: TranslationTree): { value: PaymentMethod; label: string; sub: string }[] {
   return [
     { value: "cod", label: t.checkout.cod, sub: t.checkout.codSub },
-    { value: "card", label: t.checkout.card, sub: t.checkout.cardSub },
-    { value: "jazzcash", label: t.checkout.wallet, sub: t.checkout.walletSub },
   ];
 }
 
@@ -142,6 +141,8 @@ function CheckoutContent() {
       if (isGuest) {
         const trimmedEmail = email.trim();
         if (!trimmedEmail) throw new Error("Please enter your email to place the order.");
+        if (!/^[^\s@,]+@[^\s@,]+\.[^\s@,]+$/.test(trimmedEmail))
+          throw new Error("Please check your email address, e.g. name@gmail.com");
         await claimGuestAccount(supabase, trimmedEmail, `${window.location.origin}/reset-password`);
       }
 
@@ -157,7 +158,7 @@ function CheckoutContent() {
       const guestParam = isGuest ? "&guest=1" : "";
       router.push(`/order-confirmation?orders=${result.orders.map((o) => o.id).join(",")}${guestParam}`);
     },
-    onError: (err: Error) => setError(err.message),
+    onError: (err: Error) => setError(friendlyError(err)),
   });
 
   const subtotal =

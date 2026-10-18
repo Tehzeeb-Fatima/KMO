@@ -5,7 +5,7 @@ import { useLanguage } from "@/lib/i18n/language-context";
 const EN = {
   badge: "Legal",
   title: "Privacy policy",
-  lastUpdated: "Last updated September 2026",
+  lastUpdated: "Last updated 18 October 2026",
   contactUs: "Contact us",
   sections: [
     {
@@ -35,7 +35,7 @@ const EN = {
 const UR = {
   badge: "قانونی",
   title: "پرائیویسی پالیسی",
-  lastUpdated: "آخری بار اپ ڈیٹ کیا گیا ستمبر 2026",
+  lastUpdated: "آخری بار اپ ڈیٹ کیا گیا 18 اکتوبر 2026",
   contactUs: "ہم سے رابطہ کریں",
   sections: [
     {

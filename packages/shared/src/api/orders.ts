@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, OrderStatus, PaymentMethod } from "../types";
+import { functionError } from "./function-error";
 
 type Client = SupabaseClient<Database>;
 type OrderRow = Database["public"]["Tables"]["orders"]["Row"];
@@ -36,7 +37,7 @@ export async function placeOrder(
       redeem_points: input.redeemPoints || undefined,
     },
   });
-  if (error) throw error;
+  if (error) throw await functionError(error);
   return data as PlaceOrderResult;
 }
 
