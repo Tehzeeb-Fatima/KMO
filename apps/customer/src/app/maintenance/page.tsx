@@ -44,10 +44,10 @@ export default function MaintenancePage() {
       <div className="mt-10 flex flex-col items-center gap-1.5 text-[12.5px] text-[#B9A3CD]">
         <span>Need something urgently?</span>
         <a
-          href="mailto:info@karachimartonline.com"
+          href="mailto:contact@karachimartonline.com"
           className="font-semibold text-white hover:text-accent"
         >
-          info@karachimartonline.com
+          contact@karachimartonline.com
         </a>
       </div>
 
