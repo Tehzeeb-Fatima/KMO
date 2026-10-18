@@ -9,6 +9,7 @@ import {
   listCouriers,
   listVendors,
   setCourierActive,
+  updateCourierRateSlab,
 } from "@kmo/shared/api";
 import { DELIVERY_CITY_OPTIONS } from "@kmo/shared/lib";
 import { ConfirmDialog, SearchableSelect } from "@kmo/shared/ui";
@@ -212,27 +213,51 @@ function SlabTable({
   const [fee, setFee] = useState("");
   const [taxPercent, setTaxPercent] = useState("0");
   const [fuelChargePercent, setFuelChargePercent] = useState("0");
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  function resetForm() {
+    setEditingId(null);
+    setCity("");
+    setMinWeight("0");
+    setMaxWeight("1");
+    setFee("");
+    setTaxPercent("0");
+    setFuelChargePercent("0");
+  }
+
+  function startEdit(s: NonNullable<typeof slabs>[number]) {
+    setEditingId(s.id);
+    setCity(s.city);
+    setMinWeight(String(s.min_weight_kg));
+    setMaxWeight(String(s.max_weight_kg));
+    setFee(String(s.fee));
+    setTaxPercent(String(s.tax_percent));
+    setFuelChargePercent(String(s.fuel_charge_percent));
+  }
+
+  const slabPayload = {
+    city: city.trim(),
+    min_weight_kg: Number(minWeight),
+    max_weight_kg: Number(maxWeight),
+    fee: Number(fee),
+    tax_percent: Number(taxPercent) || 0,
+    fuel_charge_percent: Number(fuelChargePercent) || 0,
+  };
 
   const addMutation = useMutation({
     mutationFn: () =>
-      createCourierRateSlab(supabase, {
-        courier_id: courierId,
-        vendor_id: vendorId,
-        city: city.trim(),
-        min_weight_kg: Number(minWeight),
-        max_weight_kg: Number(maxWeight),
-        fee: Number(fee),
-        tax_percent: Number(taxPercent) || 0,
-        fuel_charge_percent: Number(fuelChargePercent) || 0,
-      }),
+      createCourierRateSlab(supabase, { courier_id: courierId, vendor_id: vendorId, ...slabPayload }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey });
-      setCity("");
-      setMinWeight("0");
-      setMaxWeight("1");
-      setFee("");
-      setTaxPercent("0");
-      setFuelChargePercent("0");
+      resetForm();
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: () => updateCourierRateSlab(supabase, editingId!, slabPayload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey });
+      resetForm();
     },
   });
 
@@ -245,11 +270,8 @@ function SlabTable({
     },
   });
 
-  const canAdd =
-    city.trim() &&
-    fee.trim() &&
-    Number(maxWeight) > Number(minWeight) &&
-    !addMutation.isPending;
+  const saving = addMutation.isPending || updateMutation.isPending;
+  const canAdd = city.trim() && fee.trim() && Number(maxWeight) > Number(minWeight) && !saving;
 
   return (
     <div className="rounded-xl border border-border bg-surface p-5">
@@ -312,15 +334,20 @@ function SlabTable({
         <button
           type="button"
           disabled={!canAdd}
-          onClick={() => addMutation.mutate()}
+          onClick={() => (editingId ? updateMutation.mutate() : addMutation.mutate())}
           className="rounded-lg bg-accent px-3 py-2 text-[12.5px] font-bold text-white disabled:opacity-60"
         >
-          + Add slab
+          {saving ? "Saving…" : editingId ? "Save changes" : "+ Add slab"}
         </button>
       </div>
+      {editingId ? (
+        <button type="button" onClick={resetForm} className="mb-3 w-fit text-[12px] font-bold text-muted">
+          Cancel editing
+        </button>
+      ) : null}
 
       <div className="overflow-x-auto rounded-lg border border-border">
-        <div className="grid min-w-[560px] grid-cols-[1fr_1fr_1fr_1fr_1fr_60px] bg-surface-alt px-3.5 py-2.5 font-mono text-[10px] uppercase tracking-[0.08em] text-muted-table">
+        <div className="grid min-w-[620px] grid-cols-[1fr_1fr_1fr_1fr_1fr_100px] bg-surface-alt px-3.5 py-2.5 font-mono text-[10px] uppercase tracking-[0.08em] text-muted-table">
           <span>City</span>
           <span>Weight (kg)</span>
           <span>Fee</span>
@@ -336,7 +363,8 @@ function SlabTable({
           slabs.map((s) => (
             <div
               key={s.id}
-              className="grid min-w-[560px] grid-cols-[1fr_1fr_1fr_1fr_1fr_60px] items-center border-t border-[#F5F0EE] px-3.5 py-2.5 text-[12.5px]"
+              className="grid min-w-[620px] grid-cols-[1fr_1fr_1fr_1fr_1fr_100px] items-center border-t border-[#F5F0EE] px-3.5 py-2.5 text-[12.5px]"
+              style={s.id === editingId ? { background: "var(--color-primary-tint)" } : undefined}
             >
               <span className="font-bold text-ink-dark">{s.city}</span>
               <span className="text-muted">
@@ -345,13 +373,18 @@ function SlabTable({
               <span className="text-ink-dark">Rs. {s.fee.toLocaleString()}</span>
               <span className="text-muted">{s.tax_percent}%</span>
               <span className="text-muted">{s.fuel_charge_percent}%</span>
-              <button
-                type="button"
-                onClick={() => setPendingDelete(s.id)}
-                className="text-right text-[11px] font-bold text-danger"
-              >
-                Remove
-              </button>
+              <div className="flex justify-end gap-2">
+                <button type="button" onClick={() => startEdit(s)} className="text-[11px] font-bold text-primary">
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPendingDelete(s.id)}
+                  className="text-[11px] font-bold text-danger"
+                >
+                  Remove
+                </button>
+              </div>
             </div>
           ))
         )}

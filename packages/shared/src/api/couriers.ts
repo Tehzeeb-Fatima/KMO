@@ -58,6 +58,21 @@ export async function createCourierRateSlab(supabase: Client, input: SlabInsert)
   return data;
 }
 
+export async function updateCourierRateSlab(
+  supabase: Client,
+  id: string,
+  patch: Partial<Pick<SlabInsert, "city" | "min_weight_kg" | "max_weight_kg" | "fee" | "tax_percent" | "fuel_charge_percent">>,
+): Promise<SlabRow> {
+  const { data, error } = await supabase
+    .from("courier_rate_slabs")
+    .update(patch)
+    .eq("id", id)
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data;
+}
+
 export async function deleteCourierRateSlab(supabase: Client, id: string): Promise<void> {
   const { error } = await supabase.from("courier_rate_slabs").delete().eq("id", id);
   if (error) throw error;
