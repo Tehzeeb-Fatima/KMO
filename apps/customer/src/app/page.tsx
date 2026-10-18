@@ -26,7 +26,7 @@ import { supabase } from "@/lib/supabase";
 import { HorizontalSlider } from "@/components/horizontal-slider";
 import { AddToCartButton, WishlistHeart } from "@/components/product-card-actions";
 import { useLanguage } from "@/lib/i18n/language-context";
-import { VendorCover } from "@/components/vendor-cover";
+import { DEFAULT_VENDOR_BANNER } from "@/lib/vendor-banner";
 
 const VENDOR_URL = process.env.NEXT_PUBLIC_VENDOR_URL ?? "https://vendor.karachimartonline.com";
 
@@ -263,7 +263,10 @@ export default function Home() {
                 href={`/store/${v.slug}`}
                 className="overflow-hidden rounded-lg border border-border bg-surface transition-shadow duration-300 hover:shadow-[0_14px_28px_-12px_rgba(74,34,102,0.45)]"
               >
-                <VendorCover url={v.cover_url} />
+                <div
+                  className="aspect-[5/1] bg-surface-alt bg-cover bg-center"
+                  style={{ backgroundImage: `url(${v.cover_url ?? DEFAULT_VENDOR_BANNER})` }}
+                />
                 <div className="-mt-[34px] flex flex-col gap-2.5 p-4">
                   <span
                     className="flex h-[50px] w-[50px] items-center justify-center rounded-[10px] bg-primary text-sm font-bold text-white ring-[3px] ring-white bg-cover bg-center"

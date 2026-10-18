@@ -7,7 +7,7 @@ import { listShopVendors } from "@kmo/shared/api";
 import { Breadcrumbs } from "@kmo/shared/ui";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/i18n/language-context";
-import { VendorCover } from "@/components/vendor-cover";
+import { DEFAULT_VENDOR_BANNER } from "@/lib/vendor-banner";
 
 export default function VendorsPage() {
   const { t } = useLanguage();
@@ -59,7 +59,10 @@ export default function VendorsPage() {
                 href={`/store/${v.slug}`}
                 className="overflow-hidden rounded-lg border border-border bg-surface"
               >
-                <VendorCover url={v.cover_url} />
+                <div
+                  className="aspect-[5/1] bg-surface-alt bg-cover bg-center"
+                  style={{ backgroundImage: `url(${v.cover_url ?? DEFAULT_VENDOR_BANNER})` }}
+                />
                 <div className="-mt-[34px] flex flex-col gap-2.5 p-4">
                   <span
                     className="flex h-[50px] w-[50px] items-center justify-center rounded-[10px] bg-primary text-sm font-bold text-white ring-[3px] ring-white bg-cover bg-center"
