@@ -331,16 +331,17 @@ export async function getPublishedProductBySlug(
 export async function getProductsByIds(
   supabase: Client,
   ids: string[],
-): Promise<{ id: string; name: string; price: number; vendors: { store_name: string } | null }[]> {
+): Promise<{ id: string; name: string; slug: string; price: number; vendors: { store_name: string } | null }[]> {
   if (ids.length === 0) return [];
   const { data, error } = await supabase
     .from("products")
-    .select("id, name, price, vendors(store_name)")
+    .select("id, name, slug, price, vendors(store_name)")
     .in("id", ids);
   if (error) throw error;
   return data as unknown as {
     id: string;
     name: string;
+    slug: string;
     price: number;
     vendors: { store_name: string } | null;
   }[];

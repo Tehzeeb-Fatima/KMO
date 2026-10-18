@@ -90,7 +90,9 @@ export default function TrackOrderPage() {
             </StatusBadge>
           </div>
           <p className="text-sm text-muted">
-            Placed on {new Date(result.created_at).toLocaleDateString()} · Total Rs. {result.total.toLocaleString()} ·{" "}
+            Placed on {new Date(result.created_at).toLocaleDateString()} at{" "}
+            {new Date(result.created_at).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })} · Total
+            Rs. {result.total.toLocaleString()} ·{" "}
             {result.payment_method.toUpperCase()}
           </p>
         </div>

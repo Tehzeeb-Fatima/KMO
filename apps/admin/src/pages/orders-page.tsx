@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  getProductsByIds,
   listAllOrders,
   logAdminAction,
   notifyUser,
@@ -12,6 +13,8 @@ import { StatusBadge } from "@kmo/shared/ui";
 import { ORDER_STATUS_META, ORDER_STATUS_FLOW } from "@kmo/shared/lib";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "../lib/supabase";
+
+const CUSTOMER_URL = import.meta.env.VITE_CUSTOMER_URL ?? "https://karachimartonline.com";
 
 export function OrdersPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -104,8 +107,11 @@ function OrdersList({
                   <span className="text-ink-dark">{o.profiles?.full_name ?? "Customer"}</span>
                   <span className="text-muted-table">{o.vendors?.store_name}</span>
                 </span>
-                <span className="text-[12.5px] text-muted">
-                  {new Date(o.created_at).toLocaleDateString(undefined, { day: "numeric", month: "short" })}
+                <span className="flex flex-col text-[12.5px] text-muted">
+                  <span>{new Date(o.created_at).toLocaleDateString(undefined, { day: "numeric", month: "short" })}</span>
+                  <span className="text-[11px] text-muted-table">
+                    {new Date(o.created_at).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}
+                  </span>
                 </span>
                 <span className="text-[13px] font-bold text-ink-dark">Rs. {o.total.toLocaleString()}</span>
                 <span>
@@ -129,6 +135,17 @@ function OrderDetail({
 }) {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+
+  const productIds = Array.from(
+    new Set(order.order_items.map((i) => i.product_id).filter((id): id is string => !!id)),
+  );
+  const { data: products } = useQuery({
+    queryKey: ["order-item-products", order.id],
+    queryFn: () => getProductsByIds(supabase, productIds),
+    enabled: productIds.length > 0,
+  });
+  const slugByProductId = new Map((products ?? []).map((p) => [p.id, p.slug]));
+
   const mutation = useMutation({
     mutationFn: async (status: OrderStatus) => {
       await updateOrderStatus(supabase, order.id, status);
@@ -171,29 +188,66 @@ function OrderDetail({
                 month: "long",
                 year: "numeric",
               })}{" "}
-              · {order.profiles?.full_name ?? "Customer"} · {order.vendors?.store_name}
+              at {new Date(order.created_at).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}
+              {" · "}
+              {order.profiles?.full_name ?? "Customer"} · {order.vendors?.store_name}
             </p>
           </div>
 
           <div className="rounded-xl border border-border bg-surface p-6">
             <p className="mb-3 text-[15px] font-bold text-ink">Items</p>
             <div className="flex flex-col gap-2">
-              {order.order_items.map((item) => (
-                <div key={item.id} className="flex justify-between text-[13px]">
-                  <span className="text-ink-dark">
-                    {item.product_name}
-                    {item.variant_label ? ` (${item.variant_label})` : ""} × {item.quantity}
-                  </span>
-                  <span className="font-bold text-ink-dark">
-                    Rs. {(item.unit_price * item.quantity).toLocaleString()}
-                  </span>
-                </div>
-              ))}
+              {order.order_items.map((item) => {
+                const slug = item.product_id ? slugByProductId.get(item.product_id) : undefined;
+                return (
+                  <div key={item.id} className="flex justify-between text-[13px]">
+                    <span className="text-ink-dark">
+                      {slug ? (
+                        <a
+                          href={`${CUSTOMER_URL}/product/${slug}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-semibold text-primary hover:underline"
+                        >
+                          {item.product_name}
+                        </a>
+                      ) : (
+                        item.product_name
+                      )}
+                      {item.variant_label ? ` (${item.variant_label})` : ""} × {item.quantity}
+                    </span>
+                    <span className="font-bold text-ink-dark">
+                      Rs. {(item.unit_price * item.quantity).toLocaleString()}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
 
         <div className="flex flex-col gap-4">
+          <div className="rounded-xl border border-border bg-surface p-5">
+            <p className="mb-2 font-mono text-xs font-bold uppercase tracking-[0.06em] text-muted-table">
+              Customer
+            </p>
+            {order.ship_name || order.ship_phone || order.ship_address_line ? (
+              <div className="flex flex-col gap-1 text-[13px] text-ink-dark">
+                <p className="font-bold">{order.ship_name ?? order.profiles?.full_name ?? "Customer"}</p>
+                {order.ship_phone ? (
+                  <a href={`tel:${order.ship_phone}`} className="w-fit font-semibold text-primary">
+                    {order.ship_phone}
+                  </a>
+                ) : null}
+                <p className="leading-[1.55] text-muted">
+                  {[order.ship_address_line, order.ship_area, order.ship_city].filter(Boolean).join(", ")}
+                </p>
+              </div>
+            ) : (
+              <p className="text-[13px] text-muted">{order.profiles?.full_name ?? "Customer"}</p>
+            )}
+          </div>
+
           <div className="rounded-xl border border-border bg-surface p-5">
             <p className="mb-2 font-mono text-xs font-bold uppercase tracking-[0.06em] text-muted-table">
               Delivery

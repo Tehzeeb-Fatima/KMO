@@ -91,7 +91,8 @@ function OrderCard({ order }: { order: OrderWithItems }) {
               day: "numeric",
               month: "long",
               year: "numeric",
-            })}
+            })}{" "}
+            {new Date(order.created_at).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}
           </p>
         </div>
         <StatusBadge variant={meta.variant}>{meta.label}</StatusBadge>

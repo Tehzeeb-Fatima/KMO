@@ -545,7 +545,7 @@ export default function ProductDetailClient() {
             </p>
             <div className="flex flex-col gap-3">
               {[
-                { label: t.product.karachiDays, sub: t.product.karachiDaysSub },
+                { label: t.product.karachiDays, sub: undefined },
                 { label: t.product.codLabel, sub: t.product.codLabelSub },
                 { label: t.product.returns7day, sub: t.product.returns7daySub },
                 { label: t.product.sizeExchange, sub: t.product.sizeExchangeSub },
@@ -554,7 +554,7 @@ export default function ProductDetailClient() {
                   <span className="mt-[6px] h-[7px] w-[7px] shrink-0 rounded-full bg-accent" />
                   <div>
                     <p className="text-[13px] font-bold text-ink-dark">{row.label}</p>
-                    <p className="text-[11.5px] leading-[1.4] text-muted">{row.sub}</p>
+                    {row.sub ? <p className="text-[11.5px] leading-[1.4] text-muted">{row.sub}</p> : null}
                   </div>
                 </div>
               ))}

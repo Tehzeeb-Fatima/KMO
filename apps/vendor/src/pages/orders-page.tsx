@@ -195,8 +195,11 @@ function OrdersList({ vendorId, onOpen }: { vendorId: string; onOpen: (id: strin
                   <button type="button" onClick={() => onOpen(o.id)} className="truncate text-left text-[12.5px] text-ink-dark">
                     {o.ship_name ?? o.profiles?.full_name ?? "Customer"}
                   </button>
-                  <span className="text-[12.5px] text-muted">
-                    {new Date(o.created_at).toLocaleDateString(undefined, { day: "numeric", month: "short" })}
+                  <span className="flex flex-col text-[12.5px] text-muted">
+                    <span>{new Date(o.created_at).toLocaleDateString(undefined, { day: "numeric", month: "short" })}</span>
+                    <span className="text-[11px] text-muted-table">
+                      {new Date(o.created_at).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}
+                    </span>
                   </span>
                   <span className="text-right text-[13px] font-bold text-ink-dark">
                     Rs. {o.total.toLocaleString()}
@@ -274,7 +277,8 @@ function OrderDetail({
               <StatusBadge variant={meta.variant}>{meta.label}</StatusBadge>
             </div>
             <p className="mt-1 text-[12.5px] text-muted">
-              Placed {new Date(order.created_at).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })}
+              Placed {new Date(order.created_at).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" })}{" "}
+              at {new Date(order.created_at).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}
             </p>
           </div>
 
