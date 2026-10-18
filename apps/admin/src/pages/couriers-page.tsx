@@ -233,26 +233,37 @@ function SlabTable({
     }
   }
 
-  // GST/tax and fuel charge are set once for this whole list (default, or
-  // this one vendor's override — admin can give different vendors different
-  // rates, or none) instead of per slab. New slabs pick these up
-  // automatically; "Apply to all" retroactively updates existing ones.
-  const [groupTaxPercent, setGroupTaxPercent] = useState("0");
-  const [groupFuelChargePercent, setGroupFuelChargePercent] = useState("0");
+  // GST/tax and fuel charge are set once per city in this list (default, or
+  // this one vendor's override) instead of per slab — and independently per
+  // city, so e.g. Karachi can have GST on while Other doesn't. New slabs
+  // for a city pick up that city's current values automatically; "Apply"
+  // retroactively updates every slab already in that city.
+  const [cityRates, setCityRates] = useState<Record<string, { tax: string; fuel: string }>>({});
+  const citiesInList = Array.from(new Set((slabs ?? []).map((s) => s.city))).sort();
   useEffect(() => {
-    if (slabs && slabs.length > 0) {
-      setGroupTaxPercent(String(slabs[0].tax_percent));
-      setGroupFuelChargePercent(String(slabs[0].fuel_charge_percent));
-    }
+    if (!slabs) return;
+    setCityRates((prev) => {
+      const next = { ...prev };
+      for (const s of slabs) {
+        if (!next[s.city]) next[s.city] = { tax: String(s.tax_percent), fuel: String(s.fuel_charge_percent) };
+      }
+      return next;
+    });
   }, [slabs]);
 
+  function cityRateFor(c: string) {
+    return cityRates[c] ?? { tax: "0", fuel: "0" };
+  }
+  function setCityRate(c: string, patch: Partial<{ tax: string; fuel: string }>) {
+    setCityRates((prev) => ({ ...prev, [c]: { ...cityRateFor(c), ...patch } }));
+  }
+
   const applyRatesMutation = useMutation({
-    mutationFn: async () => {
-      const patch = {
-        tax_percent: Number(groupTaxPercent) || 0,
-        fuel_charge_percent: Number(groupFuelChargePercent) || 0,
-      };
-      await Promise.all((slabs ?? []).map((s) => updateCourierRateSlab(supabase, s.id, patch)));
+    mutationFn: async (targetCity: string) => {
+      const rate = cityRateFor(targetCity);
+      const patch = { tax_percent: Number(rate.tax) || 0, fuel_charge_percent: Number(rate.fuel) || 0 };
+      const targets = (slabs ?? []).filter((s) => s.city === targetCity);
+      await Promise.all(targets.map((s) => updateCourierRateSlab(supabase, s.id, patch)));
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey }),
   });
@@ -278,14 +289,15 @@ function SlabTable({
     setPricingMode(isFlat ? "flat" : "weight");
   }
 
+  const currentCityRate = cityRateFor(city.trim());
   const slabPayload = {
     city: city.trim(),
     min_weight_kg: Number(minWeight),
     max_weight_kg: maxWeight.trim() === "" ? null : Number(maxWeight),
     fee: fee.trim() === "" ? 0 : Number(fee),
     additional_per_kg: additionalPerKg.trim() === "" ? null : Number(additionalPerKg),
-    tax_percent: Number(groupTaxPercent) || 0,
-    fuel_charge_percent: Number(groupFuelChargePercent) || 0,
+    tax_percent: Number(currentCityRate.tax) || 0,
+    fuel_charge_percent: Number(currentCityRate.fuel) || 0,
   };
 
   const addMutation = useMutation({
@@ -435,40 +447,51 @@ function SlabTable({
         </button>
       ) : null}
 
-      <div className="mb-3 flex flex-wrap items-end gap-2.5 rounded-lg border border-dashed border-border p-3">
-        <label className="flex flex-col gap-1">
-          <span className="text-[11px] font-semibold text-muted">GST/tax % — for this list</span>
-          <input
-            type="number"
-            autoComplete="off"
-            value={groupTaxPercent}
-            onChange={(e) => setGroupTaxPercent(e.target.value)}
-            className="w-[110px] rounded-lg border border-border px-3 py-2 text-[13px] outline-none focus:border-primary-light"
-          />
-        </label>
-        <label className="flex flex-col gap-1">
-          <span className="text-[11px] font-semibold text-muted">Fuel charge %</span>
-          <input
-            type="number"
-            autoComplete="off"
-            value={groupFuelChargePercent}
-            onChange={(e) => setGroupFuelChargePercent(e.target.value)}
-            className="w-[110px] rounded-lg border border-border px-3 py-2 text-[13px] outline-none focus:border-primary-light"
-          />
-        </label>
-        <button
-          type="button"
-          disabled={!slabs?.length || applyRatesMutation.isPending}
-          onClick={() => applyRatesMutation.mutate()}
-          className="rounded-lg border border-border bg-white px-3 py-2 text-[12px] font-bold text-primary disabled:opacity-60"
-        >
-          {applyRatesMutation.isPending ? "Applying…" : "Apply to all slabs below"}
-        </button>
-        <p className="w-full text-[11px] text-muted">
-          New slabs you add here pick these up automatically. GST/tax is on product price, fuel charge is on
-          delivery fee.
-        </p>
-      </div>
+      {citiesInList.length > 0 ? (
+        <div className="mb-3 flex flex-col gap-2 rounded-lg border border-dashed border-border p-3">
+          <p className="text-[11px] text-muted">
+            GST/tax and fuel charge, on or off per city — independently for each one. New slabs you add for a city
+            pick up its current values automatically. GST/tax is on product price, fuel charge is on delivery fee.
+          </p>
+          {citiesInList.map((c) => {
+            const rate = cityRateFor(c);
+            const applying = applyRatesMutation.isPending && applyRatesMutation.variables === c;
+            return (
+              <div key={c} className="flex flex-wrap items-end gap-2.5">
+                <span className="w-[90px] shrink-0 text-[12.5px] font-bold text-ink-dark">{c}</span>
+                <label className="flex flex-col gap-1">
+                  <span className="text-[11px] font-semibold text-muted">GST/tax %</span>
+                  <input
+                    type="number"
+                    autoComplete="off"
+                    value={rate.tax}
+                    onChange={(e) => setCityRate(c, { tax: e.target.value })}
+                    className="w-[90px] rounded-lg border border-border px-3 py-2 text-[13px] outline-none focus:border-primary-light"
+                  />
+                </label>
+                <label className="flex flex-col gap-1">
+                  <span className="text-[11px] font-semibold text-muted">Fuel charge %</span>
+                  <input
+                    type="number"
+                    autoComplete="off"
+                    value={rate.fuel}
+                    onChange={(e) => setCityRate(c, { fuel: e.target.value })}
+                    className="w-[90px] rounded-lg border border-border px-3 py-2 text-[13px] outline-none focus:border-primary-light"
+                  />
+                </label>
+                <button
+                  type="button"
+                  disabled={applyRatesMutation.isPending}
+                  onClick={() => applyRatesMutation.mutate(c)}
+                  className="rounded-lg border border-border bg-white px-3 py-2 text-[12px] font-bold text-primary disabled:opacity-60"
+                >
+                  {applying ? "Applying…" : `Apply to ${c} slabs`}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      ) : null}
 
       <div className="overflow-x-auto rounded-lg border border-border">
         <div className="grid min-w-[620px] grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_100px] bg-surface-alt px-3.5 py-2.5 font-mono text-[10px] uppercase tracking-[0.08em] text-muted-table">
