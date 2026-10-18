@@ -143,6 +143,7 @@ function CustomerDeliveryChargesSection({ vendorId }: { vendorId: string }) {
   const availableCities = DELIVERY_CITY_OPTIONS.filter((c) => !rates?.some((r) => r.city === c));
   const [city, setCity] = useState("");
   const [fee, setFee] = useState("");
+  const [freeOver, setFreeOver] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   // Most specific wins: this vendor's own cap for the city, then their Other
@@ -162,11 +163,18 @@ function CustomerDeliveryChargesSection({ vendorId }: { vendorId: string }) {
     (city && city !== OTHER_CITY ? defaultRates?.find((r) => r.city === OTHER_CITY) : undefined);
 
   const saveMutation = useMutation({
-    mutationFn: () => setVendorDeliveryRate(supabase, { vendor_id: vendorId, city: city.trim(), fee: Number(fee) }),
+    mutationFn: () =>
+      setVendorDeliveryRate(supabase, {
+        vendor_id: vendorId,
+        city: city.trim(),
+        fee: Number(fee),
+        free_delivery_threshold: freeOver.trim() === "" ? null : Number(freeOver),
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey });
       setCity("");
       setFee("");
+      setFreeOver("");
       setError(null);
     },
     onError: (err: Error) => setError(err.message),
@@ -191,8 +199,15 @@ function CustomerDeliveryChargesSection({ vendorId }: { vendorId: string }) {
         to set one rate for every city you haven&rsquo;t listed individually — otherwise KMO&rsquo;s own default for
         that city applies, or delivery is free if KMO hasn&rsquo;t set one either.
       </p>
+      <p className="rounded-md bg-primary-tint px-3 py-2.5 text-[12px] text-ink-dark">
+        <span className="font-bold">Want to offer free delivery yourself?</span> Set Fee to{" "}
+        <span className="font-semibold">0</span> to make it always free for that city — or leave Fee as your normal
+        rate and fill &ldquo;Free over Rs.&rdquo; so orders above that amount ship free automatically, otherwise your
+        fee applies. Once you set a rate for a city (even 0), KMO&rsquo;s own default for that city no longer applies
+        to you.
+      </p>
 
-      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-[1fr_1fr_auto]">
+      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-[1fr_1fr_1fr_auto]">
         <SearchableSelect
           options={availableCities}
           value={city}
@@ -211,6 +226,18 @@ function CustomerDeliveryChargesSection({ vendorId }: { vendorId: string }) {
           value={fee}
           onChange={(e) => {
             setFee(e.target.value);
+            setError(null);
+          }}
+          className="rounded-lg border border-border px-3 py-2 text-[13px] outline-none focus:border-primary-light"
+        />
+        <input
+          type="number"
+          min="0"
+          autoComplete="off"
+          placeholder="Free over Rs. (optional)"
+          value={freeOver}
+          onChange={(e) => {
+            setFreeOver(e.target.value);
             setError(null);
           }}
           className="rounded-lg border border-border px-3 py-2 text-[13px] outline-none focus:border-primary-light"
@@ -245,9 +272,10 @@ function CustomerDeliveryChargesSection({ vendorId }: { vendorId: string }) {
       {error ? <p className="text-[12.5px] text-danger">{error}</p> : null}
 
       <div className="overflow-x-auto rounded-lg border border-border">
-        <div className="grid min-w-[360px] grid-cols-[1fr_1fr_60px] bg-surface-alt px-3.5 py-2.5 font-mono text-[10px] uppercase tracking-[0.08em] text-muted-table">
+        <div className="grid min-w-[420px] grid-cols-[1fr_1fr_1fr_60px] bg-surface-alt px-3.5 py-2.5 font-mono text-[10px] uppercase tracking-[0.08em] text-muted-table">
           <span>City</span>
           <span>Fee</span>
+          <span>Free over</span>
           <span />
         </div>
         {isLoading ? (
@@ -260,10 +288,13 @@ function CustomerDeliveryChargesSection({ vendorId }: { vendorId: string }) {
           rates.map((r) => (
             <div
               key={r.id}
-              className="grid min-w-[360px] grid-cols-[1fr_1fr_60px] items-center border-t border-[#F5F0EE] px-3.5 py-2.5 text-[12.5px]"
+              className="grid min-w-[420px] grid-cols-[1fr_1fr_1fr_60px] items-center border-t border-[#F5F0EE] px-3.5 py-2.5 text-[12.5px]"
             >
               <span className="font-bold text-ink-dark">{r.city}</span>
-              <span className="text-ink-dark">Rs. {r.fee.toLocaleString()}</span>
+              <span className="text-ink-dark">{r.fee === 0 ? "Free" : `Rs. ${r.fee.toLocaleString()}`}</span>
+              <span className="text-muted">
+                {r.free_delivery_threshold != null ? `Rs. ${r.free_delivery_threshold.toLocaleString()}` : "—"}
+              </span>
               <button
                 type="button"
                 onClick={() => setPendingDelete({ id: r.id, city: r.city })}

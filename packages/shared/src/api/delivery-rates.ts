@@ -21,7 +21,7 @@ export async function listVendorDeliveryRates(
 
 export async function setVendorDeliveryRate(
   supabase: Client,
-  input: { vendor_id: string; city: string; fee: number },
+  input: { vendor_id: string; city: string; fee: number; free_delivery_threshold?: number | null },
 ): Promise<VendorDeliveryRateRow> {
   // The unique index is on (vendor_id, lower(city)), an expression — upsert's
   // onConflict can't target that, so this checks for an existing row itself.
@@ -32,14 +32,15 @@ export async function setVendorDeliveryRate(
     .ilike("city", input.city)
     .maybeSingle();
 
+  const payload = { fee: input.fee, free_delivery_threshold: input.free_delivery_threshold ?? null };
   const { data, error } = existingRow
     ? await supabase
         .from("vendor_delivery_rates")
-        .update({ fee: input.fee })
+        .update(payload)
         .eq("id", existingRow.id)
         .select("*")
         .single()
-    : await supabase.from("vendor_delivery_rates").insert(input).select("*").single();
+    : await supabase.from("vendor_delivery_rates").insert({ ...input, ...payload }).select("*").single();
   if (error) throw error;
   return data;
 }
@@ -49,6 +50,11 @@ export async function deleteVendorDeliveryRate(supabase: Client, id: string): Pr
   if (error) throw error;
 }
 
+export interface VendorDeliveryRateForCity {
+  fee: number;
+  free_delivery_threshold: number | null;
+}
+
 /** For checkout: each vendor's rate for the delivery city — their exact-city
  *  rate if they set one, else their "Other cities" rate if they set that
  *  instead. Keyed by vendor id. */
@@ -56,19 +62,20 @@ export async function getVendorDeliveryRatesForCity(
   supabase: Client,
   vendorIds: string[],
   city: string,
-): Promise<Map<string, number>> {
+): Promise<Map<string, VendorDeliveryRateForCity>> {
   if (vendorIds.length === 0 || !city.trim()) return new Map();
   const { data, error } = await supabase
     .from("vendor_delivery_rates")
-    .select("vendor_id, city, fee")
+    .select("vendor_id, city, fee, free_delivery_threshold")
     .in("vendor_id", vendorIds)
     .or(`city.ilike.${city.trim()},city.ilike.Other`);
   if (error) throw error;
-  const exact = new Map<string, number>();
-  const fallback = new Map<string, number>();
+  const exact = new Map<string, VendorDeliveryRateForCity>();
+  const fallback = new Map<string, VendorDeliveryRateForCity>();
   for (const r of data) {
-    if (r.city.toLowerCase() === city.trim().toLowerCase()) exact.set(r.vendor_id, r.fee);
-    else fallback.set(r.vendor_id, r.fee);
+    const value = { fee: r.fee, free_delivery_threshold: r.free_delivery_threshold };
+    if (r.city.toLowerCase() === city.trim().toLowerCase()) exact.set(r.vendor_id, value);
+    else fallback.set(r.vendor_id, value);
   }
   return new Map([...fallback, ...exact]);
 }

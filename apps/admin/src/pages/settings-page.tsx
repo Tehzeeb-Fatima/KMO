@@ -595,7 +595,6 @@ function DefaultDeliveryRatesCard() {
   const availableCities = DELIVERY_CITY_OPTIONS.filter((c) => !rates?.some((r) => r.city === c));
   const [city, setCity] = useState("");
   const [fee, setFee] = useState("");
-  const [freeOver, setFreeOver] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const saveMutation = useMutation({
@@ -603,14 +602,13 @@ function DefaultDeliveryRatesCard() {
       setDefaultDeliveryRate(supabase, {
         city,
         fee: Number(fee),
-        free_delivery_threshold: freeOver.trim() === "" ? null : Number(freeOver),
+        free_delivery_threshold: null,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey });
       if (user) void logAdminAction(supabase, user.id, "settings.default_delivery_rate", "platform_settings");
       setCity("");
       setFee("");
-      setFreeOver("");
       setError(null);
     },
     onError: (err: Error) => setError(err.message),
@@ -636,7 +634,7 @@ function DefaultDeliveryRatesCard() {
         every city you haven&rsquo;t listed individually. A city with no row here and no Other row is free.
       </p>
 
-      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-[1fr_1fr_1fr_auto]">
+      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-[1fr_1fr_auto]">
         <SearchableSelect
           options={availableCities}
           value={city}
@@ -657,16 +655,6 @@ function DefaultDeliveryRatesCard() {
           autoComplete="off"
           className="rounded-lg border border-border px-3 py-2 text-[13px] outline-none focus:border-primary-light"
         />
-        <input
-          value={freeOver}
-          onChange={(e) => {
-            setFreeOver(e.target.value);
-            setError(null);
-          }}
-          placeholder="Free over Rs. (optional)"
-          autoComplete="off"
-          className="rounded-lg border border-border px-3 py-2 text-[13px] outline-none focus:border-primary-light"
-        />
         <button
           type="button"
           disabled={!canSave}
@@ -679,10 +667,9 @@ function DefaultDeliveryRatesCard() {
       {error ? <p className="text-[12.5px] text-danger">{error}</p> : null}
 
       <div className="overflow-x-auto rounded-lg border border-border">
-        <div className="grid min-w-[420px] grid-cols-[1fr_1fr_1fr_60px] bg-surface-alt px-3.5 py-2.5 font-mono text-[10px] uppercase tracking-[0.08em] text-muted-table">
+        <div className="grid min-w-[320px] grid-cols-[1fr_1fr_60px] bg-surface-alt px-3.5 py-2.5 font-mono text-[10px] uppercase tracking-[0.08em] text-muted-table">
           <span>City</span>
           <span>Fee</span>
-          <span>Free over</span>
           <span />
         </div>
         {isLoading ? (
@@ -693,13 +680,10 @@ function DefaultDeliveryRatesCard() {
           rates.map((r) => (
             <div
               key={r.id}
-              className="grid min-w-[420px] grid-cols-[1fr_1fr_1fr_60px] items-center border-t border-[#F5F0EE] px-3.5 py-2.5 text-[12.5px]"
+              className="grid min-w-[320px] grid-cols-[1fr_1fr_60px] items-center border-t border-[#F5F0EE] px-3.5 py-2.5 text-[12.5px]"
             >
               <span className="font-bold text-ink-dark">{r.city}</span>
               <span className="text-ink-dark">Rs. {r.fee.toLocaleString()}</span>
-              <span className="text-muted">
-                {r.free_delivery_threshold != null ? `Rs. ${r.free_delivery_threshold.toLocaleString()}` : "—"}
-              </span>
               <button
                 type="button"
                 onClick={() => setPendingDelete({ id: r.id, city: r.city })}

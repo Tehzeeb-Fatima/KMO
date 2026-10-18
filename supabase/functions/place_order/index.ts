@@ -77,13 +77,15 @@ Deno.serve(async (req: Request) => {
   // that instead. Falls back to deliveryFeeFor() below when neither is set.
   const { data: deliveryRates } = await admin
     .from("vendor_delivery_rates")
-    .select("vendor_id, city, fee")
+    .select("vendor_id, city, fee, free_delivery_threshold")
     .or(`city.ilike.${address.city},city.ilike.Other`);
-  const deliveryRateFallback = new Map<string, number>();
-  const deliveryRateExact = new Map<string, number>();
+  type VendorRate = { fee: number; free_delivery_threshold: number | null };
+  const deliveryRateFallback = new Map<string, VendorRate>();
+  const deliveryRateExact = new Map<string, VendorRate>();
   for (const r of deliveryRates ?? []) {
-    if (r.city.toLowerCase() === address.city.toLowerCase()) deliveryRateExact.set(r.vendor_id, r.fee);
-    else deliveryRateFallback.set(r.vendor_id, r.fee);
+    const value = { fee: r.fee, free_delivery_threshold: r.free_delivery_threshold };
+    if (r.city.toLowerCase() === address.city.toLowerCase()) deliveryRateExact.set(r.vendor_id, value);
+    else deliveryRateFallback.set(r.vendor_id, value);
   }
   const deliveryRateByVendor = new Map([...deliveryRateFallback, ...deliveryRateExact]);
 
@@ -243,9 +245,10 @@ Deno.serve(async (req: Request) => {
       const unitPrice = variant?.price_override ?? product.price;
       return sum + unitPrice * item.quantity;
     }, 0);
-    const deliveryFee =
-      deliveryRateByVendor.get(vendorId) ??
-      deliveryFeeFor(subtotal, platformDefault?.fee ?? null, platformDefault?.free_delivery_threshold ?? null);
+    const vendorRate = deliveryRateByVendor.get(vendorId);
+    const deliveryFee = vendorRate
+      ? deliveryFeeFor(subtotal, vendorRate.fee, vendorRate.free_delivery_threshold)
+      : deliveryFeeFor(subtotal, platformDefault?.fee ?? null, platformDefault?.free_delivery_threshold ?? null);
 
     // Pick the best-matching promotion for this vendor's items, if any. A
     // promo can be scoped to a vendor and/or a category — both null means

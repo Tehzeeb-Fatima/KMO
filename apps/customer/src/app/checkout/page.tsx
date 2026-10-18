@@ -167,9 +167,10 @@ function CheckoutContent() {
     }, 0) ?? 0;
 
   // Each vendor order gets its own delivery fee: the vendor's own rate for the
-  // delivery city if they've set one, else the admin's city-wise default (if
-  // set for this city — otherwise it's free) — mirrored exactly in
-  // place_order so this isn't just an estimate.
+  // delivery city if they've set one (itself possibly free above their own
+  // spend threshold), else the admin's city-wise default (if set for this
+  // city — otherwise it's free) — mirrored exactly in place_order so this
+  // isn't just an estimate.
   const defaultFee = defaultDeliveryRate?.fee ?? 0;
   const freeThreshold = defaultDeliveryRate?.free_delivery_threshold ?? null;
   const deliveryFee = vendorIds.reduce((sum, vendorId) => {
@@ -177,7 +178,13 @@ function CheckoutContent() {
       .filter((i) => i.products.vendor_id === vendorId)
       .reduce((s, i) => s + (i.product_variants?.price_override ?? i.products.price) * i.quantity, 0);
     const customRate = vendorDeliveryRates?.get(vendorId);
-    const fee = customRate ?? (freeThreshold != null && vendorSubtotal >= freeThreshold ? 0 : defaultFee);
+    const fee = customRate
+      ? customRate.free_delivery_threshold != null && vendorSubtotal >= customRate.free_delivery_threshold
+        ? 0
+        : customRate.fee
+      : freeThreshold != null && vendorSubtotal >= freeThreshold
+        ? 0
+        : defaultFee;
     return sum + fee;
   }, 0);
 
