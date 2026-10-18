@@ -118,6 +118,7 @@ export interface Database {
           preferred_courier_id: string | null;
           courier_connected: boolean;
           courier_popup_ready: boolean;
+          dc_reminder_acknowledged: boolean;
           membership_started_at: string;
           created_at: string;
         };
@@ -144,6 +145,7 @@ export interface Database {
           preferred_courier_id?: string | null;
           courier_connected?: boolean;
           courier_popup_ready?: boolean;
+          dc_reminder_acknowledged?: boolean;
           membership_started_at?: string;
           created_at?: string;
         };
@@ -170,6 +172,7 @@ export interface Database {
           preferred_courier_id?: string | null;
           courier_connected?: boolean;
           courier_popup_ready?: boolean;
+          dc_reminder_acknowledged?: boolean;
           membership_started_at?: string;
           created_at?: string;
         };
@@ -958,6 +961,7 @@ export interface Database {
           default_delivery_fee: number | null;
           free_delivery_threshold: number | null;
           whatsapp_number: string | null;
+          dc_reminder_enabled: boolean;
           updated_at: string;
         };
         Insert: {
@@ -988,6 +992,7 @@ export interface Database {
           default_delivery_fee?: number | null;
           free_delivery_threshold?: number | null;
           whatsapp_number?: string | null;
+          dc_reminder_enabled?: boolean;
           updated_at?: string;
         };
         Update: {
@@ -1018,6 +1023,7 @@ export interface Database {
           default_delivery_fee?: number | null;
           free_delivery_threshold?: number | null;
           whatsapp_number?: string | null;
+          dc_reminder_enabled?: boolean;
           updated_at?: string;
         };
         Relationships: [];

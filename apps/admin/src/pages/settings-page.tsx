@@ -105,6 +105,14 @@ export function SettingsPage() {
     },
   });
 
+  const toggleDcReminder = useMutation({
+    mutationFn: (next: boolean) => updatePlatformSettings(supabase, { dc_reminder_enabled: next }),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(["platform-settings"], updated);
+      if (user) void logAdminAction(supabase, user.id, "settings.dc_reminder", "platform_settings");
+    },
+  });
+
   const saveBottomCategory = useMutation({
     mutationFn: () =>
       updatePlatformSettings(supabase, { bottom_category_id: bottomCategoryId || null }),
@@ -343,6 +351,33 @@ export function SettingsPage() {
       </div>
 
       <DefaultDeliveryRatesCard />
+
+      <div className="flex flex-col gap-3.5 rounded-xl border border-border bg-surface p-[22px_24px]">
+        <p className="text-[15px] font-bold text-ink">Delivery charge reminder</p>
+        <p className="text-xs text-muted">
+          Shows a popup on every vendor&rsquo;s dashboard, on every login, reminding them to set their delivery
+          charge — until they set one or dismiss it. A vendor who never sets one just gets free (Rs. 0) delivery
+          on their products.
+        </p>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            role="switch"
+            aria-checked={settings?.dc_reminder_enabled ?? false}
+            onClick={() => toggleDcReminder.mutate(!(settings?.dc_reminder_enabled ?? false))}
+            className="flex h-[23px] w-[42px] shrink-0 items-center rounded-full p-[2px] transition-colors"
+            style={{
+              background: (settings?.dc_reminder_enabled ?? false) ? "var(--color-accent)" : "var(--color-border)",
+              justifyContent: (settings?.dc_reminder_enabled ?? false) ? "flex-end" : "flex-start",
+            }}
+          >
+            <span className="h-[19px] w-[19px] rounded-full bg-white" />
+          </button>
+          <span className="text-[13px] font-semibold text-ink-dark">
+            {(settings?.dc_reminder_enabled ?? false) ? "On" : "Off"}
+          </span>
+        </div>
+      </div>
 
       <div className="flex flex-col gap-3.5 rounded-xl border border-border bg-surface p-[22px_24px]">
         <p className="text-[15px] font-bold text-ink">WhatsApp support</p>
