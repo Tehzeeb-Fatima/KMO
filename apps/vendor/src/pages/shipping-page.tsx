@@ -177,7 +177,12 @@ function CustomerDeliveryChargesSection({ vendorId }: { vendorId: string }) {
       setFreeOver("");
       setError(null);
     },
-    onError: (err: Error) => setError(err.message),
+    onError: (err: Error) => {
+      // Postgres trigger errors come through wrapped — the actual message
+      // (the useful part) is after the last colon.
+      const parts = err.message.split(":");
+      setError(parts[parts.length - 1].trim());
+    },
   });
 
   const [pendingDelete, setPendingDelete] = useState<{ id: string; city: string } | null>(null);
@@ -189,7 +194,8 @@ function CustomerDeliveryChargesSection({ vendorId }: { vendorId: string }) {
     },
   });
 
-  const canSave = city.trim() && fee.trim() && Number(fee) >= 0 && !saveMutation.isPending;
+  const exceedsCap = matchingCap != null && fee.trim() !== "" && Number(fee) > matchingCap.max_fee;
+  const canSave = city.trim() && fee.trim() && Number(fee) >= 0 && !exceedsCap && !saveMutation.isPending;
 
   return (
     <div className="flex flex-col gap-3.5 rounded-xl border border-border bg-surface p-[22px_24px]">
@@ -252,8 +258,9 @@ function CustomerDeliveryChargesSection({ vendorId }: { vendorId: string }) {
         </button>
       </div>
       {matchingCap ? (
-        <p className="text-[11.5px] text-muted">
+        <p className={exceedsCap ? "text-[11.5px] font-semibold text-danger" : "text-[11.5px] text-muted"}>
           KMO&rsquo;s cap for {matchingCap.city}: Rs. {matchingCap.max_fee.toLocaleString()}
+          {exceedsCap ? ` — you can't set more than this.` : ""}
         </p>
       ) : null}
       {city && matchingDefault ? (
