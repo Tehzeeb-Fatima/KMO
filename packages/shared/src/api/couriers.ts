@@ -25,6 +25,18 @@ export async function setCourierActive(supabase: Client, id: string, isActive: b
   if (error) throw error;
 }
 
+/** GST/tax and fuel charge apply to every slab under this courier — set
+ *  once here instead of per slab. */
+export async function setCourierRates(
+  supabase: Client,
+  id: string,
+  rates: { tax_percent: number; fuel_charge_percent: number },
+): Promise<CourierRow> {
+  const { data, error } = await supabase.from("couriers").update(rates).eq("id", id).select("*").single();
+  if (error) throw error;
+  return data;
+}
+
 export async function deleteCourier(supabase: Client, id: string): Promise<void> {
   const { error } = await supabase.from("couriers").delete().eq("id", id);
   if (error) throw error;

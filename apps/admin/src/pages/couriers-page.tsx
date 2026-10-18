@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createCourier,
@@ -13,7 +13,10 @@ import {
 } from "@kmo/shared/api";
 import { DELIVERY_CITY_OPTIONS } from "@kmo/shared/lib";
 import { ConfirmDialog, SearchableSelect } from "@kmo/shared/ui";
+import type { Database } from "@kmo/shared/types";
 import { supabase } from "../lib/supabase";
+
+type CourierRow = Database["public"]["Tables"]["couriers"]["Row"];
 
 export function CouriersPage() {
   const queryClient = useQueryClient();
@@ -122,7 +125,7 @@ export function CouriersPage() {
 
       <div>
         {selected ? (
-          <CourierRatesPanel courierId={selected.id} courierName={selected.name} />
+          <CourierRatesPanel key={selected.id} courier={selected} />
         ) : (
           <div className="rounded-xl border border-dashed border-border p-10 text-center text-sm text-muted">
             Select a courier to manage its rate slabs.
@@ -143,7 +146,9 @@ export function CouriersPage() {
   );
 }
 
-function CourierRatesPanel({ courierId, courierName }: { courierId: string; courierName: string }) {
+function CourierRatesPanel({ courier }: { courier: CourierRow }) {
+  const courierId = courier.id;
+  const courierName = courier.name;
   const [vendorId, setVendorId] = useState<string>("");
 
   const { data: vendors } = useQuery({
@@ -211,10 +216,32 @@ function SlabTable({
   const [minWeight, setMinWeight] = useState("0");
   const [maxWeight, setMaxWeight] = useState("1");
   const [fee, setFee] = useState("");
-  const [taxPercent, setTaxPercent] = useState("0");
-  const [fuelChargePercent, setFuelChargePercent] = useState("0");
   const [additionalPerKg, setAdditionalPerKg] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  // GST/tax and fuel charge are set once for this whole list (default, or
+  // this one vendor's override — admin can give different vendors different
+  // rates, or none) instead of per slab. New slabs pick these up
+  // automatically; "Apply to all" retroactively updates existing ones.
+  const [groupTaxPercent, setGroupTaxPercent] = useState("0");
+  const [groupFuelChargePercent, setGroupFuelChargePercent] = useState("0");
+  useEffect(() => {
+    if (slabs && slabs.length > 0) {
+      setGroupTaxPercent(String(slabs[0].tax_percent));
+      setGroupFuelChargePercent(String(slabs[0].fuel_charge_percent));
+    }
+  }, [slabs]);
+
+  const applyRatesMutation = useMutation({
+    mutationFn: async () => {
+      const patch = {
+        tax_percent: Number(groupTaxPercent) || 0,
+        fuel_charge_percent: Number(groupFuelChargePercent) || 0,
+      };
+      await Promise.all((slabs ?? []).map((s) => updateCourierRateSlab(supabase, s.id, patch)));
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey }),
+  });
 
   function resetForm() {
     setEditingId(null);
@@ -222,8 +249,6 @@ function SlabTable({
     setMinWeight("0");
     setMaxWeight("1");
     setFee("");
-    setTaxPercent("0");
-    setFuelChargePercent("0");
     setAdditionalPerKg("");
   }
 
@@ -233,8 +258,6 @@ function SlabTable({
     setMinWeight(String(s.min_weight_kg));
     setMaxWeight(s.max_weight_kg != null ? String(s.max_weight_kg) : "");
     setFee(String(s.fee));
-    setTaxPercent(String(s.tax_percent));
-    setFuelChargePercent(String(s.fuel_charge_percent));
     setAdditionalPerKg(s.additional_per_kg != null ? String(s.additional_per_kg) : "");
   }
 
@@ -243,9 +266,9 @@ function SlabTable({
     min_weight_kg: Number(minWeight),
     max_weight_kg: maxWeight.trim() === "" ? null : Number(maxWeight),
     fee: fee.trim() === "" ? 0 : Number(fee),
-    tax_percent: Number(taxPercent) || 0,
-    fuel_charge_percent: Number(fuelChargePercent) || 0,
     additional_per_kg: additionalPerKg.trim() === "" ? null : Number(additionalPerKg),
+    tax_percent: Number(groupTaxPercent) || 0,
+    fuel_charge_percent: Number(groupFuelChargePercent) || 0,
   };
 
   const addMutation = useMutation({
@@ -285,16 +308,13 @@ function SlabTable({
     <div className="rounded-xl border border-border bg-surface p-5">
       <p className="text-[15px] font-bold text-ink">{title}</p>
       <p className="text-[12px] text-muted">{hint}</p>
-      <p className="text-[12px] text-muted">
-        GST/tax % is charged on the product&rsquo;s price; fuel charge % is charged on the delivery fee.
-      </p>
       <p className="mb-3 text-[12px] text-muted">
         Leave <span className="font-semibold text-ink-dark">Max kg</span> blank to make an open-ended slab (&ldquo;this
         weight and above&rdquo;) — set wherever you want fixed slabs to stop, then fill{" "}
         <span className="font-semibold text-ink-dark">Additional Rs./kg</span> to charge extra for every kg beyond it.
       </p>
 
-      <div className="mb-3 grid grid-cols-2 gap-2.5 sm:grid-cols-8">
+      <div className="mb-3 grid grid-cols-2 gap-2.5 sm:grid-cols-6">
         <SearchableSelect
           options={DELIVERY_CITY_OPTIONS}
           value={city}
@@ -331,22 +351,6 @@ function SlabTable({
         <input
           type="number"
           autoComplete="off"
-          placeholder="GST/tax %"
-          value={taxPercent}
-          onChange={(e) => setTaxPercent(e.target.value)}
-          className="rounded-lg border border-border px-3 py-2 text-[13px] outline-none focus:border-primary-light"
-        />
-        <input
-          type="number"
-          autoComplete="off"
-          placeholder="Fuel charge %"
-          value={fuelChargePercent}
-          onChange={(e) => setFuelChargePercent(e.target.value)}
-          className="rounded-lg border border-border px-3 py-2 text-[13px] outline-none focus:border-primary-light"
-        />
-        <input
-          type="number"
-          autoComplete="off"
           placeholder="Additional Rs./kg"
           value={additionalPerKg}
           onChange={(e) => setAdditionalPerKg(e.target.value)}
@@ -366,6 +370,41 @@ function SlabTable({
           Cancel editing
         </button>
       ) : null}
+
+      <div className="mb-3 flex flex-wrap items-end gap-2.5 rounded-lg border border-dashed border-border p-3">
+        <label className="flex flex-col gap-1">
+          <span className="text-[11px] font-semibold text-muted">GST/tax % — for this list</span>
+          <input
+            type="number"
+            autoComplete="off"
+            value={groupTaxPercent}
+            onChange={(e) => setGroupTaxPercent(e.target.value)}
+            className="w-[110px] rounded-lg border border-border px-3 py-2 text-[13px] outline-none focus:border-primary-light"
+          />
+        </label>
+        <label className="flex flex-col gap-1">
+          <span className="text-[11px] font-semibold text-muted">Fuel charge %</span>
+          <input
+            type="number"
+            autoComplete="off"
+            value={groupFuelChargePercent}
+            onChange={(e) => setGroupFuelChargePercent(e.target.value)}
+            className="w-[110px] rounded-lg border border-border px-3 py-2 text-[13px] outline-none focus:border-primary-light"
+          />
+        </label>
+        <button
+          type="button"
+          disabled={!slabs?.length || applyRatesMutation.isPending}
+          onClick={() => applyRatesMutation.mutate()}
+          className="rounded-lg border border-border bg-white px-3 py-2 text-[12px] font-bold text-primary disabled:opacity-60"
+        >
+          {applyRatesMutation.isPending ? "Applying…" : "Apply to all slabs below"}
+        </button>
+        <p className="w-full text-[11px] text-muted">
+          New slabs you add here pick these up automatically. GST/tax is on product price, fuel charge is on
+          delivery fee.
+        </p>
+      </div>
 
       <div className="overflow-x-auto rounded-lg border border-border">
         <div className="grid min-w-[620px] grid-cols-[1fr_1fr_1fr_1fr_1fr_100px] bg-surface-alt px-3.5 py-2.5 font-mono text-[10px] uppercase tracking-[0.08em] text-muted-table">
