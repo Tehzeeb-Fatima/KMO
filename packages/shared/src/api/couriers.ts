@@ -61,7 +61,12 @@ export async function createCourierRateSlab(supabase: Client, input: SlabInsert)
 export async function updateCourierRateSlab(
   supabase: Client,
   id: string,
-  patch: Partial<Pick<SlabInsert, "city" | "min_weight_kg" | "max_weight_kg" | "fee" | "tax_percent" | "fuel_charge_percent">>,
+  patch: Partial<
+    Pick<
+      SlabInsert,
+      "city" | "min_weight_kg" | "max_weight_kg" | "fee" | "tax_percent" | "fuel_charge_percent" | "additional_per_kg"
+    >
+  >,
 ): Promise<SlabRow> {
   const { data, error } = await supabase
     .from("courier_rate_slabs")

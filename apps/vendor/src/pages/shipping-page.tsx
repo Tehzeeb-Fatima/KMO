@@ -112,9 +112,14 @@ export function ShippingPage() {
               >
                 <span className="font-bold text-ink-dark">{s.city}</span>
                 <span className="text-muted">
-                  {s.min_weight_kg}–{s.max_weight_kg}
+                  {s.min_weight_kg}–{s.max_weight_kg != null ? s.max_weight_kg : "∞"}
                 </span>
-                <span className="text-ink-dark">Rs. {s.fee.toLocaleString()}</span>
+                <span className="text-ink-dark">
+                  Rs. {s.fee.toLocaleString()}
+                  {s.additional_per_kg != null ? (
+                    <span className="text-muted"> + Rs. {s.additional_per_kg}/kg</span>
+                  ) : null}
+                </span>
                 <span className="text-muted">{s.tax_percent}%</span>
                 <span className="text-muted">{s.fuel_charge_percent}%</span>
               </div>

@@ -317,10 +317,11 @@ export interface Database {
           vendor_id: string | null;
           city: string;
           min_weight_kg: number;
-          max_weight_kg: number;
+          max_weight_kg: number | null;
           fee: number;
           tax_percent: number;
           fuel_charge_percent: number;
+          additional_per_kg: number | null;
           created_at: string;
         };
         Insert: {
@@ -329,10 +330,11 @@ export interface Database {
           vendor_id?: string | null;
           city: string;
           min_weight_kg: number;
-          max_weight_kg: number;
+          max_weight_kg?: number | null;
           fee: number;
           tax_percent?: number;
           fuel_charge_percent?: number;
+          additional_per_kg?: number | null;
           created_at?: string;
         };
         Update: {
@@ -341,10 +343,11 @@ export interface Database {
           vendor_id?: string | null;
           city?: string;
           min_weight_kg?: number;
-          max_weight_kg?: number;
+          max_weight_kg?: number | null;
           fee?: number;
           tax_percent?: number;
           fuel_charge_percent?: number;
+          additional_per_kg?: number | null;
           created_at?: string;
         };
         Relationships: [];

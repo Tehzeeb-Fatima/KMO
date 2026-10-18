@@ -213,6 +213,7 @@ function SlabTable({
   const [fee, setFee] = useState("");
   const [taxPercent, setTaxPercent] = useState("0");
   const [fuelChargePercent, setFuelChargePercent] = useState("0");
+  const [additionalPerKg, setAdditionalPerKg] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
 
   function resetForm() {
@@ -223,25 +224,28 @@ function SlabTable({
     setFee("");
     setTaxPercent("0");
     setFuelChargePercent("0");
+    setAdditionalPerKg("");
   }
 
   function startEdit(s: NonNullable<typeof slabs>[number]) {
     setEditingId(s.id);
     setCity(s.city);
     setMinWeight(String(s.min_weight_kg));
-    setMaxWeight(String(s.max_weight_kg));
+    setMaxWeight(s.max_weight_kg != null ? String(s.max_weight_kg) : "");
     setFee(String(s.fee));
     setTaxPercent(String(s.tax_percent));
     setFuelChargePercent(String(s.fuel_charge_percent));
+    setAdditionalPerKg(s.additional_per_kg != null ? String(s.additional_per_kg) : "");
   }
 
   const slabPayload = {
     city: city.trim(),
     min_weight_kg: Number(minWeight),
-    max_weight_kg: Number(maxWeight),
+    max_weight_kg: maxWeight.trim() === "" ? null : Number(maxWeight),
     fee: Number(fee),
     tax_percent: Number(taxPercent) || 0,
     fuel_charge_percent: Number(fuelChargePercent) || 0,
+    additional_per_kg: additionalPerKg.trim() === "" ? null : Number(additionalPerKg),
   };
 
   const addMutation = useMutation({
@@ -271,17 +275,26 @@ function SlabTable({
   });
 
   const saving = addMutation.isPending || updateMutation.isPending;
-  const canAdd = city.trim() && fee.trim() && Number(maxWeight) > Number(minWeight) && !saving;
+  const canAdd =
+    city.trim() &&
+    fee.trim() &&
+    (maxWeight.trim() === "" || Number(maxWeight) > Number(minWeight)) &&
+    !saving;
 
   return (
     <div className="rounded-xl border border-border bg-surface p-5">
       <p className="text-[15px] font-bold text-ink">{title}</p>
       <p className="text-[12px] text-muted">{hint}</p>
-      <p className="mb-3 text-[12px] text-muted">
+      <p className="text-[12px] text-muted">
         GST/tax % is charged on the product&rsquo;s price; fuel charge % is charged on the delivery fee.
       </p>
+      <p className="mb-3 text-[12px] text-muted">
+        Leave <span className="font-semibold text-ink-dark">Max kg</span> blank to make an open-ended slab (&ldquo;this
+        weight and above&rdquo;) — set wherever you want fixed slabs to stop, then fill{" "}
+        <span className="font-semibold text-ink-dark">Additional Rs./kg</span> to charge extra for every kg beyond it.
+      </p>
 
-      <div className="mb-3 grid grid-cols-2 gap-2.5 sm:grid-cols-7">
+      <div className="mb-3 grid grid-cols-2 gap-2.5 sm:grid-cols-8">
         <SearchableSelect
           options={DELIVERY_CITY_OPTIONS}
           value={city}
@@ -302,7 +315,7 @@ function SlabTable({
           type="number"
           step="0.1"
           autoComplete="off"
-          placeholder="Max kg"
+          placeholder="Max kg (blank = and above)"
           value={maxWeight}
           onChange={(e) => setMaxWeight(e.target.value)}
           className="rounded-lg border border-border px-3 py-2 text-[13px] outline-none focus:border-primary-light"
@@ -329,6 +342,14 @@ function SlabTable({
           placeholder="Fuel charge %"
           value={fuelChargePercent}
           onChange={(e) => setFuelChargePercent(e.target.value)}
+          className="rounded-lg border border-border px-3 py-2 text-[13px] outline-none focus:border-primary-light"
+        />
+        <input
+          type="number"
+          autoComplete="off"
+          placeholder="Additional Rs./kg"
+          value={additionalPerKg}
+          onChange={(e) => setAdditionalPerKg(e.target.value)}
           className="rounded-lg border border-border px-3 py-2 text-[13px] outline-none focus:border-primary-light"
         />
         <button
@@ -368,9 +389,14 @@ function SlabTable({
             >
               <span className="font-bold text-ink-dark">{s.city}</span>
               <span className="text-muted">
-                {s.min_weight_kg}–{s.max_weight_kg}
+                {s.min_weight_kg}–{s.max_weight_kg != null ? s.max_weight_kg : "∞"}
               </span>
-              <span className="text-ink-dark">Rs. {s.fee.toLocaleString()}</span>
+              <span className="text-ink-dark">
+                Rs. {s.fee.toLocaleString()}
+                {s.additional_per_kg != null ? (
+                  <span className="text-muted"> + Rs. {s.additional_per_kg}/kg</span>
+                ) : null}
+              </span>
               <span className="text-muted">{s.tax_percent}%</span>
               <span className="text-muted">{s.fuel_charge_percent}%</span>
               <div className="flex justify-end gap-2">
