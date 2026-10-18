@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   deleteVendorDeliveryRate,
   getMyVendor,
+  getPlatformSettings,
   listCourierRateSlabs,
   listCouriers,
   listDefaultDeliveryRates,
@@ -139,6 +140,11 @@ function CustomerDeliveryChargesSection({ vendorId }: { vendorId: string }) {
     queryKey: ["default-delivery-rates"],
     queryFn: () => listDefaultDeliveryRates(supabase),
   });
+  const { data: settings } = useQuery({
+    queryKey: ["platform-settings"],
+    queryFn: () => getPlatformSettings(supabase),
+  });
+  const vendorDcAllowed = settings?.dc_reminder_enabled ?? false;
 
   const availableCities = DELIVERY_CITY_OPTIONS.filter((c) => !rates?.some((r) => r.city === c));
   const [city, setCity] = useState("");
@@ -195,25 +201,59 @@ function CustomerDeliveryChargesSection({ vendorId }: { vendorId: string }) {
   });
 
   const exceedsCap = matchingCap != null && fee.trim() !== "" && Number(fee) > matchingCap.max_fee;
-  const canSave = city.trim() && fee.trim() && Number(fee) >= 0 && !exceedsCap && !saveMutation.isPending;
+  const canSave =
+    vendorDcAllowed && city.trim() && fee.trim() && Number(fee) >= 0 && !exceedsCap && !saveMutation.isPending;
 
   return (
     <div className="flex flex-col gap-3.5 rounded-xl border border-border bg-surface p-[22px_24px]">
       <p className="text-[15px] font-bold text-ink">Your delivery charge to customers</p>
+
+      {!vendorDcAllowed ? (
+        <>
+          <p className="rounded-md bg-surface-alt px-3 py-2.5 text-[12.5px] text-muted">
+            Admin hasn&rsquo;t turned this on yet — delivery is currently <span className="font-semibold text-ink-dark">free</span>{" "}
+            for all your customers. Once admin enables it, you&rsquo;ll be able to set your own charge here.
+          </p>
+          <div className="overflow-x-auto rounded-lg border border-border">
+            <p className="border-b border-border bg-surface-alt px-3.5 py-2 text-[11px] font-bold uppercase tracking-[0.06em] text-muted-table">
+              KMO&rsquo;s current delivery charges
+            </p>
+            {!defaultRates || defaultRates.length === 0 ? (
+              <p className="p-3.5 text-[12.5px] text-muted">KMO hasn&rsquo;t set any delivery charge yet — free everywhere.</p>
+            ) : (
+              defaultRates.map((r) => (
+                <div
+                  key={r.id}
+                  className="grid grid-cols-2 items-center border-t border-[#F5F0EE] px-3.5 py-2.5 text-[12.5px] first:border-t-0"
+                >
+                  <span className="font-bold text-ink-dark">{r.city}</span>
+                  <span className="text-ink-dark">{r.fee === 0 ? "Free" : `Rs. ${r.fee.toLocaleString()}`}</span>
+                </div>
+              ))
+            )}
+          </div>
+        </>
+      ) : null}
+
       <p className="text-[12.5px] text-muted">
         Set what a customer pays for delivery, per city. Pick <span className="font-semibold text-ink-dark">Other</span>{" "}
         to set one rate for every city you haven&rsquo;t listed individually — otherwise KMO&rsquo;s own default for
         that city applies, or delivery is free if KMO hasn&rsquo;t set one either.
       </p>
-      <p className="rounded-md bg-primary-tint px-3 py-2.5 text-[12px] text-ink-dark">
-        <span className="font-bold">Want to offer free delivery yourself?</span> Set Fee to{" "}
-        <span className="font-semibold">0</span> to make it always free for that city — or leave Fee as your normal
-        rate and fill &ldquo;Free over Rs.&rdquo; so orders above that amount ship free automatically, otherwise your
-        fee applies. Once you set a rate for a city (even 0), KMO&rsquo;s own default for that city no longer applies
-        to you.
-      </p>
+      {vendorDcAllowed ? (
+        <p className="rounded-md bg-primary-tint px-3 py-2.5 text-[12px] text-ink-dark">
+          <span className="font-bold">Want to offer free delivery yourself?</span> Set Fee to{" "}
+          <span className="font-semibold">0</span> to make it always free for that city — or leave Fee as your normal
+          rate and fill &ldquo;Free over Rs.&rdquo; so orders above that amount ship free automatically, otherwise your
+          fee applies. Once you set a rate for a city (even 0), KMO&rsquo;s own default for that city no longer applies
+          to you.
+        </p>
+      ) : null}
 
-      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-[1fr_1fr_1fr_auto]">
+      <div
+        className="grid grid-cols-2 gap-2.5 sm:grid-cols-[1fr_1fr_1fr_auto]"
+        style={!vendorDcAllowed ? { opacity: 0.5, pointerEvents: "none" } : undefined}
+      >
         <SearchableSelect
           options={availableCities}
           value={city}

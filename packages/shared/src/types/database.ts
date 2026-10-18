@@ -962,6 +962,7 @@ export interface Database {
           free_delivery_threshold: number | null;
           whatsapp_number: string | null;
           dc_reminder_enabled: boolean;
+          dc_info_popup_enabled: boolean;
           updated_at: string;
         };
         Insert: {
@@ -993,6 +994,7 @@ export interface Database {
           free_delivery_threshold?: number | null;
           whatsapp_number?: string | null;
           dc_reminder_enabled?: boolean;
+          dc_info_popup_enabled?: boolean;
           updated_at?: string;
         };
         Update: {
@@ -1024,6 +1026,7 @@ export interface Database {
           free_delivery_threshold?: number | null;
           whatsapp_number?: string | null;
           dc_reminder_enabled?: boolean;
+          dc_info_popup_enabled?: boolean;
           updated_at?: string;
         };
         Relationships: [];

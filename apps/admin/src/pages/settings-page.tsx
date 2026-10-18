@@ -106,10 +106,28 @@ export function SettingsPage() {
   });
 
   const toggleDcReminder = useMutation({
-    mutationFn: (next: boolean) => updatePlatformSettings(supabase, { dc_reminder_enabled: next }),
+    mutationFn: async (next: boolean) => {
+      const updated = await updatePlatformSettings(supabase, { dc_reminder_enabled: next });
+      // The popup's meaning changes with this toggle, so every vendor should
+      // see the fresh version once more rather than staying dismissed.
+      await supabase.from("vendors").update({ dc_reminder_acknowledged: false }).not("id", "is", null);
+      return updated;
+    },
     onSuccess: (updated) => {
       queryClient.setQueryData(["platform-settings"], updated);
       if (user) void logAdminAction(supabase, user.id, "settings.dc_reminder", "platform_settings");
+    },
+  });
+
+  const toggleDcInfoPopup = useMutation({
+    mutationFn: async (next: boolean) => {
+      const updated = await updatePlatformSettings(supabase, { dc_info_popup_enabled: next });
+      await supabase.from("vendors").update({ dc_reminder_acknowledged: false }).not("id", "is", null);
+      return updated;
+    },
+    onSuccess: (updated) => {
+      queryClient.setQueryData(["platform-settings"], updated);
+      if (user) void logAdminAction(supabase, user.id, "settings.dc_info_popup", "platform_settings");
     },
   });
 
@@ -353,11 +371,39 @@ export function SettingsPage() {
       <DefaultDeliveryRatesCard />
 
       <div className="flex flex-col gap-3.5 rounded-xl border border-border bg-surface p-[22px_24px]">
-        <p className="text-[15px] font-bold text-ink">Delivery charge reminder</p>
+        <p className="text-[15px] font-bold text-ink">Delivery charges info popup</p>
         <p className="text-xs text-muted">
-          Shows a popup on every vendor&rsquo;s dashboard, on every login, reminding them to set their delivery
-          charge — until they set one or dismiss it. A vendor who never sets one just gets free (Rs. 0) delivery
-          on their products.
+          Shows vendors a popup (on every login, until dismissed) telling them delivery is currently free for their
+          customers, with a link to review KMO&rsquo;s default delivery charges and a WhatsApp number to discuss.
+          Has no effect while &ldquo;Vendor-set delivery charges&rdquo; below is on — that popup takes over instead.
+        </p>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            role="switch"
+            aria-checked={settings?.dc_info_popup_enabled ?? false}
+            onClick={() => toggleDcInfoPopup.mutate(!(settings?.dc_info_popup_enabled ?? false))}
+            className="flex h-[23px] w-[42px] shrink-0 items-center rounded-full p-[2px] transition-colors"
+            style={{
+              background: (settings?.dc_info_popup_enabled ?? false) ? "var(--color-accent)" : "var(--color-border)",
+              justifyContent: (settings?.dc_info_popup_enabled ?? false) ? "flex-end" : "flex-start",
+            }}
+          >
+            <span className="h-[19px] w-[19px] rounded-full bg-white" />
+          </button>
+          <span className="text-[13px] font-semibold text-ink-dark">
+            {(settings?.dc_info_popup_enabled ?? false) ? "On" : "Off"}
+          </span>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-3.5 rounded-xl border border-border bg-surface p-[22px_24px]">
+        <p className="text-[15px] font-bold text-ink">Vendor-set delivery charges</p>
+        <p className="text-xs text-muted">
+          Off: vendors can&rsquo;t set their own delivery charge (the info popup above, if on, is what they see
+          instead). On: vendors can set their own charge from their Shipping page — still capped by whatever you set
+          on Delivery Caps — and get a popup (on every login, until dismissed) either asking them to set one, or to
+          review what they&rsquo;ve already set.
         </p>
         <div className="flex items-center gap-3">
           <button

@@ -36,6 +36,7 @@ export async function updatePlatformSettings(
       | "free_delivery_threshold"
       | "whatsapp_number"
       | "dc_reminder_enabled"
+      | "dc_info_popup_enabled"
       | "loyalty_enabled"
       | "loyalty_point_value"
       | "loyalty_min_redeem_points"
