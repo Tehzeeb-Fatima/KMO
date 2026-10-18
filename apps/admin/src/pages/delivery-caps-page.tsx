@@ -9,45 +9,51 @@ import { supabase } from "../lib/supabase";
  *  their own rate in their dashboard; this stops any vendor from setting it
  *  above what KMO allows for that city — either a platform-wide default, or a
  *  tighter (or looser) cap for one specific vendor. */
+const ALL_VENDORS = "__all__";
+
 export function DeliveryCapsPage() {
-  const [vendorId, setVendorId] = useState<string>("");
+  const [selection, setSelection] = useState<string>(ALL_VENDORS);
 
   const { data: vendors } = useQuery({
     queryKey: ["all-vendors-for-delivery-caps"],
     queryFn: () => listVendors(supabase, { status: "approved" }),
   });
 
+  const selectedVendor = selection === ALL_VENDORS ? null : vendors?.find((v) => v.id === selection);
+
   return (
     <div className="flex max-w-[640px] flex-col gap-5">
-      <CapTable
-        title="Default caps — every vendor"
-        hint="Applies to every vendor unless a vendor-specific override below sets a different cap for that city."
-        vendorId={null}
-      />
-
       <div className="rounded-xl border border-border bg-surface p-5">
-        <p className="mb-3 text-[15px] font-bold text-ink">Vendor-specific override</p>
+        <p className="mb-3 text-[15px] font-bold text-ink">Who should this cap apply to?</p>
         <select
-          value={vendorId}
-          onChange={(e) => setVendorId(e.target.value)}
+          value={selection}
+          onChange={(e) => setSelection(e.target.value)}
           className="w-full max-w-[360px] rounded-lg border border-border bg-surface px-3 py-2 text-[13px] text-ink-dark"
         >
-          <option value="">Select a vendor…</option>
+          <option value={ALL_VENDORS}>All vendors (default)</option>
           {vendors?.map((v) => (
             <option key={v.id} value={v.id}>
               {v.store_name}
             </option>
           ))}
         </select>
+        <p className="mt-2 text-[12px] text-muted">
+          {selection === ALL_VENDORS
+            ? "Applies to every vendor unless that vendor has their own override below."
+            : "Takes priority over the \"All vendors\" default, for this vendor only."}
+        </p>
       </div>
 
-      {vendorId ? (
-        <CapTable
-          title={`Override for ${vendors?.find((v) => v.id === vendorId)?.store_name ?? "vendor"}`}
-          hint="Takes priority over the default caps above for this vendor only."
-          vendorId={vendorId}
-        />
-      ) : null}
+      <CapTable
+        key={selection}
+        title={selection === ALL_VENDORS ? "Default caps — every vendor" : `Override for ${selectedVendor?.store_name ?? "vendor"}`}
+        hint={
+          selection === ALL_VENDORS
+            ? "Applies to every vendor unless a vendor-specific override sets a different cap for that city."
+            : "Takes priority over the default caps for this vendor only."
+        }
+        vendorId={selection === ALL_VENDORS ? null : selection}
+      />
     </div>
   );
 }
