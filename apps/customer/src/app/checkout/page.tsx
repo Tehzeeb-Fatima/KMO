@@ -173,10 +173,12 @@ function CheckoutContent() {
   // isn't just an estimate.
   const defaultFee = defaultDeliveryRate?.fee ?? 0;
   const freeThreshold = defaultDeliveryRate?.free_delivery_threshold ?? null;
-  const deliveryFee = vendorIds.reduce((sum, vendorId) => {
-    const vendorSubtotal = (items ?? [])
-      .filter((i) => i.products.vendor_id === vendorId)
-      .reduce((s, i) => s + (i.product_variants?.price_override ?? i.products.price) * i.quantity, 0);
+  const deliveryFeesByVendor = vendorIds.map((vendorId) => {
+    const vendorItems = (items ?? []).filter((i) => i.products.vendor_id === vendorId);
+    const vendorSubtotal = vendorItems.reduce(
+      (s, i) => s + (i.product_variants?.price_override ?? i.products.price) * i.quantity,
+      0,
+    );
     const customRate = vendorDeliveryRates?.get(vendorId);
     const fee = customRate
       ? customRate.free_delivery_threshold != null && vendorSubtotal >= customRate.free_delivery_threshold
@@ -185,8 +187,9 @@ function CheckoutContent() {
       : freeThreshold != null && vendorSubtotal >= freeThreshold
         ? 0
         : defaultFee;
-    return sum + fee;
-  }, 0);
+    return { vendorId, storeName: vendorItems[0]?.products.vendors?.store_name ?? "Store", fee };
+  });
+  const deliveryFee = deliveryFeesByVendor.reduce((sum, v) => sum + v.fee, 0);
 
   // Mirrors place_order's matching exactly, so this total is what gets charged
   // — not an estimate that then changes once the order is actually created.
@@ -441,12 +444,34 @@ function CheckoutContent() {
               </div>
             ))}
           </div>
-          <div className="flex justify-between text-[13.5px]">
-            <span className="text-muted">{t.checkout.delivery}</span>
-            <span className="font-semibold text-success">
-              {deliveryFee === 0 ? t.checkout.free : `Rs. ${deliveryFee.toLocaleString()}`}
-            </span>
-          </div>
+          {deliveryFeesByVendor.length > 1 ? (
+            <div className="flex flex-col gap-1 border-t border-[#F1EAE6] pt-3">
+              <span className="text-[12px] font-bold uppercase tracking-[0.04em] text-muted">
+                {t.checkout.delivery}
+              </span>
+              {deliveryFeesByVendor.map((v) => (
+                <div key={v.vendorId} className="flex justify-between text-[12.5px]">
+                  <span className="text-muted">{v.storeName}</span>
+                  <span className="font-semibold text-ink-dark">
+                    {v.fee === 0 ? t.checkout.free : `Rs. ${v.fee.toLocaleString()}`}
+                  </span>
+                </div>
+              ))}
+              <div className="flex justify-between text-[13.5px]">
+                <span className="font-semibold text-ink-dark">Total delivery</span>
+                <span className="font-semibold text-success">
+                  {deliveryFee === 0 ? t.checkout.free : `Rs. ${deliveryFee.toLocaleString()}`}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="flex justify-between text-[13.5px]">
+              <span className="text-muted">{t.checkout.delivery}</span>
+              <span className="font-semibold text-success">
+                {deliveryFee === 0 ? t.checkout.free : `Rs. ${deliveryFee.toLocaleString()}`}
+              </span>
+            </div>
+          )}
 
           {promotionDiscount > 0 ? (
             <div className="flex justify-between text-[13.5px]">
