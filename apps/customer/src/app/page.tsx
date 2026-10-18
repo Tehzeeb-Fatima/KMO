@@ -12,7 +12,7 @@ import {
   listActiveBanners,
   listActiveTestimonials,
   type BannerRow,
-  listVendors,
+  listShopVendors,
   listRecentReviews,
   getSiteRatingSummary,
   submitContactMessage,
@@ -43,7 +43,7 @@ export default function Home() {
   });
   const { data: vendors } = useQuery({
     queryKey: ["featured-vendors"],
-    queryFn: () => listVendors(supabase, { status: "approved" }),
+    queryFn: () => listShopVendors(supabase),
   });
   const { data: ratingSummary } = useQuery({
     queryKey: ["site-rating-summary"],
@@ -864,10 +864,10 @@ function ContactSection() {
             <div className="flex items-center gap-2.5">
               <span className="h-[7px] w-[7px] shrink-0 rounded-full bg-accent" />
               <a
-                href="mailto:info@karachimartonline.com"
+                href="mailto:contact@karachimartonline.com"
                 className="text-[13.5px] text-ink-dark hover:text-primary hover:underline"
               >
-                info@karachimartonline.com
+                contact@karachimartonline.com
               </a>
             </div>
             <div className="flex items-center gap-2.5">

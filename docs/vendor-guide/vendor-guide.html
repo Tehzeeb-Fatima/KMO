@@ -140,7 +140,7 @@ strong { font-weight: 700; }
     <div class="facts">
       <div class="fact"><span class="k">Dashboard ka address</span><span class="v">vendor.karachimartonline.com</span></div>
       <div class="fact"><span class="k">Help ke liye</span><span class="v">+92 371 2104790</span></div>
-      <div class="fact"><span class="k">Email</span><span class="v">info@karachimartonline.com</span></div>
+      <div class="fact"><span class="k">Email</span><span class="v">contact@karachimartonline.com</span></div>
     </div>
     <nav class="toc" aria-label="Guide ke hisse">
       <a href="#login">1. Login</a>
@@ -148,10 +148,13 @@ strong { font-weight: 700; }
       <a href="#product">3. Naya product add karein</a>
       <a href="#manage">4. Product edit karein</a>
       <a href="#orders">5. Orders</a>
-      <a href="#courier">6. Courier</a>
+      <a href="#courier">6. Courier aur delivery</a>
       <a href="#store">7. Store settings</a>
       <a href="#banner">Banner &amp; logo size</a>
       <a href="#payments">8. Payments</a>
+      <a href="#bulk">9. Bulk upload</a>
+      <a href="#messages">10. Messages</a>
+      <a href="#rules">11. Product rules</a>
       <a href="#faq">FAQs</a>
     </nav>
   </header>
@@ -160,7 +163,7 @@ strong { font-weight: 700; }
   <section class="chapter" id="login">
     <div class="chapter-head">
       <h2>1. First time login</h2>
-      <p>KMO team aap ka account banati hai aur aap ko 1 email bhejti hai. Us email ke link se aap apna password khud set karte hain.</p>
+      <p>KMO team aap ka account banate hain aur aap ko 1 email bhejte hain. Us email ke link se aap apna password khud set karte hain.</p>
     </div>
 
     <div class="step noshot">
@@ -258,7 +261,7 @@ strong { font-weight: 700; }
           <li><strong>Original price</strong>: sirf tab likhein jab sale lagani ho. Website par yeh price cut (line ke saath) show hoti hai. Optional hai.</li>
           <li><strong>Description</strong>: fabric, size details, aur box mein kya kya hai.</li>
         </ol>
-        <div class="tip"><b>Category nahi mil rahi?</b>Har group ke end mein <span class="chip">Other ...</span> ka button hai. Agar aap ka poora group hi show nahi ho raha, to KMO team ko batayein.</div>
+        <div class="tip"><b>Sub-category zaroori hai</b>Sirf main category (jaise "Kids") select nahi hoti. Uske andar wali sub-category select karein, jaise "Girls Clothing". Aap ki category ya poora group show nahi ho raha to KMO team ko batayein, woh add kar denge.</div>
       </div>
       <figure class="shot part"><img src="shots/06-details.png" alt="Product details form: naam, category buttons, price aur description" width="716" height="2684"><figcaption>Part 1: Product details</figcaption></figure>
     </div>
@@ -390,21 +393,61 @@ strong { font-weight: 700; }
   <!-- 6. courier -->
   <section class="chapter" id="courier">
     <div class="chapter-head">
-      <h2>6. Courier select karein</h2>
-      <p>Aap ke orders kis courier se jayenge, yeh <strong>Shipping</strong> page par select hota hai. Yeh kaam sirf 1 dafa karna hai.</p>
+      <h2>6. Courier aur delivery</h2>
+      <p>KMO ke orders <strong>Courier Fast Service</strong> se jate hain. Parcel aap ke ghar ya shop se pickup hota hai aur customer tak pohanchta hai.</p>
     </div>
     <div class="step">
       <div class="step-text">
+        <h3>Step 1: Courier account connect karein (sirf 1 dafa)</h3>
         <ol>
-          <li>Menu ☰ se <strong>Shipping</strong> open karein.</li>
-          <li><strong>Preferred courier</strong> mein apna courier select karein, jaise <span class="chip">Leopards</span>, <span class="chip">TRAX</span>, <span class="chip">PostEx</span> ya <span class="chip">Courier Fast Service</span>.</li>
-          <li>Tap karte hi save ho jata hai. Selected courier par orange border aa jata hai.</li>
-          <li>Neeche <strong>Your shipping rates</strong> mein us courier ke rates show hote hain: city, weight (kg), fee aur GST/tax.</li>
+          <li>KMO team aap ka Courier Fast Service account banate hain. Is account ki email wahi hoti hai jo aap ki KMO login email hai.</li>
+          <li>Account ready hone par vendor portal kholte hi <strong>Connect your Courier account</strong> ka popup aata hai.</li>
+          <li>KMO team ka diya hua <strong>courier password</strong> likhein aur <span class="btn">Connect</span> par tap karein.</li>
+          <li><strong>Connected</strong> likha aa jaye to kaam ho gaya. Abhi time nahi to <span class="btn">Later</span> dabayein, popup agli dafa phir aayega.</li>
         </ol>
-        <div class="tip"><b>Kaun sa courier chunein?</b>Jo courier aap ke area se parcel pickup karta ho aur jis se aap pehle kaam kar chuke hon. Courier badalna ho to bas doosre courier par tap kar dein.</div>
-        <div class="warn"><b>"No rates set up yet" likha aa raha hai?</b>Courier ke rates KMO team set karti hai. Yeh message aaye to KMO team ko call karein, woh aap ke liye rates add kar degi.</div>
+        <div class="warn"><b>Password ka error aa raha hai?</b>KMO team ko call karein. Woh naya password set kar denge.</div>
+
+        <h3>Step 2: Har order ki courier booking</h3>
+        <p>Booking 2 tareeqon se ho sakti hai:</p>
+        <ol>
+          <li><strong>KMO portal se (asaan tareeqa):</strong> Orders page par order kholein aur <span class="btn">Request courier booking</span> dabayein. Ek saath kai orders bhejne hon to list mein tick karke upar wala button dabayein. KMO team check karke booking kar dete hain.</li>
+          <li><strong>Courier ki website se:</strong> Fast Service ke portal par usi email se login karein aur khud booking karein.</li>
+        </ol>
+        <table class="status-table">
+          <thead><tr><th>Courier status</th><th>Matlab</th></tr></thead>
+          <tbody>
+            <tr><td>Not sent to courier</td><td>Abhi booking request nahi bheji.</td></tr>
+            <tr><td>Awaiting admin review</td><td>Request KMO team ke paas hai.</td></tr>
+            <tr><td>Booked with courier</td><td>Booking ho gayi. Order mein <strong>Tracking #</strong> show hota hai.</td></tr>
+            <tr><td>Courier request rejected</td><td>KMO team ka note parhein, theek karke dobara request bhejein.</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Step 3: Packing aur pickup</h3>
+        <ul>
+          <li>Product achhi tarah pack karein taake raste mein kharab na ho.</li>
+          <li>Product ka <strong>weight</strong> sahi likhein (product form mein "Weight in grams"). Courier charges weight se lagte hain.</li>
+          <li>Fast Service ka rider aap se parcel pickup karta hai aur customer ke address par deliver karta hai.</li>
+          <li>Har step par order ka status update karein (chapter 5), jaise Ready to ship, Shipped.</li>
+        </ul>
+
+        <h3>Customer se delivery charges</h3>
+        <ol>
+          <li>Menu &#9776; se <strong>Shipping</strong> open karein.</li>
+          <li><strong>Your delivery charge to customers</strong> mein city select karein, fee (Rs.) likhein aur <span class="btn">Save</span> dabayein.</li>
+          <li>Har city ka alag charge rakh sakte hain. <span class="chip">Other</span> select karke baaki sab cities ka ek charge rakhein.</li>
+          <li>Aap kisi city ka charge set na karein to KMO ka default charge lagta hai.</li>
+        </ol>
+        <div class="tip"><b>Customer ko pehle se pata hota hai</b>Delivery charge checkout par order confirm hone se pehle customer ko dikhta hai, aur customer se hi liya jata hai.</div>
+
+        <h3>Delivery na ho sake ya parcel wapas aaye</h3>
+        <ul>
+          <li>Customer ghar par na ho to courier <strong>2 dafa dobara</strong> delivery try karta hai.</li>
+          <li>Customer parcel wapas kare to return <strong>saboot (evidence)</strong> ke saath complete hota hai, taake record saaf rahe.</li>
+          <li>Returned, cancelled ya undelivered order ki payment nahi banti.</li>
+        </ul>
       </div>
-      <figure class="shot"><img src="shots/17-shipping.png" alt="Shipping page: Preferred courier list mein Leopards selected" width="390" height="844"><figcaption>Shipping page</figcaption></figure>
+      <figure class="shot"><img src="shots/17-shipping.png" alt="Shipping page" width="390" height="844"><figcaption>Shipping page</figcaption></figure>
     </div>
   </section>
 
@@ -457,30 +500,86 @@ strong { font-weight: 700; }
         </ul>
       </div>
     </div>
-    <figure class="wide"><img src="shots/19-banner-home.png" alt="Homepage par Featured vendor card, upar banner ki patli patti" width="430" height="212"><figcaption>Homepage: Featured vendors card par banner patli patti ki tarah</figcaption></figure>
-    <figure class="wide"><img src="shots/20-banner-store.png" alt="Store page par bara banner aur neeche left par logo" width="1286" height="310"><figcaption>Store page: bara banner, neeche left par logo</figcaption></figure>
+    <figure class="wide"><img src="shots/19-banner-home.png" alt="Homepage par Featured vendor card, upar banner ki patli patti" width="586" height="498" style="max-width:360px"><figcaption>Homepage: Featured vendors card par banner patli patti ki tarah</figcaption></figure>
+    <figure class="wide"><img src="shots/20-banner-store.png" alt="Store page par bara banner aur neeche left par logo" width="1220" height="306"><figcaption>Store page: bara banner, neeche left par logo</figcaption></figure>
   </section>
 
   <!-- 8. payments -->
   <section class="chapter" id="payments">
     <div class="chapter-head">
       <h2>8. Payments</h2>
-      <p>Delivered orders ki payment yahan jama hoti hai.</p>
+      <p>Customer courier rider ko cash (COD) deta hai. Courier woh amount KMO ko bhejta hai, aur KMO delivered orders ki payment aap ko deta hai.</p>
     </div>
     <div class="step">
       <div class="step-text">
         <ul>
           <li><strong>Available balance</strong>: jo amount aap withdraw kar sakte hain.</li>
           <li><strong>Paid to date</strong>: ab tak aap ko kitni payment mil chuki hai.</li>
-          <li><strong>Request a withdrawal</strong>: amount likhein (khaali chhor dein to full balance) aur <span class="btn">Send request to admin</span> par tap karein. KMO team payment bhej degi.</li>
+          <li><strong>Request a withdrawal</strong>: amount likhein (khaali chhor dein to full balance) aur <span class="btn">Send request to admin</span> par tap karein. KMO team payment bhej denge.</li>
         </ul>
-        <div class="tip"><b>Commission</b>KMO aap ki sale par koi commission nahi leta. Membership free trial ke baad Rs. 499 monthly hai. Details isi page par <strong>Read the full vendor agreement</strong> mein hai.</div>
+        <div class="tip"><b>Invoice aur payment kab?</b>Hafte mein 1 ya 2 invoice ban sakti hain, jaisa aap ko suit kare. Invoice banne ke <strong>agle din</strong> payment ho jati hai. Sirf delivered orders ki payment banti hai.</div>
+        <div class="tip"><b>Commission aur membership</b>Pehle 3 mahine KMO koi commission nahi leta. Uske baad delivered orders par 8% commission. Pehle 2 mahine membership free, phir Rs. 499 monthly. Details isi page par <strong>Read the full vendor agreement</strong> mein hain.</div>
       </div>
       <figure class="shot"><img src="shots/16-payments.png" alt="Payments page: balance, membership aur withdrawal request" width="390" height="844"><figcaption>Payments</figcaption></figure>
     </div>
   </section>
 
   <!-- faq -->
+  <!-- 9. bulk upload -->
+  <section class="chapter" id="bulk">
+    <div class="chapter-head">
+      <h2>9. Bulk upload: ek saath bahut se products</h2>
+      <p>Bahut se products hon to ek ek add karne ki zaroorat nahi. Excel jaisi file se sab ek saath upload karein.</p>
+    </div>
+    <div class="step-text">
+      <ol>
+        <li><strong>Products</strong> page par <span class="btn">Download reference file</span> dabayein. Is file mein 1 sample row hai jo format dikhati hai.</li>
+        <li>File Excel ya Google Sheets mein kholein aur har row mein 1 product likhein: name, category, price, description waghera.</li>
+        <li>Category wahi likhein jo file mein di gayi list mein hai (sub-category).</li>
+        <li>File CSV format mein save karein aur <span class="btn">Bulk upload</span> dabakar select karein.</li>
+        <li>Upload ke baad har product mein photos lagayein aur approval ke liye bhejein.</li>
+      </ol>
+      <div class="warn"><b>Error aaya?</b>Message batata hai ke kis row mein kya ghalat hai, jaise category match nahi hui. Theek karke file dobara upload karein.</div>
+      <p><strong>Ek saath delete:</strong> products list mein tick karein aur <span class="btn">Delete selected</span> dabayein. Products archive ho jate hain aur customers ko nahi dikhte.</p>
+    </div>
+  </section>
+
+  <!-- 10. messages -->
+  <section class="chapter" id="messages">
+    <div class="chapter-head">
+      <h2>10. Messages aur notifications</h2>
+      <p>Customers aap ke store page se aap ko message kar sakte hain.</p>
+    </div>
+    <div class="step-text">
+      <ul>
+        <li>Menu &#9776; se <strong>Messages</strong> kholein. Customers ke messages aur <strong>KMO Support</strong> ki chat yahin hoti hai.</li>
+        <li>Customer ko jaldi jawab dein. Jaldi reply se sale hone ke chances barhte hain.</li>
+        <li>Upar ghanti (bell) mein notifications aati hain: naya order, product approve ya reject, payment aur messages.</li>
+        <li>Customer ka number ya details apni marketing ke liye use na karein. Yeh KMO policy ke khilaf hai.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 11. rules -->
+  <section class="chapter" id="rules">
+    <div class="chapter-head">
+      <h2>11. Product rules: jaldi approval ke liye</h2>
+      <p>In baaton ka khayal rakhein to product jaldi approve hota hai aur customers ko achha lagta hai.</p>
+    </div>
+    <div class="step-text">
+      <ul>
+        <li><strong>Pehli photo sirf product ki:</strong> saaf background par product. Model wali photo baad mein lagayein.</li>
+        <li><strong>Sub-category zaroori:</strong> sirf main category nahi chalegi.</li>
+        <li><strong>Colours aur sizes:</strong> sirf woh colours likhein jo aap ke paas hain. Har colour ki photo us colour ke saath lagayein, taake customer jo colour chune wahi photo dikhe.</li>
+        <li><strong>Name aur description:</strong> saaf naam likhein, jaise "Rotating Spice Rack with 12 Jars". Description chhoti aur kaam ki rakhein: material, size, kya saath milta hai.</li>
+        <li><strong>Emoji na lagayein:</strong> name aur description mein emoji save nahi hote, khud hat jate hain.</li>
+        <li><strong>Ek product ek hi dafa:</strong> same product dobara upload na karein. Naya colour ho to usi product mein colour add karein.</li>
+        <li><strong>Optional:</strong> Urdu description aur product video bhi laga sakte hain.</li>
+        <li><strong>Stock aur price:</strong> stock khatam ho to foran update karein, aur price final rakhein.</li>
+      </ul>
+    </div>
+  </section>
+
   <section class="chapter" id="faq">
     <div class="chapter-head">
       <h2>FAQs: common questions</h2>
@@ -500,11 +599,19 @@ strong { font-weight: 700; }
       </details>
       <details>
         <summary>Mujhe apni category nahi mil rahi.</summary>
-        <p>Har group ke end mein "Other ..." ka button hai. Agar aap ka poora group show nahi ho raha (jaise aap jewellery bhi bechte hain), to KMO team ko call karein. Woh aap ke store mein add kar degi.</p>
+        <p>Main category ke andar wali sub-category select karein. Agar aap ka poora group show nahi ho raha (jaise aap jewellery bhi bechte hain), to KMO team ko call karein. Woh aap ke store mein add kar denge.</p>
       </details>
       <details>
         <summary>Parcel kis courier se jayega?</summary>
-        <p>Jo courier aap ne Shipping page par "Preferred courier" mein select kiya hai. Abhi tak select nahi kiya to Menu ☰ → Shipping se select kar lein.</p>
+        <p>Courier Fast Service se. Pehli dafa popup mein courier account connect karein, phir har order par "Request courier booking" dabayein. Details chapter 6 mein hain.</p>
+      </details>
+      <details>
+        <summary>Customer ghar par nahi tha, ab kya hoga?</summary>
+        <p>Courier 2 dafa dobara delivery try karta hai. Phir bhi na ho to parcel aap ko wapas aata hai aur us order ki payment nahi banti.</p>
+      </details>
+      <details>
+        <summary>Payment kab milegi?</summary>
+        <p>Hafte mein 1 ya 2 invoice banti hain. Invoice ke agle din delivered orders ki payment aap ko mil jati hai.</p>
       </details>
       <details>
         <summary>Phone par menu nahi mil raha.</summary>
@@ -521,8 +628,8 @@ strong { font-weight: 700; }
     <h2>Koi bhi problem ho, hum se baat karein</h2>
     <p>Call ya WhatsApp karein. Hum aap ko step by step guide kar denge.</p>
     <div class="contact">
-      <span>📞 +92 371 2104790</span>
-      <span>✉ info@karachimartonline.com</span>
+      <span>Phone: +92 371 2104790</span>
+      <span>Email: contact@karachimartonline.com</span>
     </div>
   </section>
 

@@ -61,11 +61,11 @@ export function SiteFooter() {
           </p>
           <div className="mt-1 flex flex-col gap-2 text-[13px]">
             <a
-              href="mailto:info@karachimartonline.com"
+              href="mailto:contact@karachimartonline.com"
               className="flex w-fit items-center gap-2 text-[#D5C4E2] hover:text-white"
             >
               <Mail className="h-4 w-4 shrink-0 text-[#B9A3CD]" />
-              info@karachimartonline.com
+              contact@karachimartonline.com
             </a>
             <a href="tel:+923712104790" className="flex w-fit items-center gap-2 text-[#D5C4E2] hover:text-white">
               <Phone className="h-4 w-4 shrink-0 text-[#B9A3CD]" />

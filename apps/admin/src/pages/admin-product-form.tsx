@@ -184,6 +184,8 @@ export function AdminProductForm({
       if (!name.trim()) throw new Error("Enter a product name.");
       if (!(Number(price) > 0)) throw new Error("Enter a price greater than 0.");
       if (categoryIds.size === 0) throw new Error("Pick at least one category.");
+      const mainPicked = Array.from(categoryIds).find((id) => (allCategories ?? []).some((c) => c.parent_id === id));
+      if (mainPicked) throw new Error("Pick a sub-category instead of the main category, so shoppers find it when browsing.");
       const categoryIdList = Array.from(categoryIds);
       const payload = {
         name,
