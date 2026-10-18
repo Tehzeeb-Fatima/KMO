@@ -365,6 +365,12 @@ function SlabTable({
           {saving ? "Saving…" : editingId ? "Save changes" : "+ Add slab"}
         </button>
       </div>
+      {maxWeight.trim() !== "" && Number(maxWeight) <= Number(minWeight) ? (
+        <p className="mb-3 text-[12px] font-semibold text-danger">
+          Max kg ({maxWeight}) must be greater than Min kg ({minWeight}) — or clear the Max kg field to make this
+          an open-ended slab. That&rsquo;s why Add/Save is disabled.
+        </p>
+      ) : null}
       {editingId ? (
         <button type="button" onClick={resetForm} className="mb-3 w-fit text-[12px] font-bold text-muted">
           Cancel editing
