@@ -264,7 +264,7 @@ export default function Home() {
                 className="overflow-hidden rounded-lg border border-border bg-surface transition-shadow duration-300 hover:shadow-[0_14px_28px_-12px_rgba(74,34,102,0.45)]"
               >
                 <div
-                  className="h-[76px] bg-surface-alt bg-cover bg-center"
+                  className="aspect-[5/1] bg-surface-alt bg-cover bg-center"
                   style={{ backgroundImage: `url(${v.cover_url ?? DEFAULT_VENDOR_BANNER})` }}
                 />
                 <div className="-mt-[34px] flex flex-col gap-2.5 p-4">
