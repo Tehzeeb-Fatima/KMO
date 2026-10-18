@@ -4,6 +4,12 @@ import Link from "next/link";
 import { Mail, Phone } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/language-context";
 
+const SOCIAL_LINKS = [
+  { href: "https://www.facebook.com/share/18hwkW51XP/", label: "Facebook", path: "M14 8h3V4h-3c-2.8 0-4.5 1.7-4.5 4.5V11H7v4h2.5v9h4v-9h3l.5-4h-3.5V8.8c0-.5.3-.8.5-.8Z" },
+  { href: "https://www.instagram.com/karachimartonline/", label: "Instagram", path: "M12 7.3a4.7 4.7 0 1 0 0 9.4 4.7 4.7 0 0 0 0-9.4Zm0 7.7a3 3 0 1 1 0-6 3 3 0 0 1 0 6Zm4.9-8.9a1.1 1.1 0 1 0 0 2.2 1.1 1.1 0 0 0 0-2.2ZM12 3.5c-2.3 0-2.6 0-3.5.1-3.1.1-4.8 1.8-4.9 4.9-.1.9-.1 1.2-.1 3.5s0 2.6.1 3.5c.1 3.1 1.8 4.8 4.9 4.9.9.1 1.2.1 3.5.1s2.6 0 3.5-.1c3.1-.1 4.8-1.8 4.9-4.9.1-.9.1-1.2.1-3.5s0-2.6-.1-3.5c-.1-3.1-1.8-4.8-4.9-4.9-.9-.1-1.2-.1-3.5-.1Zm0 1.6c2.3 0 2.5 0 3.4.1 2.2.1 3.3 1.2 3.4 3.4.1.9.1 1.1.1 3.4s0 2.5-.1 3.4c-.1 2.2-1.2 3.3-3.4 3.4-.9.1-1.1.1-3.4.1s-2.5 0-3.4-.1c-2.2-.1-3.3-1.2-3.4-3.4-.1-.9-.1-1.1-.1-3.4s0-2.5.1-3.4c.1-2.2 1.2-3.3 3.4-3.4.9-.1 1.1-.1 3.4-.1Z" },
+  { href: "https://www.tiktok.com/@karachi.mart.online", label: "TikTok", path: "M16.6 5.8A4.3 4.3 0 0 1 15.5 3h-3.1v12.4a2.6 2.6 0 1 1-2.6-2.6c.3 0 .5 0 .8.1V9.7a5.7 5.7 0 1 0 4.9 5.7V9.1a7.4 7.4 0 0 0 4.3 1.4V7.4a4.3 4.3 0 0 1-3.2-1.6Z" },
+];
+
 const VENDOR_URL = process.env.NEXT_PUBLIC_VENDOR_URL ?? "https://vendor.karachimartonline.com";
 
 export function SiteFooter() {
@@ -71,6 +77,22 @@ export function SiteFooter() {
               <Phone className="h-4 w-4 shrink-0 text-[#B9A3CD]" />
               <span dir="ltr">+92 371 2104790</span>
             </a>
+          </div>
+          <div className="mt-1 flex items-center gap-2.5">
+            {SOCIAL_LINKS.map((s) => (
+              <a
+                key={s.label}
+                href={s.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={s.label}
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-[#45305C] text-[#D5C4E2] hover:bg-accent hover:text-white"
+              >
+                <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="currentColor" aria-hidden="true">
+                  <path d={s.path} />
+                </svg>
+              </a>
+            ))}
           </div>
         </div>
 

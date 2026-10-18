@@ -30,8 +30,6 @@ import { fill } from "@/lib/fill";
 function paymentOptions(t: TranslationTree): { value: PaymentMethod; label: string; sub: string }[] {
   return [
     { value: "cod", label: t.checkout.cod, sub: t.checkout.codSub },
-    { value: "card", label: t.checkout.card, sub: t.checkout.cardSub },
-    { value: "jazzcash", label: t.checkout.wallet, sub: t.checkout.walletSub },
   ];
 }
 
