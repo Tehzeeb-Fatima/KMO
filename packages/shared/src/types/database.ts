@@ -320,6 +320,7 @@ export interface Database {
           max_weight_kg: number;
           fee: number;
           tax_percent: number;
+          fuel_charge_percent: number;
           created_at: string;
         };
         Insert: {
@@ -331,6 +332,7 @@ export interface Database {
           max_weight_kg: number;
           fee: number;
           tax_percent?: number;
+          fuel_charge_percent?: number;
           created_at?: string;
         };
         Update: {
@@ -342,6 +344,7 @@ export interface Database {
           max_weight_kg?: number;
           fee?: number;
           tax_percent?: number;
+          fuel_charge_percent?: number;
           created_at?: string;
         };
         Relationships: [];

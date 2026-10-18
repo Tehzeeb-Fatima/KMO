@@ -211,6 +211,7 @@ function SlabTable({
   const [maxWeight, setMaxWeight] = useState("1");
   const [fee, setFee] = useState("");
   const [taxPercent, setTaxPercent] = useState("0");
+  const [fuelChargePercent, setFuelChargePercent] = useState("0");
 
   const addMutation = useMutation({
     mutationFn: () =>
@@ -222,6 +223,7 @@ function SlabTable({
         max_weight_kg: Number(maxWeight),
         fee: Number(fee),
         tax_percent: Number(taxPercent) || 0,
+        fuel_charge_percent: Number(fuelChargePercent) || 0,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey });
@@ -230,6 +232,7 @@ function SlabTable({
       setMaxWeight("1");
       setFee("");
       setTaxPercent("0");
+      setFuelChargePercent("0");
     },
   });
 
@@ -253,7 +256,7 @@ function SlabTable({
       <p className="text-[15px] font-bold text-ink">{title}</p>
       <p className="mb-3 text-[12px] text-muted">{hint}</p>
 
-      <div className="mb-3 grid grid-cols-2 gap-2.5 sm:grid-cols-6">
+      <div className="mb-3 grid grid-cols-2 gap-2.5 sm:grid-cols-7">
         <SearchableSelect
           options={DELIVERY_CITY_OPTIONS}
           value={city}
@@ -295,6 +298,14 @@ function SlabTable({
           onChange={(e) => setTaxPercent(e.target.value)}
           className="rounded-lg border border-border px-3 py-2 text-[13px] outline-none focus:border-primary-light"
         />
+        <input
+          type="number"
+          autoComplete="off"
+          placeholder="Fuel charge %"
+          value={fuelChargePercent}
+          onChange={(e) => setFuelChargePercent(e.target.value)}
+          className="rounded-lg border border-border px-3 py-2 text-[13px] outline-none focus:border-primary-light"
+        />
         <button
           type="button"
           disabled={!canAdd}
@@ -306,11 +317,12 @@ function SlabTable({
       </div>
 
       <div className="overflow-x-auto rounded-lg border border-border">
-        <div className="grid min-w-[460px] grid-cols-[1fr_1fr_1fr_1fr_60px] bg-surface-alt px-3.5 py-2.5 font-mono text-[10px] uppercase tracking-[0.08em] text-muted-table">
+        <div className="grid min-w-[560px] grid-cols-[1fr_1fr_1fr_1fr_1fr_60px] bg-surface-alt px-3.5 py-2.5 font-mono text-[10px] uppercase tracking-[0.08em] text-muted-table">
           <span>City</span>
           <span>Weight (kg)</span>
           <span>Fee</span>
           <span>GST/tax</span>
+          <span>Fuel charge</span>
           <span />
         </div>
         {isLoading ? (
@@ -321,7 +333,7 @@ function SlabTable({
           slabs.map((s) => (
             <div
               key={s.id}
-              className="grid min-w-[460px] grid-cols-[1fr_1fr_1fr_1fr_60px] items-center border-t border-[#F5F0EE] px-3.5 py-2.5 text-[12.5px]"
+              className="grid min-w-[560px] grid-cols-[1fr_1fr_1fr_1fr_1fr_60px] items-center border-t border-[#F5F0EE] px-3.5 py-2.5 text-[12.5px]"
             >
               <span className="font-bold text-ink-dark">{s.city}</span>
               <span className="text-muted">
@@ -329,6 +341,7 @@ function SlabTable({
               </span>
               <span className="text-ink-dark">Rs. {s.fee.toLocaleString()}</span>
               <span className="text-muted">{s.tax_percent}%</span>
+              <span className="text-muted">{s.fuel_charge_percent}%</span>
               <button
                 type="button"
                 onClick={() => setPendingDelete(s.id)}
