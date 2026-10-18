@@ -632,6 +632,9 @@ function ProductForm({
     mutationFn: async () => {
       if (!name.trim()) throw new Error("Enter a product name.");
       if (!categoryId) throw new Error("Pick a category.");
+      if ((allCategories ?? []).some((c) => c.parent_id === categoryId)) {
+        throw new Error("Pick a sub-category (e.g. Kitchenware, Skincare), not just the main category.");
+      }
       if (!(Number(price) > 0)) throw new Error("Enter a price greater than 0.");
       if (compareAtPrice && Number(compareAtPrice) > 0 && Number(compareAtPrice) <= Number(price)) {
         throw new Error("Original price must be higher than the selling price, or leave it empty.");
@@ -735,13 +738,12 @@ function ProductForm({
                         <p className="mb-2 text-[12.5px] font-bold text-ink-dark">{g.parent.name}</p>
                       ) : null}
                       <div className="flex flex-wrap gap-2">
-                        {[
-                          ...g.children.map((c) => ({ id: c.id, label: c.name })),
-                          {
-                            id: g.parent.id,
-                            label: g.children.length > 0 ? `Other ${g.parent.name}` : g.parent.name,
-                          },
-                        ].map((c) => {
+                        {/* A main category with sub-categories can't be picked itself,
+                            so every product lands in a sub-category shoppers browse. */}
+                        {(g.children.length > 0
+                          ? g.children.map((c) => ({ id: c.id, label: c.name }))
+                          : [{ id: g.parent.id, label: g.parent.name }]
+                        ).map((c) => {
                           const selected = categoryId === c.id;
                           return (
                             <button
