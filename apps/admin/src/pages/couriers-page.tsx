@@ -11,12 +11,13 @@ import {
   setCourierActive,
   updateCourierRateSlab,
 } from "@kmo/shared/api";
-import { DELIVERY_CITY_OPTIONS } from "@kmo/shared/lib";
+import { calculateCourierCharge, DELIVERY_CITY_OPTIONS, findMatchingSlab, slabsForCity } from "@kmo/shared/lib";
 import { ConfirmDialog, SearchableSelect } from "@kmo/shared/ui";
 import type { Database } from "@kmo/shared/types";
 import { supabase } from "../lib/supabase";
 
 type CourierRow = Database["public"]["Tables"]["couriers"]["Row"];
+type SlabRow = Database["public"]["Tables"]["courier_rate_slabs"]["Row"];
 
 export function CouriersPage() {
   const queryClient = useQueryClient();
@@ -212,12 +213,25 @@ function SlabTable({
     queryFn: () => listCourierRateSlabs(supabase, courierId, vendorId),
   });
 
+  const [pricingMode, setPricingMode] = useState<"weight" | "flat">("weight");
   const [city, setCity] = useState("");
   const [minWeight, setMinWeight] = useState("0");
   const [maxWeight, setMaxWeight] = useState("1");
   const [fee, setFee] = useState("");
   const [additionalPerKg, setAdditionalPerKg] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  function switchMode(mode: "weight" | "flat") {
+    setPricingMode(mode);
+    if (mode === "flat") {
+      setMinWeight("0");
+      setMaxWeight("");
+      setAdditionalPerKg("");
+    } else {
+      setMinWeight("0");
+      setMaxWeight("1");
+    }
+  }
 
   // GST/tax and fuel charge are set once for this whole list (default, or
   // this one vendor's override — admin can give different vendors different
@@ -245,6 +259,7 @@ function SlabTable({
 
   function resetForm() {
     setEditingId(null);
+    setPricingMode("weight");
     setCity("");
     setMinWeight("0");
     setMaxWeight("1");
@@ -259,6 +274,8 @@ function SlabTable({
     setMaxWeight(s.max_weight_kg != null ? String(s.max_weight_kg) : "");
     setFee(String(s.fee));
     setAdditionalPerKg(s.additional_per_kg != null ? String(s.additional_per_kg) : "");
+    const isFlat = s.min_weight_kg === 0 && s.max_weight_kg == null && s.additional_per_kg == null;
+    setPricingMode(isFlat ? "flat" : "weight");
   }
 
   const slabPayload = {
@@ -307,14 +324,49 @@ function SlabTable({
   return (
     <div className="rounded-xl border border-border bg-surface p-5">
       <p className="text-[15px] font-bold text-ink">{title}</p>
-      <p className="text-[12px] text-muted">{hint}</p>
-      <p className="mb-3 text-[12px] text-muted">
-        Leave <span className="font-semibold text-ink-dark">Max kg</span> blank to make an open-ended slab (&ldquo;this
-        weight and above&rdquo;) — set wherever you want fixed slabs to stop, then fill{" "}
-        <span className="font-semibold text-ink-dark">Additional Rs./kg</span> to charge extra for every kg beyond it.
-      </p>
+      <p className="mb-3 text-[12px] text-muted">{hint}</p>
 
-      <div className="mb-3 grid grid-cols-2 gap-2.5 sm:grid-cols-6">
+      <div className="mb-3 flex gap-1.5">
+        <button
+          type="button"
+          onClick={() => switchMode("weight")}
+          className="rounded-full px-3.5 py-1.5 text-[12px] font-bold"
+          style={
+            pricingMode === "weight"
+              ? { background: "var(--color-primary)", color: "#fff", border: "1px solid var(--color-primary)" }
+              : { background: "#fff", color: "var(--color-primary)", border: "1px solid var(--color-border)" }
+          }
+        >
+          Weight-based (kg slabs)
+        </button>
+        <button
+          type="button"
+          onClick={() => switchMode("flat")}
+          className="rounded-full px-3.5 py-1.5 text-[12px] font-bold"
+          style={
+            pricingMode === "flat"
+              ? { background: "var(--color-primary)", color: "#fff", border: "1px solid var(--color-primary)" }
+              : { background: "#fff", color: "var(--color-primary)", border: "1px solid var(--color-border)" }
+          }
+        >
+          Flat rate (any weight)
+        </button>
+      </div>
+
+      {pricingMode === "weight" ? (
+        <p className="mb-3 text-[12px] text-muted">
+          Leave <span className="font-semibold text-ink-dark">Max kg</span> blank to make an open-ended slab
+          (&ldquo;this weight and above&rdquo;) — set wherever you want fixed slabs to stop, then fill{" "}
+          <span className="font-semibold text-ink-dark">Additional Rs./kg</span> to charge extra for every kg beyond
+          it.
+        </p>
+      ) : (
+        <p className="mb-3 text-[12px] text-muted">
+          One price for this city, whatever the parcel weighs — no kg slabs at all.
+        </p>
+      )}
+
+      <div className={`mb-3 grid grid-cols-2 gap-2.5 ${pricingMode === "weight" ? "sm:grid-cols-6" : "sm:grid-cols-3"}`}>
         <SearchableSelect
           options={DELIVERY_CITY_OPTIONS}
           value={city}
@@ -322,24 +374,28 @@ function SlabTable({
           placeholder="City…"
           className="col-span-2 sm:col-span-1"
         />
-        <input
-          type="number"
-          step="0.1"
-          autoComplete="off"
-          placeholder="Min kg"
-          value={minWeight}
-          onChange={(e) => setMinWeight(e.target.value)}
-          className="rounded-lg border border-border px-3 py-2 text-[13px] outline-none focus:border-primary-light"
-        />
-        <input
-          type="number"
-          step="0.1"
-          autoComplete="off"
-          placeholder="Max kg (blank = and above)"
-          value={maxWeight}
-          onChange={(e) => setMaxWeight(e.target.value)}
-          className="rounded-lg border border-border px-3 py-2 text-[13px] outline-none focus:border-primary-light"
-        />
+        {pricingMode === "weight" ? (
+          <>
+            <input
+              type="number"
+              step="0.1"
+              autoComplete="off"
+              placeholder="Min kg"
+              value={minWeight}
+              onChange={(e) => setMinWeight(e.target.value)}
+              className="rounded-lg border border-border px-3 py-2 text-[13px] outline-none focus:border-primary-light"
+            />
+            <input
+              type="number"
+              step="0.1"
+              autoComplete="off"
+              placeholder="Max kg (blank = and above)"
+              value={maxWeight}
+              onChange={(e) => setMaxWeight(e.target.value)}
+              className="rounded-lg border border-border px-3 py-2 text-[13px] outline-none focus:border-primary-light"
+            />
+          </>
+        ) : null}
         <input
           type="number"
           autoComplete="off"
@@ -348,24 +404,26 @@ function SlabTable({
           onChange={(e) => setFee(e.target.value)}
           className="rounded-lg border border-border px-3 py-2 text-[13px] outline-none focus:border-primary-light"
         />
-        <input
-          type="number"
-          autoComplete="off"
-          placeholder="Additional Rs./kg"
-          value={additionalPerKg}
-          onChange={(e) => setAdditionalPerKg(e.target.value)}
-          className="rounded-lg border border-border px-3 py-2 text-[13px] outline-none focus:border-primary-light"
-        />
+        {pricingMode === "weight" ? (
+          <input
+            type="number"
+            autoComplete="off"
+            placeholder="Additional Rs./kg"
+            value={additionalPerKg}
+            onChange={(e) => setAdditionalPerKg(e.target.value)}
+            className="rounded-lg border border-border px-3 py-2 text-[13px] outline-none focus:border-primary-light"
+          />
+        ) : null}
         <button
           type="button"
           disabled={!canAdd}
           onClick={() => (editingId ? updateMutation.mutate() : addMutation.mutate())}
           className="rounded-lg bg-accent px-3 py-2 text-[12.5px] font-bold text-white disabled:opacity-60"
         >
-          {saving ? "Saving…" : editingId ? "Save changes" : "+ Add slab"}
+          {saving ? "Saving…" : editingId ? "Save changes" : pricingMode === "flat" ? "+ Add flat rate" : "+ Add slab"}
         </button>
       </div>
-      {maxWeight.trim() !== "" && Number(maxWeight) <= Number(minWeight) ? (
+      {pricingMode === "weight" && maxWeight.trim() !== "" && Number(maxWeight) <= Number(minWeight) ? (
         <p className="mb-3 text-[12px] font-semibold text-danger">
           Max kg ({maxWeight}) must be greater than Min kg ({minWeight}) — or clear the Max kg field to make this
           an open-ended slab. That&rsquo;s why Add/Save is disabled.
@@ -434,7 +492,9 @@ function SlabTable({
             >
               <span className="font-bold text-ink-dark">{s.city}</span>
               <span className="text-muted">
-                {s.min_weight_kg}–{s.max_weight_kg != null ? s.max_weight_kg : "∞"}
+                {s.min_weight_kg === 0 && s.max_weight_kg == null && s.additional_per_kg == null
+                  ? "Any weight (flat)"
+                  : `${s.min_weight_kg}–${s.max_weight_kg != null ? s.max_weight_kg : "∞"}`}
               </span>
               <span className="min-w-0 break-words text-ink-dark">
                 Rs. {s.fee.toLocaleString()}
@@ -469,6 +529,99 @@ function SlabTable({
         onConfirm={() => deleteMutation.mutate(pendingDelete!)}
         onCancel={() => setPendingDelete(null)}
       />
+
+      {slabs && slabs.length > 0 ? <PriceCalculator slabs={slabs} /> : null}
+    </div>
+  );
+}
+
+/** Works out the exact charge for a given weight (and optionally the
+ *  product's price, for GST) from this list's slabs — the same math that
+ *  invoicing/bookkeeping will use. */
+function PriceCalculator({ slabs }: { slabs: SlabRow[] }) {
+  const cities = Array.from(new Set(slabs.map((s) => s.city))).sort();
+  const [city, setCity] = useState(cities[0] ?? "");
+  const [weight, setWeight] = useState("");
+  const [productPrice, setProductPrice] = useState("");
+
+  const citySlabs = slabsForCity(slabs, city || cities[0] || "");
+  const weightKg = Number(weight);
+  const matched = weight.trim() !== "" && weightKg > 0 ? findMatchingSlab(citySlabs, weightKg) : null;
+  const result = matched ? calculateCourierCharge(matched, weightKg, Number(productPrice) || 0) : null;
+
+  return (
+    <div className="mt-5 rounded-xl border border-dashed border-border p-5">
+      <p className="text-[15px] font-bold text-ink">Calculate price</p>
+      <p className="mb-3 text-[12px] text-muted">
+        Enter a weight to see the exact charge from the slabs above — the same figure invoicing will use.
+      </p>
+      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+        <select
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
+          className="rounded-lg border border-border px-3 py-2 text-[13px] text-ink-dark"
+        >
+          {cities.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
+        <input
+          type="number"
+          step="0.1"
+          autoComplete="off"
+          placeholder="Weight (kg)"
+          value={weight}
+          onChange={(e) => setWeight(e.target.value)}
+          className="rounded-lg border border-border px-3 py-2 text-[13px] outline-none focus:border-primary-light"
+        />
+        <input
+          type="number"
+          autoComplete="off"
+          placeholder="Product price (Rs., optional)"
+          value={productPrice}
+          onChange={(e) => setProductPrice(e.target.value)}
+          className="col-span-2 sm:col-span-2 rounded-lg border border-border px-3 py-2 text-[13px] outline-none focus:border-primary-light"
+        />
+      </div>
+
+      {weight.trim() !== "" && !matched ? (
+        <p className="mt-3 text-[12.5px] text-danger">No slab covers {weight}kg for {city || "this city"}.</p>
+      ) : null}
+
+      {result ? (
+        <div className="mt-3 flex flex-col gap-1 rounded-lg bg-surface-alt p-3.5 text-[13px]">
+          <div className="flex justify-between">
+            <span className="text-muted">Base fee ({result.slab.min_weight_kg}–{result.slab.max_weight_kg ?? "∞"}kg)</span>
+            <span className="font-semibold text-ink-dark">Rs. {result.slab.fee.toLocaleString()}</span>
+          </div>
+          {result.extraBrackets > 0 ? (
+            <div className="flex justify-between">
+              <span className="text-muted">
+                {result.extraBrackets} extra kg (started) × Rs. {result.slab.additional_per_kg}/kg
+              </span>
+              <span className="font-semibold text-ink-dark">Rs. {result.extraCharge.toLocaleString()}</span>
+            </div>
+          ) : null}
+          {result.gstAmount > 0 ? (
+            <div className="flex justify-between">
+              <span className="text-muted">GST/tax ({result.slab.tax_percent}% of product price)</span>
+              <span className="font-semibold text-ink-dark">Rs. {result.gstAmount.toLocaleString()}</span>
+            </div>
+          ) : null}
+          {result.fuelAmount > 0 ? (
+            <div className="flex justify-between">
+              <span className="text-muted">Fuel charge ({result.slab.fuel_charge_percent}% of delivery fee)</span>
+              <span className="font-semibold text-ink-dark">Rs. {result.fuelAmount.toLocaleString()}</span>
+            </div>
+          ) : null}
+          <div className="mt-1 flex justify-between border-t border-border pt-1.5">
+            <span className="font-bold text-ink">Total</span>
+            <span className="font-bold text-accent">Rs. {result.total.toLocaleString()}</span>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
