@@ -145,7 +145,7 @@ export default function StoreClient() {
       <div className="overflow-hidden rounded-[14px] border border-border bg-surface">
         {/* cover banner */}
         <div
-          className="aspect-[5/1] w-full"
+          className="h-[100px] w-full sm:h-[190px]"
           style={{
             backgroundImage: `url(${vendor.cover_url ?? DEFAULT_VENDOR_BANNER})`,
             backgroundSize: "cover",
