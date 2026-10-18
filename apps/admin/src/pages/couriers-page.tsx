@@ -242,7 +242,7 @@ function SlabTable({
     city: city.trim(),
     min_weight_kg: Number(minWeight),
     max_weight_kg: maxWeight.trim() === "" ? null : Number(maxWeight),
-    fee: Number(fee),
+    fee: fee.trim() === "" ? 0 : Number(fee),
     tax_percent: Number(taxPercent) || 0,
     fuel_charge_percent: Number(fuelChargePercent) || 0,
     additional_per_kg: additionalPerKg.trim() === "" ? null : Number(additionalPerKg),
@@ -277,7 +277,7 @@ function SlabTable({
   const saving = addMutation.isPending || updateMutation.isPending;
   const canAdd =
     city.trim() &&
-    fee.trim() &&
+    (fee.trim() !== "" || additionalPerKg.trim() !== "") &&
     (maxWeight.trim() === "" || Number(maxWeight) > Number(minWeight)) &&
     !saving;
 
