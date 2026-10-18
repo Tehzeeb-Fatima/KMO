@@ -123,11 +123,26 @@ strong { font-weight: 700; }
   .shot { max-width: 280px; }
 }
 @media print {
-  body { background: #fff; padding-block: 0; }
-  .toc { display: none; }
-  .step { break-inside: avoid; }
-  .chapter-head { break-after: avoid; }
-  .faq details { break-inside: avoid; }
+  @page { size: A4; margin: 14mm 14mm 16mm; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { background: #fff; padding: 0; font-size: 13.5px; line-height: 1.5; }
+  .wrap { max-width: none; gap: 0; }
+  .cover { padding-top: 0; }
+  .cover h1 { font-size: 40px; }
+  .chapter, #banner, #faq { display: flex; flex-direction: column; gap: 16px; margin-top: 30px; }
+  #login, #product, #orders, #courier, #store, #payments { break-before: page; margin-top: 0; }
+  #courier .step, #product .step { break-inside: auto; }
+  .chapter-head h2, .chapter h2 { font-size: 24px; }
+  .step { grid-template-columns: minmax(0, 1fr) 190px; gap: 20px; break-inside: avoid; }
+  .step h3 { font-size: 15px; margin-top: 4px; }
+  .shot { max-width: 190px; }
+  .shot img { border-width: 4px; border-radius: 16px; box-shadow: none; }
+  .shot.part img { max-height: 235mm; width: auto; max-width: 100%; margin: 0 auto; }
+  .wide img { max-height: 90mm; width: auto; max-width: 100%; }
+  .status-table, .tip, .warn, li, .faq details, figure { break-inside: avoid; }
+  .chapter-head, h2, h3 { break-after: avoid; }
+  .faq details > summary { list-style: none; }
+  .help { break-before: avoid; break-inside: avoid; margin-top: 20px; }
 }
 </style>
 
@@ -317,7 +332,7 @@ strong { font-weight: 700; }
         <p class="step-no">Step 6 · Approval</p>
         <h3>Product "Pending" mein chala jata hai</h3>
         <p>Save ke baad product list mein <span class="pill pending">Pending</span> likha aata hai. Iska matlab hai KMO team usay check kar rahi hai. Approve hote hi woh <span class="pill live">Live</span> ho jata hai aur website par customers ko show hone lagta hai.</p>
-        <p>Aap ko kuch nahi karna, bas wait karein. Approval ki notification bell icon 🔔 mein aa jati hai.</p>
+        <p>Aap ko kuch nahi karna, bas wait karein. Approval ki notification bell icon mein aa jati hai.</p>
       </div>
       <figure class="shot"><img src="shots/11-pending.png" alt="Products list jismein naya product Pending aur purana Live hai" width="390" height="844"><figcaption>Naya product Pending, purana Live</figcaption></figure>
     </div>
@@ -356,7 +371,7 @@ strong { font-weight: 700; }
   <section class="chapter" id="orders">
     <div class="chapter-head">
       <h2>5. Order aaye to kya karein</h2>
-      <p>Naya order aate hi bell icon 🔔 par notification aati hai aur order <strong>Orders</strong> page par <span class="pill pending">Pending</span> mein show hota hai.</p>
+      <p>Naya order aate hi bell icon par notification aati hai aur order <strong>Orders</strong> page par <span class="pill pending">Pending</span> mein show hota hai.</p>
     </div>
     <div class="step">
       <div class="step-text">
@@ -500,8 +515,8 @@ strong { font-weight: 700; }
         </ul>
       </div>
     </div>
-    <figure class="wide"><img src="shots/19-banner-home.png" alt="Homepage par Featured vendor card, upar banner ki patli patti" width="586" height="498" style="max-width:360px"><figcaption>Homepage: Featured vendors card par banner patli patti ki tarah</figcaption></figure>
-    <figure class="wide"><img src="shots/20-banner-store.png" alt="Store page par bara banner aur neeche left par logo" width="1220" height="306"><figcaption>Store page: bara banner, neeche left par logo</figcaption></figure>
+    <figure class="wide"><img src="shots/19-banner-home-tt.png" alt="Homepage par vendor card, upar banner ki patli patti" width="586" height="498" style="max-width:360px"><figcaption>Homepage: Featured vendors card par banner patli patti ki tarah</figcaption></figure>
+    <figure class="wide"><img src="shots/20-banner-store-tt.png" alt="Store page par bara banner aur neeche left par logo" width="1220" height="306"><figcaption>Store page: bara banner, neeche left par logo</figcaption></figure>
   </section>
 
   <!-- 8. payments -->
