@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { listVendors } from "@kmo/shared/api";
+import { listShopVendors } from "@kmo/shared/api";
 import { Breadcrumbs } from "@kmo/shared/ui";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/i18n/language-context";
@@ -15,7 +15,7 @@ export default function VendorsPage() {
 
   const { data: vendors, isLoading } = useQuery({
     queryKey: ["all-vendors", search],
-    queryFn: () => listVendors(supabase, { status: "approved", search: search || undefined }),
+    queryFn: () => listShopVendors(supabase, { search: search || undefined }),
   });
 
   return (

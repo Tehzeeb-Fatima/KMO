@@ -12,7 +12,7 @@ import {
   listActiveBanners,
   listActiveTestimonials,
   type BannerRow,
-  listVendors,
+  listShopVendors,
   listRecentReviews,
   getSiteRatingSummary,
   submitContactMessage,
@@ -43,7 +43,7 @@ export default function Home() {
   });
   const { data: vendors } = useQuery({
     queryKey: ["featured-vendors"],
-    queryFn: () => listVendors(supabase, { status: "approved" }),
+    queryFn: () => listShopVendors(supabase),
   });
   const { data: ratingSummary } = useQuery({
     queryKey: ["site-rating-summary"],

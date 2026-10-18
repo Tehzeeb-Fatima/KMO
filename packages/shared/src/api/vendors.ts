@@ -85,6 +85,23 @@ export async function listVendors(
   return data;
 }
 
+/** Storefront list: approved vendors with at least one live product. A new
+ *  store stays off the vendors page and home page until its first product is
+ *  approved; its own page still opens by direct link. */
+export async function listShopVendors(supabase: Client, filter?: { search?: string }): Promise<VendorRow[]> {
+  let query = supabase
+    .from("vendors")
+    .select("*, products!inner(id)")
+    .eq("verification_status", "approved")
+    .eq("products.status", "published")
+    .limit(1, { foreignTable: "products" })
+    .order("created_at", { ascending: false });
+  if (filter?.search) query = query.ilike("store_name", `%${filter.search}%`);
+  const { data, error } = await query;
+  if (error) throw error;
+  return (data ?? []).map(({ products: _p, ...v }) => v as VendorRow);
+}
+
 export async function getVendorById(
   supabase: Client,
   id: string,
