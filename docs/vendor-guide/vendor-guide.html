@@ -123,11 +123,26 @@ strong { font-weight: 700; }
   .shot { max-width: 280px; }
 }
 @media print {
-  body { background: #fff; padding-block: 0; }
-  .toc { display: none; }
-  .step { break-inside: avoid; }
-  .chapter-head { break-after: avoid; }
-  .faq details { break-inside: avoid; }
+  @page { size: A4; margin: 14mm 14mm 16mm; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { background: #fff; padding: 0; font-size: 13.5px; line-height: 1.5; }
+  .wrap { max-width: none; gap: 0; }
+  .cover { padding-top: 0; }
+  .cover h1 { font-size: 40px; }
+  .chapter, #banner, #faq { display: flex; flex-direction: column; gap: 16px; margin-top: 30px; }
+  #login, #product, #orders, #courier, #store, #payments { break-before: page; margin-top: 0; }
+  #courier .step, #product .step { break-inside: auto; }
+  .chapter-head h2, .chapter h2 { font-size: 24px; }
+  .step { grid-template-columns: minmax(0, 1fr) 190px; gap: 20px; break-inside: avoid; }
+  .step h3 { font-size: 15px; margin-top: 4px; }
+  .shot { max-width: 190px; }
+  .shot img { border-width: 4px; border-radius: 16px; box-shadow: none; }
+  .shot.part img { max-height: 235mm; width: auto; max-width: 100%; margin: 0 auto; }
+  .wide img { max-height: 90mm; width: auto; max-width: 100%; }
+  .status-table, .tip, .warn, li, .faq details, figure { break-inside: avoid; }
+  .chapter-head, h2, h3 { break-after: avoid; }
+  .faq details > summary { list-style: none; }
+  .help { break-before: avoid; break-inside: avoid; margin-top: 20px; }
 }
 </style>
 
