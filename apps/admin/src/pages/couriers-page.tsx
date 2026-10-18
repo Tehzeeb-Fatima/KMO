@@ -254,7 +254,10 @@ function SlabTable({
   return (
     <div className="rounded-xl border border-border bg-surface p-5">
       <p className="text-[15px] font-bold text-ink">{title}</p>
-      <p className="mb-3 text-[12px] text-muted">{hint}</p>
+      <p className="text-[12px] text-muted">{hint}</p>
+      <p className="mb-3 text-[12px] text-muted">
+        GST/tax % is charged on the product&rsquo;s price; fuel charge % is charged on the delivery fee.
+      </p>
 
       <div className="mb-3 grid grid-cols-2 gap-2.5 sm:grid-cols-7">
         <SearchableSelect

@@ -90,12 +90,16 @@ export function ShippingPage() {
           <div className="border-b border-border px-5 py-4 text-[15px] font-bold text-ink">
             Your shipping rates
           </div>
-          <div className="grid min-w-[480px] grid-cols-[1fr_1fr_1fr_1fr] bg-surface-alt px-5 py-3 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
+          <div className="grid min-w-[560px] grid-cols-[1fr_1fr_1fr_1fr_1fr] bg-surface-alt px-5 py-3 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
             <span>City</span>
             <span>Weight (kg)</span>
             <span>Fee</span>
             <span>GST/tax</span>
+            <span>Fuel charge</span>
           </div>
+          <p className="border-t border-[#F5F0EE] px-5 py-2 text-[11px] text-muted">
+            GST/tax is charged on your product&rsquo;s price; fuel charge is charged on the delivery fee.
+          </p>
           {!rateSlabs || rateSlabs.length === 0 ? (
             <div className="p-5 text-sm text-muted">
               No rates set up yet for this courier — contact KMO support.
@@ -104,7 +108,7 @@ export function ShippingPage() {
             rateSlabs.map((s) => (
               <div
                 key={s.id}
-                className="grid min-w-[480px] grid-cols-[1fr_1fr_1fr_1fr] items-center border-t border-[#F5F0EE] px-5 py-3 text-[12.5px]"
+                className="grid min-w-[560px] grid-cols-[1fr_1fr_1fr_1fr_1fr] items-center border-t border-[#F5F0EE] px-5 py-3 text-[12.5px]"
               >
                 <span className="font-bold text-ink-dark">{s.city}</span>
                 <span className="text-muted">
@@ -112,6 +116,7 @@ export function ShippingPage() {
                 </span>
                 <span className="text-ink-dark">Rs. {s.fee.toLocaleString()}</span>
                 <span className="text-muted">{s.tax_percent}%</span>
+                <span className="text-muted">{s.fuel_charge_percent}%</span>
               </div>
             ))
           )}
