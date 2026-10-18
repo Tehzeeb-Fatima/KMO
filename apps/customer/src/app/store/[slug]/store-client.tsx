@@ -21,7 +21,7 @@ import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/i18n/language-context";
 import { StorePageSkeleton } from "@/components/page-loader";
-import { DEFAULT_VENDOR_BANNER } from "@/lib/vendor-banner";
+import { VendorCover } from "@/components/vendor-cover";
 
 type Tab = "products" | "policies" | "reviews" | "about";
 
@@ -144,14 +144,7 @@ export default function StoreClient() {
 
       <div className="overflow-hidden rounded-[14px] border border-border bg-surface">
         {/* cover banner */}
-        <div
-          className="aspect-[5/1] w-full"
-          style={{
-            backgroundImage: `url(${vendor.cover_url ?? DEFAULT_VENDOR_BANNER})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
-        />
+        <VendorCover url={vendor.cover_url} />
 
         {/* identity row */}
         <div className="grid gap-4 px-4 pb-6 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end sm:gap-[30px] sm:px-[30px]">
