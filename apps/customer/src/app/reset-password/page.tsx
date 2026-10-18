@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AuthLayout, Button, Input, PasswordInput } from "@kmo/shared/ui";
 import { supabase } from "@/lib/supabase";
+import { friendlyError } from "@/lib/friendly-error";
 
 type Mode = "request" | "verifying" | "set-password" | "done";
 
@@ -73,7 +74,7 @@ export default function ResetPasswordPage() {
     });
     setSubmitting(false);
     if (error) {
-      setError(error.message);
+      setError(friendlyError(error));
       return;
     }
     setMode("done");
@@ -90,7 +91,7 @@ export default function ResetPasswordPage() {
     const { data, error } = await supabase.auth.updateUser({ password });
     if (error) {
       setSubmitting(false);
-      setError(error.message);
+      setError(friendlyError(error));
       return;
     }
     // Vendors and admins work in their own dashboards, not the shopper account page.

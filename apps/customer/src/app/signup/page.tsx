@@ -7,6 +7,7 @@ import { AuthLayout, Button, Input, PasswordInput, Turnstile } from "@kmo/shared
 import { signUpWithCaptcha } from "@kmo/shared/api";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "@/lib/supabase";
+import { friendlyError } from "@/lib/friendly-error";
 import { useLanguage } from "@/lib/i18n/language-context";
 
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
@@ -63,7 +64,7 @@ export default function SignupPage() {
     } catch (err) {
       setSubmitting(false);
       setCaptchaResetKey((k) => k + 1);
-      setError(err instanceof Error ? err.message : "Sign up failed. Please try again.");
+      setError(friendlyError(err));
       return;
     }
     setSubmitting(false);

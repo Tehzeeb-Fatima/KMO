@@ -23,6 +23,7 @@ import { Button, SearchableSelect } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { RequireAuth } from "@/components/require-auth";
 import { supabase } from "@/lib/supabase";
+import { friendlyError } from "@/lib/friendly-error";
 import { useLanguage } from "@/lib/i18n/language-context";
 import type { TranslationTree } from "@/lib/i18n/translations";
 import { fill } from "@/lib/fill";
@@ -157,7 +158,7 @@ function CheckoutContent() {
       const guestParam = isGuest ? "&guest=1" : "";
       router.push(`/order-confirmation?orders=${result.orders.map((o) => o.id).join(",")}${guestParam}`);
     },
-    onError: (err: Error) => setError(err.message),
+    onError: (err: Error) => setError(friendlyError(err)),
   });
 
   const subtotal =
