@@ -140,6 +140,8 @@ function CheckoutContent() {
       if (isGuest) {
         const trimmedEmail = email.trim();
         if (!trimmedEmail) throw new Error("Please enter your email to place the order.");
+        if (!/^[^\s@,]+@[^\s@,]+\.[^\s@,]+$/.test(trimmedEmail))
+          throw new Error("Please check your email address, e.g. name@gmail.com");
         await claimGuestAccount(supabase, trimmedEmail, `${window.location.origin}/reset-password`);
       }
 

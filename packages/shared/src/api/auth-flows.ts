@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../types";
+import { functionError } from "./function-error";
 
 type Client = SupabaseClient<Database>;
 
@@ -18,7 +19,7 @@ export async function signUpWithCaptcha(supabase: Client, input: SignUpWithCaptc
     session?: unknown;
     error?: { message: string };
   }>("signup-with-captcha", { body: input });
-  if (error) throw error;
+  if (error) throw await functionError(error);
   if (data?.error) throw new Error(data.error.message);
   return data;
 }
@@ -28,6 +29,6 @@ export async function claimGuestAccount(supabase: Client, email: string, redirec
   const { data, error } = await supabase.functions.invoke<{ ok?: boolean; error?: string }>("claim-guest-account", {
     body: { email, redirectTo },
   });
-  if (error) throw error;
+  if (error) throw await functionError(error);
   if (data?.error) throw new Error(data.error);
 }
