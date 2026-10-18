@@ -407,7 +407,7 @@ function SlabTable({
       </div>
 
       <div className="overflow-x-auto rounded-lg border border-border">
-        <div className="grid min-w-[620px] grid-cols-[1fr_1fr_1fr_1fr_1fr_100px] bg-surface-alt px-3.5 py-2.5 font-mono text-[10px] uppercase tracking-[0.08em] text-muted-table">
+        <div className="grid min-w-[620px] grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_100px] bg-surface-alt px-3.5 py-2.5 font-mono text-[10px] uppercase tracking-[0.08em] text-muted-table">
           <span>City</span>
           <span>Weight (kg)</span>
           <span>Fee</span>
@@ -423,22 +423,22 @@ function SlabTable({
           slabs.map((s) => (
             <div
               key={s.id}
-              className="grid min-w-[620px] grid-cols-[1fr_1fr_1fr_1fr_1fr_100px] items-center border-t border-[#F5F0EE] px-3.5 py-2.5 text-[12.5px]"
+              className="grid min-w-[620px] grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_100px] items-center border-t border-[#F5F0EE] px-3.5 py-2.5 text-[12.5px]"
               style={s.id === editingId ? { background: "var(--color-primary-tint)" } : undefined}
             >
               <span className="font-bold text-ink-dark">{s.city}</span>
               <span className="text-muted">
                 {s.min_weight_kg}–{s.max_weight_kg != null ? s.max_weight_kg : "∞"}
               </span>
-              <span className="text-ink-dark">
+              <span className="min-w-0 break-words text-ink-dark">
                 Rs. {s.fee.toLocaleString()}
                 {s.additional_per_kg != null ? (
-                  <span className="text-muted"> + Rs. {s.additional_per_kg}/kg</span>
+                  <span className="block text-muted">+ Rs. {s.additional_per_kg}/kg</span>
                 ) : null}
               </span>
               <span className="text-muted">{s.tax_percent}%</span>
               <span className="text-muted">{s.fuel_charge_percent}%</span>
-              <div className="flex justify-end gap-2">
+              <div className="flex shrink-0 justify-end gap-2">
                 <button type="button" onClick={() => startEdit(s)} className="text-[11px] font-bold text-primary">
                   Edit
                 </button>

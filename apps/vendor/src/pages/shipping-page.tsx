@@ -90,7 +90,7 @@ export function ShippingPage() {
           <div className="border-b border-border px-5 py-4 text-[15px] font-bold text-ink">
             Your shipping rates
           </div>
-          <div className="grid min-w-[560px] grid-cols-[1fr_1fr_1fr_1fr_1fr] bg-surface-alt px-5 py-3 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
+          <div className="grid min-w-[560px] grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] bg-surface-alt px-5 py-3 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
             <span>City</span>
             <span>Weight (kg)</span>
             <span>Fee</span>
@@ -108,16 +108,16 @@ export function ShippingPage() {
             rateSlabs.map((s) => (
               <div
                 key={s.id}
-                className="grid min-w-[560px] grid-cols-[1fr_1fr_1fr_1fr_1fr] items-center border-t border-[#F5F0EE] px-5 py-3 text-[12.5px]"
+                className="grid min-w-[560px] grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] items-center border-t border-[#F5F0EE] px-5 py-3 text-[12.5px]"
               >
                 <span className="font-bold text-ink-dark">{s.city}</span>
                 <span className="text-muted">
                   {s.min_weight_kg}–{s.max_weight_kg != null ? s.max_weight_kg : "∞"}
                 </span>
-                <span className="text-ink-dark">
+                <span className="min-w-0 break-words text-ink-dark">
                   Rs. {s.fee.toLocaleString()}
                   {s.additional_per_kg != null ? (
-                    <span className="text-muted"> + Rs. {s.additional_per_kg}/kg</span>
+                    <span className="block text-muted">+ Rs. {s.additional_per_kg}/kg</span>
                   ) : null}
                 </span>
                 <span className="text-muted">{s.tax_percent}%</span>
