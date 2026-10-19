@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../types";
 import { nonEmptyCategories } from "../lib/category-tree";
 import { parseCsv, toCsv } from "../lib/csv";
+import { cleanProductText, formatProductTitle } from "../lib/product-title";
 import { listVendorCategories } from "./vendors";
 
 type Client = SupabaseClient<Database>;
@@ -85,13 +86,26 @@ export async function getProductBySlug(
   return data as unknown as ProductWithMedia | null;
 }
 
+/** Applies the house style to a product's name and text before it's saved. */
+function tidyProductText<T extends { name?: string; description?: string | null }>(input: T): T {
+  const out = { ...input };
+  if (typeof out.name === "string") out.name = formatProductTitle(out.name);
+  if (typeof out.description === "string") out.description = cleanProductText(out.description);
+  return out;
+}
+
+function tidyVariant<T extends { option_value?: string }>(input: T): T {
+  if (typeof input.option_value !== "string") return input;
+  return { ...input, option_value: input.option_value.split(" / ").map(formatProductTitle).join(" / ") };
+}
+
 export async function createProduct(
   supabase: Client,
   input: ProductInsert,
 ): Promise<ProductRow> {
   const { data, error } = await supabase
     .from("products")
-    .insert(input)
+    .insert(tidyProductText(input))
     .select("*")
     .single();
   if (error) throw error;
@@ -105,7 +119,7 @@ export async function updateProduct(
 ): Promise<ProductRow> {
   const { data, error } = await supabase
     .from("products")
-    .update(patch)
+    .update(tidyProductText(patch))
     .eq("id", id)
     .select("*")
     .single();
@@ -224,7 +238,7 @@ export async function createProductVariant(
 ): Promise<ProductVariantRow> {
   const { data, error } = await supabase
     .from("product_variants")
-    .insert(input)
+    .insert(tidyVariant(input))
     .select("*")
     .single();
   if (error) throw error;
@@ -238,7 +252,7 @@ export async function updateProductVariant(
 ): Promise<ProductVariantRow> {
   const { data, error } = await supabase
     .from("product_variants")
-    .update(patch)
+    .update(tidyVariant(patch))
     .eq("id", id)
     .select("*")
     .single();
@@ -592,7 +606,7 @@ export async function bulkCreateProductsFromCsv(
       status: row.image_urls.length > 0 ? "pending" : "draft",
     };
 
-    const { data: product, error } = await supabase.from("products").insert(insert).select("id").single();
+    const { data: product, error } = await supabase.from("products").insert(tidyProductText(insert)).select("id").single();
     if (error || !product) {
       allErrors.push({ row: row.rowNumber, message: error?.message ?? `Could not create "${row.name}".` });
       continue;
