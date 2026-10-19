@@ -96,3 +96,26 @@ export function colourImageUrl(
   if (!own.length) return undefined;
   return own.reduce((best, img) => (img.sort_order < best.sort_order ? img : best)).url;
 }
+
+const LETTER_SIZE_RUN = /^(?:(?:XXXL|XXL|XLL|XL|XS|S|M|L)[.\s/-]*){2,}$/i;
+const SIZE_ORDER = ["XS", "S", "M", "L", "XL", "XXL", "XXXL"];
+
+/** Splits what a vendor typed into separate sizes. Commas always separate;
+ *  a run of letter sizes typed with dots, spaces or slashes ("S.M.L.XL.XXL")
+ *  is split too, while values like "2.4" or "1.5 Ton" stay whole. */
+export function splitSizes(input: string): string[] {
+  const out: string[] = [];
+  for (const part of input.split(/[,;|]/).map((x) => x.trim()).filter(Boolean)) {
+    if (LETTER_SIZE_RUN.test(part)) {
+      const sizes = part
+        .toUpperCase()
+        .match(/XXXL|XXL|XLL|XL|XS|S|M|L/g)!
+        .map((s) => (s === "XLL" ? "XXL" : s))
+        .sort((a, b) => SIZE_ORDER.indexOf(a) - SIZE_ORDER.indexOf(b));
+      out.push(...sizes);
+    } else {
+      out.push(part);
+    }
+  }
+  return [...new Set(out)];
+}

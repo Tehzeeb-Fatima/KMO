@@ -17,7 +17,7 @@ import {
   uploadProductImage,
 } from "@kmo/shared/api";
 import type { ProductStatus } from "@kmo/shared/types";
-import { categoryPath, mainImageUrl, OPTION_SEPARATOR, variantLabel } from "@kmo/shared/lib";
+import { categoryPath, mainImageUrl, OPTION_SEPARATOR, splitSizes, variantLabel } from "@kmo/shared/lib";
 import { BulkUploadProducts, ConfirmDialog, ProductVideoField } from "@kmo/shared/ui";
 import { supabase } from "../lib/supabase";
 
@@ -581,7 +581,7 @@ function ProductForm({
   const isCombo = variantType === "Colour + Size";
   const splitList = (v: string) => [...new Set(v.split(",").map((x) => x.trim()).filter(Boolean))];
   const canAddVariant = isCombo
-    ? splitList(variantValue).length > 0 && splitList(customType).length > 0
+    ? splitList(variantValue).length > 0 && splitSizes(customType).length > 0
     : !!optionName && !!variantValue.trim();
   function addVariant() {
     if (!canAddVariant) return;
@@ -589,7 +589,7 @@ function ProductForm({
       // One row per colour-and-size pair so an order keeps both choices.
       const rows: FormVariant[] = [];
       for (const colour of splitList(variantValue)) {
-        for (const size of splitList(customType)) {
+        for (const size of splitSizes(customType)) {
           rows.push({
             key: crypto.randomUUID(),
             option_name: `Colour${OPTION_SEPARATOR}Size`,
@@ -604,14 +604,16 @@ function ProductForm({
       setVariantQty("");
       return;
     }
+    // Sizes typed together ("S, M, L" or "S.M.L") become one row each.
+    const values = variantType === "Size" ? splitSizes(variantValue) : [variantValue.trim()];
     setVariants((prev) => [
       ...prev,
-      {
+      ...values.map((value) => ({
         key: crypto.randomUUID(),
         option_name: optionName,
-        option_value: variantValue.trim(),
+        option_value: value,
         stock_quantity: parseStock(variantQty),
-      },
+      })),
     ]);
     setVariantValue("");
     setVariantQty("");
