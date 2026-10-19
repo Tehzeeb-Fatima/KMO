@@ -32,9 +32,15 @@ export async function generateMetadata({
     return { title: "Product not found — Karachi Mart Online" };
   }
 
-  const title = product.seo_title || `${product.name} — Karachi Mart Online`;
+  const price = `Rs. ${product.price.toLocaleString("en-PK")}`;
+  const title = product.seo_title || `${product.name} – ${price} | Buy Online in Karachi`;
+  // Short, English and complete: the start of the vendor's description, then
+  // the price and cash on delivery, which is what shoppers compare in results.
+  const summary = (product.description ?? "").replace(/\s+/g, " ").trim();
+  const lead = summary.length > 110 ? `${summary.slice(0, 107).replace(/\s+\S*$/, "")}…` : summary;
   const description =
-    product.seo_description || product.description?.slice(0, 160) || undefined;
+    product.seo_description ||
+    `${lead ? `${lead} ` : ""}${price}${product.vendors ? ` from ${product.vendors.store_name}` : ""}. Cash on delivery in Karachi.`;
   const image = mainImageUrl(product.product_images);
 
   return {

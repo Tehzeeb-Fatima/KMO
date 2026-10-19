@@ -9,10 +9,16 @@ async function fetchSeoData(slug: string) {
   );
   const { data } = await supabase
     .from("vendors")
-    .select("store_name, description")
+    .select("store_name, description, cover_url, logo_url")
     .eq("slug", slug)
     .maybeSingle();
   return data;
+}
+
+/** Cuts at a word boundary so search results never show half a word. */
+function shorten(text: string, max: number) {
+  if (text.length <= max) return text;
+  return `${text.slice(0, max - 1).replace(/\s+\S*$/, "")}…`;
 }
 
 export async function generateMetadata({
@@ -27,14 +33,22 @@ export async function generateMetadata({
     return { title: "Store not found — Karachi Mart Online" };
   }
 
-  const title = `${vendor.store_name} — Karachi Mart Online`;
-  const description = vendor.description?.slice(0, 160);
+  const title = `${vendor.store_name} – Shop Online in Karachi | Karachi Mart Online`;
+  const description =
+    shorten(vendor.description?.replace(/\s+/g, " ").trim() ?? "", 160) ||
+    `Shop ${vendor.store_name} online on Karachi Mart Online. Verified Karachi seller, cash on delivery.`;
+  const image = vendor.cover_url || vendor.logo_url || undefined;
 
   return {
     title,
     description,
     alternates: { canonical: `/store/${slug}` },
-    openGraph: { title, description },
+    openGraph: {
+      title,
+      description,
+      url: `https://karachimartonline.com/store/${slug}`,
+      images: image ? [{ url: image, alt: vendor.store_name }] : undefined,
+    },
   };
 }
 
