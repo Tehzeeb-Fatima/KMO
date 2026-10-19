@@ -70,6 +70,7 @@ export function DashboardLayout() {
 
   // A new page starts at the top, not wherever the last one was scrolled to.
   useEffect(() => {
+    if ("scrollRestoration" in history) history.scrollRestoration = "manual";
     window.scrollTo(0, 0);
   }, [location.pathname]);
   const activeItem =
