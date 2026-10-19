@@ -37,7 +37,12 @@ import { ensureCustomerId } from "@/lib/ensure-customer-id";
 import { useLanguage } from "@/lib/i18n/language-context";
 import { ProductPageSkeleton } from "@/components/page-loader";
 
-export default function ProductDetailClient() {
+export default function ProductDetailClient({
+  initialProduct,
+}: {
+  /** Fetched on the server so the first HTML already holds the product (for Google). */
+  initialProduct?: Awaited<ReturnType<typeof getProductBySlug>>;
+}) {
   const params = useParams<{ slug: string }>();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -47,6 +52,7 @@ export default function ProductDetailClient() {
   const { data: product, isLoading } = useQuery({
     queryKey: ["product", params.slug],
     queryFn: () => getProductBySlug(supabase, params.slug),
+    initialData: initialProduct,
   });
 
   const { data: activePromotions } = useQuery({
@@ -319,6 +325,15 @@ export default function ProductDetailClient() {
                 : "repeating-linear-gradient(135deg,#F3ECE8 0 10px,#E9DFD9 10px 20px)",
             }}
           >
+            {images[activeImage] ? (
+              // A real <img> (not only a CSS background) so search engines index the photo.
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={images[activeImage].url}
+                alt={product.name}
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            ) : null}
             {images.length > 1 ? (
               <>
                 <button
