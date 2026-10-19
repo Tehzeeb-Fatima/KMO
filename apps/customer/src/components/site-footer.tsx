@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Mail, Phone } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/language-context";
+import { LANDING_PAGES } from "@/lib/seo-pages";
 
 const SOCIAL_LINKS = [
   { href: "https://www.facebook.com/share/18hwkW51XP/", label: "Facebook", path: "M14 8h3V4h-3c-2.8 0-4.5 1.7-4.5 4.5V11H7v4h2.5v9h4v-9h3l.5-4h-3.5V8.8c0-.5.3-.8.5-.8Z" },
@@ -115,6 +116,17 @@ export function SiteFooter() {
             </ul>
           </div>
         ))}
+      </div>
+      {/* Popular searches: links to the keyword pages so shoppers and search engines find them. */}
+      <div className="mx-auto w-full max-w-[1358px] border-t border-[#45305C] px-4 py-5 sm:px-10">
+        <p className="text-xs font-bold uppercase tracking-[0.08em] text-[#7B5A96]">Popular searches</p>
+        <div className="mt-2.5 flex flex-wrap gap-x-4 gap-y-2">
+          {LANDING_PAGES.map((p) => (
+            <Link key={p.slug} href={`/${p.slug}`} className="text-[13px] text-[#D5C4E2] hover:text-white">
+              {p.h1.replace(/ in Karachi$/, "")}
+            </Link>
+          ))}
+        </div>
       </div>
       <div className="mx-auto flex w-full max-w-[1358px] flex-col items-center justify-between gap-2 border-t border-[#45305C] px-4 py-5 text-center sm:flex-row sm:px-10 sm:text-left">
         <p className="text-xs text-[#8A749E]">

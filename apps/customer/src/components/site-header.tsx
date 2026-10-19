@@ -153,7 +153,7 @@ export function SiteHeader() {
             {mainCategories(categories).map((c) => (
               <Link
                 key={c.id}
-                href={`/search?category=${c.id}`}
+                href={`/category/${c.slug}`}
                 className="shrink-0 whitespace-nowrap border-b-[3px] border-transparent px-[15px] py-[13px] text-[12.5px] font-semibold text-[#F8E4DA] hover:text-white"
               >
                 {c.name}

@@ -201,7 +201,7 @@ export default function Home() {
           </div>
           <HorizontalSlider spread itemClassName="w-[104px] sm:w-[118px] lg:w-auto lg:min-w-[118px] lg:max-w-[176px] lg:flex-1">
             {mainCategories(categories).map((c) => (
-              <Link key={c.id} href={`/search?category=${c.id}`} className="group flex flex-col items-center gap-2 text-center">
+              <Link key={c.id} href={`/category/${c.slug}`} className="group flex flex-col items-center gap-2 text-center">
                 <div
                   className={`flex aspect-square w-full items-center justify-center rounded-[22px] border border-border-primary bg-white bg-cover bg-center shadow-[0_10px_22px_-12px_rgba(74,34,102,0.45)] transition-all duration-500 [transform-style:preserve-3d] group-hover:[transform:perspective(700px)_rotateX(10deg)_rotateY(-8deg)_translateY(-8px)] group-hover:shadow-[0_26px_34px_-16px_rgba(74,34,102,0.55)]`}
                   style={c.image_url ? { backgroundImage: `url(${c.image_url})` } : undefined}
@@ -698,7 +698,7 @@ function TopCategorySection({
           </p>
         </div>
         <Link
-          href={`/search?category=${category.id}`}
+          href={`/category/${category.slug}`}
           className="shrink-0 text-[13px] font-bold text-accent"
         >
           {t.home.seeAll}
