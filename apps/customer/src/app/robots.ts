@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: ["/account", "/cart", "/checkout", "/order-confirmation"],
     },
-    sitemap: "https://karachimart.online/sitemap.xml",
+    sitemap: "https://karachimartonline.com/sitemap.xml",
   };
 }

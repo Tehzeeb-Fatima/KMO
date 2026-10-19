@@ -285,7 +285,7 @@ export default function ProductDetailClient() {
               priceCurrency: "PKR",
               availability:
                 !outOfStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-              url: `https://karachimart.online/product/${product.slug}`,
+              url: `https://karachimartonline.com/product/${product.slug}`,
             },
           }),
         }}
