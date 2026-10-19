@@ -252,7 +252,7 @@ export async function updateProductVariant(
 ): Promise<ProductVariantRow> {
   const { data, error } = await supabase
     .from("product_variants")
-    .update(tidyVariant(patch))
+    .update(patch)
     .eq("id", id)
     .select("*")
     .single();
