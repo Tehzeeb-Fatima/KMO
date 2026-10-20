@@ -87,9 +87,9 @@ export function SiteFooter() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={s.label}
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-[#45305C] text-[#D5C4E2] hover:bg-accent hover:text-white"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-accent text-white shadow-[0_4px_12px_-4px_rgba(0,0,0,0.5)] transition-transform hover:scale-110 hover:bg-white hover:text-accent"
               >
-                <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="currentColor" aria-hidden="true">
+                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden="true">
                   <path d={s.path} />
                 </svg>
               </a>
