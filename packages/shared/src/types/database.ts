@@ -494,6 +494,7 @@ export interface Database {
           id: string;
           vendor_id: string;
           category_id: string | null;
+          category_reviewed_id: string | null;
           name: string;
           slug: string;
           description: string | null;
@@ -517,6 +518,7 @@ export interface Database {
           id?: string;
           vendor_id: string;
           category_id?: string | null;
+          category_reviewed_id?: string | null;
           name: string;
           slug: string;
           description?: string | null;
@@ -540,6 +542,7 @@ export interface Database {
           id?: string;
           vendor_id?: string;
           category_id?: string | null;
+          category_reviewed_id?: string | null;
           name?: string;
           slug?: string;
           description?: string | null;

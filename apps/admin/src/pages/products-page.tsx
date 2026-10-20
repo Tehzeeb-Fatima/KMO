@@ -292,7 +292,16 @@ export function ProductsModerationPage() {
                 >
                   {p.name}
                 </button>
-                <CategoryCheck name={p.name} categoryId={p.category_id} categories={categories ?? []} />
+                <CategoryCheck
+                  name={p.name}
+                  categoryId={p.category_id}
+                  reviewedId={p.category_reviewed_id}
+                  categories={categories ?? []}
+                  onConfirm={async () => {
+                    await supabase.from("products").update({ category_reviewed_id: p.category_id }).eq("id", p.id);
+                    queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+                  }}
+                />
               </div>
               <span className="text-muted">{p.vendors?.store_name}</span>
               <span className="text-ink-dark">Rs. {p.price.toLocaleString()}</span>
@@ -386,16 +395,20 @@ export function ProductsModerationPage() {
 function CategoryCheck({
   name,
   categoryId,
+  reviewedId,
   categories,
+  onConfirm,
 }: {
   name: string;
   categoryId: string | null;
+  reviewedId: string | null;
   categories: { id: string; name: string; slug: string; parent_id: string | null }[];
+  onConfirm: () => void;
 }) {
   if (!categories.length) return null;
   if (!categoryId) return <p className="mt-0.5 text-[11.5px] font-semibold text-danger">No category</p>;
   const suggested = suggestCategories(name, categories, 3, 5);
-  const looksWrong = suggested.length > 0 && !suggested.some((c) => c.id === categoryId);
+  const looksWrong = reviewedId !== categoryId && suggested.length > 0 && !suggested.some((c) => c.id === categoryId);
   return (
     <p className="mt-0.5 truncate text-[11.5px] text-muted">
       {categoryPath(categories, categoryId)}
@@ -403,6 +416,11 @@ function CategoryCheck({
         <span className="ml-1.5 rounded bg-warning-tint px-1.5 py-0.5 font-semibold text-warning">
           Check: maybe {categoryPath(categories, suggested[0].id)}
         </span>
+      ) : null}
+      {looksWrong ? (
+        <button type="button" onClick={onConfirm} className="ml-1.5 font-semibold text-primary underline">
+          Category is right
+        </button>
       ) : null}
     </p>
   );

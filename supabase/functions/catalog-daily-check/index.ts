@@ -44,6 +44,7 @@ type Product = {
   name: string;
   status: string;
   category_id: string | null;
+  category_reviewed_id: string | null;
   vendors: { store_name: string } | null;
   product_variants: Variant[];
   product_images: { variant_id: string | null }[];
@@ -87,7 +88,7 @@ Deno.serve(async (req) => {
   if (catError) return new Response(catError.message, { status: 500 });
   const { data: rows, error } = await db
     .from("products")
-    .select("id, name, status, category_id, vendors(store_name), product_variants(*), product_images(variant_id)")
+    .select("id, name, status, category_id, category_reviewed_id, vendors(store_name), product_variants(*), product_images(variant_id)")
     .in("status", ["published", "pending"])
     .limit(5000);
   if (error) return new Response(error.message, { status: 500 });
@@ -115,7 +116,8 @@ Deno.serve(async (req) => {
       report(p, "No category");
     } else if (parents.has(cat.id)) {
       report(p, `In main category "${cat.name}" — needs a sub-category`);
-    } else {
+    } else if (p.category_reviewed_id !== cat.id) {
+      // Skipped once someone confirmed this category in admin.
       const suggested = suggestCategories(p.name, categories, 3, 5);
       if (suggested.length > 0 && !suggested.some((c) => c.id === cat.id)) {
         report(p, `Category may be wrong: now ${path(categories, cat.id)}, looks like ${path(categories, suggested[0].id)}`);
