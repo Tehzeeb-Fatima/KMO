@@ -36,7 +36,7 @@ export function Breadcrumbs({
   className?: string;
 }) {
   return (
-    <nav aria-label="Breadcrumb" className={cn("mb-4 text-[12.5px] text-muted", className)}>
+    <nav aria-label="Breadcrumb" className={cn("mb-4 text-[14px] text-muted", className)}>
       <ol className="flex flex-wrap items-center gap-1.5">
         {items.map((item, i) => {
           const last = i === items.length - 1;

@@ -68,11 +68,11 @@ export function ProductCard({
     >
       {vendorName ? (
         <div className="flex items-center justify-between px-3.5 pt-3">
-          <span className="truncate font-mono text-[9.5px] uppercase tracking-[0.1em] text-muted-table">
+          <span className="truncate font-mono text-[11px] uppercase tracking-[0.1em] text-muted-table">
             {vendorName}
           </span>
           {cod ? (
-            <span className="rounded bg-primary-tint px-[5px] py-[3px] font-mono text-[9px] tracking-[0.08em] text-primary">
+            <span className="rounded bg-primary-tint px-[5px] py-[3px] font-mono text-[10.5px] tracking-[0.08em] text-primary">
               COD
             </span>
           ) : null}
@@ -93,11 +93,11 @@ export function ProductCard({
           <img src={imageUrl} alt={name} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
         ) : null}
         {promoLabel ? (
-          <span className="absolute left-2.5 top-2.5 rounded bg-accent px-[7px] py-1 text-[10.5px] font-bold text-white">
+          <span className="absolute left-2.5 top-2.5 rounded bg-accent px-[7px] py-1 text-[12px] font-bold text-white">
             {promoLabel}
           </span>
         ) : discountPct ? (
-          <span className="absolute left-2.5 top-2.5 rounded bg-accent px-[7px] py-1 text-[10.5px] font-bold text-white">
+          <span className="absolute left-2.5 top-2.5 rounded bg-accent px-[7px] py-1 text-[12px] font-bold text-white">
             -{discountPct}%
           </span>
         ) : null}
@@ -107,21 +107,21 @@ export function ProductCard({
       {/* every card the same height: the name always reserves two lines and
           the footer sits at the bottom */}
       <div className="flex flex-1 flex-col gap-2 p-3.5">
-        <p className="line-clamp-2 min-h-[2.9em] text-[13.5px] font-medium leading-[1.45] text-ink-dark">
+        <p className="line-clamp-2 min-h-[2.9em] text-[15.5px] font-medium leading-[1.45] text-ink-dark">
           {name}
         </p>
         <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
-          <span className="text-[14.5px] font-extrabold tracking-[-0.02em] text-primary sm:text-lg sm:tracking-[-0.025em]">
+          <span className="text-[16px] font-extrabold tracking-[-0.02em] text-primary sm:text-lg sm:tracking-[-0.025em]">
             Rs. {price.toLocaleString()}
           </span>
           {compareAtPrice && compareAtPrice > price ? (
-            <span className="text-[10.5px] font-semibold text-ink-dark line-through decoration-danger decoration-2 sm:text-[12.5px]">
+            <span className="text-[12px] font-semibold text-ink-dark line-through decoration-danger decoration-2 sm:text-[14px]">
               Rs. {compareAtPrice.toLocaleString()}
             </span>
           ) : null}
         </div>
         {typeof rating === "number" ? (
-          <p className="text-[11.5px] text-muted">
+          <p className="text-[13px] text-muted">
             <span className="font-bold text-accent">★ {rating.toFixed(1)}</span>
             {typeof soldCount === "number" ? ` (${soldCount.toLocaleString()} sold)` : null}
           </p>

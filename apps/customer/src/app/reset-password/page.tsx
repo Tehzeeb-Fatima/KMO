@@ -120,7 +120,7 @@ export default function ResetPasswordPage() {
         title="Check your email"
         subtitle={`We sent a password reset link to ${email}. Follow it to set a new password.`}
       >
-        <Link href="/login" className="text-sm font-semibold text-primary hover:text-primary-light">
+        <Link href="/login" className="text-[15.5px] font-semibold text-primary hover:text-primary-light">
           Back to sign in
         </Link>
       </AuthLayout>
@@ -153,7 +153,7 @@ export default function ResetPasswordPage() {
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
           />
-          {error ? <p className="text-sm text-danger">{error}</p> : null}
+          {error ? <p className="text-[15.5px] text-danger">{error}</p> : null}
           <Button type="submit" disabled={submitting} className="mt-1 w-full">
             {submitting ? "Saving…" : "Save password"}
           </Button>
@@ -186,7 +186,7 @@ export default function ResetPasswordPage() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
-        {error ? <p className="text-sm text-danger">{error}</p> : null}
+        {error ? <p className="text-[15.5px] text-danger">{error}</p> : null}
         <Button type="submit" disabled={submitting} className="mt-1 w-full">
           {submitting ? "Sending…" : "Send reset link"}
         </Button>

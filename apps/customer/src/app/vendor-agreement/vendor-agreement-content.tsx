@@ -42,7 +42,7 @@ export function VendorAgreementContent() {
     <main className="mx-auto w-full max-w-[760px] px-4 py-12 sm:px-6 print:max-w-none print:px-0 print:py-0">
       <div className="flex items-start justify-between gap-4 print:hidden">
         <div>
-          <p className="font-mono text-xs uppercase tracking-[0.14em] text-muted">{t.footer.sell}</p>
+          <p className="font-mono text-[13.5px] uppercase tracking-[0.14em] text-muted">{t.footer.sell}</p>
           <h1 className="mt-2 text-3xl font-extrabold tracking-[-0.03em] text-ink">
             {settings?.vendor_agreement_title ?? "Vendor Rule Book & Seller Guidelines"}
           </h1>
@@ -50,7 +50,7 @@ export function VendorAgreementContent() {
         <button
           type="button"
           onClick={() => window.print()}
-          className="mt-1 shrink-0 rounded-[10px] bg-accent px-4 py-2.5 text-[13px] font-bold text-white"
+          className="mt-1 shrink-0 rounded-[10px] bg-accent px-4 py-2.5 text-[15px] font-bold text-white"
         >
           Download as PDF
         </button>
@@ -62,11 +62,11 @@ export function VendorAgreementContent() {
       {isLoading ? (
         <div className="mt-6"><ListSkeleton rows={6} rowClassName="h-5" /></div>
       ) : (
-        <div className="mt-6 flex flex-col gap-4 text-sm leading-[1.75] text-ink-dark">
+        <div className="mt-6 flex flex-col gap-4 text-[15.5px] leading-[1.75] text-ink-dark">
           {blocks.map((b, i) => {
             if (b.type === "heading") {
               return (
-                <h2 key={i} className="mt-2 text-base font-bold text-ink">
+                <h2 key={i} className="mt-2 text-[17px] font-bold text-ink">
                   {b.text}
                 </h2>
               );
@@ -86,7 +86,7 @@ export function VendorAgreementContent() {
       )}
 
       {!isLoading ? (
-        <div className="mt-10 flex flex-col gap-5 border-t border-border pt-8 text-sm text-ink-dark">
+        <div className="mt-10 flex flex-col gap-5 border-t border-border pt-8 text-[15.5px] text-ink-dark">
           <p className="font-bold text-ink">Vendor acknowledgement</p>
           <p className="text-muted">
             By signing below, the vendor confirms they have read and agree to the rules and terms above.
@@ -107,7 +107,7 @@ function SignatureLine({ label }: { label: string }) {
   return (
     <div className="flex flex-col gap-1">
       <span className="h-9 border-b border-border" />
-      <span className="text-[11px] font-semibold uppercase tracking-[0.06em] text-muted">{label}</span>
+      <span className="text-[12.5px] font-semibold uppercase tracking-[0.06em] text-muted">{label}</span>
     </div>
   );
 }

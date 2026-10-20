@@ -19,14 +19,14 @@ export default function ContactPage() {
 
   return (
     <main className="mx-auto w-full max-w-[600px] px-4 py-12 sm:px-6">
-      <p className="font-mono text-xs uppercase tracking-[0.14em] text-muted">{t.contact.getInTouch}</p>
+      <p className="font-mono text-[13.5px] uppercase tracking-[0.14em] text-muted">{t.contact.getInTouch}</p>
       <h1 className="mt-2 text-3xl font-extrabold tracking-[-0.03em] text-ink">{t.contact.haveQuestion}</h1>
-      <p className="mt-3 text-sm text-muted">
+      <p className="mt-3 text-[15.5px] text-muted">
         {t.contact.contactPageSubtitle}
       </p>
 
       {mutation.isSuccess ? (
-        <p className="mt-6 rounded-xl border border-success-border bg-success-tint p-4 text-sm font-semibold text-success-dark">
+        <p className="mt-6 rounded-xl border border-success-border bg-success-tint p-4 text-[15.5px] font-semibold text-success-dark">
           {t.contact.thanksMessageShort}
         </p>
       ) : (
@@ -43,14 +43,14 @@ export default function ContactPage() {
               placeholder={`${t.contact.firstName} *`}
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
-              className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
+              className="rounded-lg border border-border px-[13px] py-[11px] text-[15.5px] outline-none focus:border-primary-light"
             />
             <input
               required
               placeholder={`${t.contact.lastName} *`}
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
-              className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
+              className="rounded-lg border border-border px-[13px] py-[11px] text-[15.5px] outline-none focus:border-primary-light"
             />
           </div>
           <input
@@ -59,7 +59,7 @@ export default function ContactPage() {
             placeholder={`${t.contact.phoneNumber} *`}
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
+            className="rounded-lg border border-border px-[13px] py-[11px] text-[15.5px] outline-none focus:border-primary-light"
           />
           <textarea
             required
@@ -67,15 +67,15 @@ export default function ContactPage() {
             placeholder={`${t.contact.howCanWeHelp} *`}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            className="resize-y rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
+            className="resize-y rounded-lg border border-border px-[13px] py-[11px] text-[15.5px] outline-none focus:border-primary-light"
           />
           {mutation.isError ? (
-            <p className="text-sm text-danger">{t.contact.somethingWentWrong}</p>
+            <p className="text-[15.5px] text-danger">{t.contact.somethingWentWrong}</p>
           ) : null}
           <button
             type="submit"
             disabled={mutation.isPending}
-            className="w-fit rounded-[10px] bg-accent px-[26px] py-[13px] text-sm font-bold text-white disabled:opacity-60"
+            className="w-fit rounded-[10px] bg-accent px-[26px] py-[13px] text-[15.5px] font-bold text-white disabled:opacity-60"
           >
             {mutation.isPending ? t.contact.sending : t.contact.sendMessage}
           </button>

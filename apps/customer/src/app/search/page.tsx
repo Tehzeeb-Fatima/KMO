@@ -120,14 +120,14 @@ function SearchPageContent() {
     <div className="flex flex-col gap-6">
       {activePromotions && activePromotions.length > 0 ? (
         <div>
-          <p className="mb-3 text-[13px] font-bold text-ink">{t.home.limitedTimeDeals}</p>
+          <p className="mb-3 text-[15px] font-bold text-ink">{t.home.limitedTimeDeals}</p>
           <div className="flex flex-col gap-1">
             {activePromotions.map((p) => (
               <button
                 key={p.id}
                 type="button"
                 onClick={() => updateParams({ promo: p.id, category: null })}
-                className="rounded-md px-2.5 py-1.5 text-left text-[13px]"
+                className="rounded-md px-2.5 py-1.5 text-left text-[15px]"
                 style={
                   promo === p.id
                     ? { background: "var(--color-accent-tint)", color: "var(--color-accent)", fontWeight: 700 }
@@ -142,12 +142,12 @@ function SearchPageContent() {
       ) : null}
 
       <div>
-        <p className="mb-3 text-[13px] font-bold text-ink">{t.search.category}</p>
+        <p className="mb-3 text-[15px] font-bold text-ink">{t.search.category}</p>
         <div className="overflow-hidden rounded-xl border border-border bg-surface">
           <button
             type="button"
             onClick={() => pickCategory(null)}
-            className="flex w-full items-center px-3.5 py-3 text-left text-[13.5px] transition-colors hover:bg-surface-alt"
+            className="flex w-full items-center px-3.5 py-3 text-left text-[15.5px] transition-colors hover:bg-surface-alt"
             style={
               !category && !promo
                 ? { background: "var(--color-primary-tint)", color: "var(--color-primary)", fontWeight: 700 }
@@ -170,7 +170,7 @@ function SearchPageContent() {
                   <button
                     type="button"
                     onClick={() => pickCategory(c.id)}
-                    className="min-w-0 flex-1 truncate px-3.5 py-3 text-left text-[13.5px]"
+                    className="min-w-0 flex-1 truncate px-3.5 py-3 text-left text-[15.5px]"
                     style={
                       isSelected || inGroup
                         ? { color: "var(--color-primary)", fontWeight: 700 }
@@ -203,7 +203,7 @@ function SearchPageContent() {
                           key={sub.id}
                           type="button"
                           onClick={() => pickCategory(sub.id)}
-                          className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-left text-[13px] transition-colors hover:bg-white"
+                          className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-left text-[15px] transition-colors hover:bg-white"
                           style={
                             subSelected
                               ? { background: "var(--color-primary)", color: "#fff", fontWeight: 700 }
@@ -227,14 +227,14 @@ function SearchPageContent() {
       </div>
 
       <div>
-        <p className="mb-3 text-[13px] font-bold text-ink">{t.search.priceRange}</p>
+        <p className="mb-3 text-[15px] font-bold text-ink">{t.search.priceRange}</p>
         <div className="flex items-center gap-2">
           <input
             type="number"
             placeholder={t.search.min}
             defaultValue={minPrice}
             onBlur={(e) => updateParams({ min: e.target.value || null })}
-            className="w-full rounded-lg border border-border px-3 py-2 text-[13px] outline-none focus:border-primary-light"
+            className="w-full rounded-lg border border-border px-3 py-2 text-[15px] outline-none focus:border-primary-light"
           />
           <span className="text-muted">–</span>
           <input
@@ -242,7 +242,7 @@ function SearchPageContent() {
             placeholder={t.search.max}
             defaultValue={maxPrice}
             onBlur={(e) => updateParams({ max: e.target.value || null })}
-            className="w-full rounded-lg border border-border px-3 py-2 text-[13px] outline-none focus:border-primary-light"
+            className="w-full rounded-lg border border-border px-3 py-2 text-[15px] outline-none focus:border-primary-light"
           />
         </div>
       </div>
@@ -256,7 +256,7 @@ function SearchPageContent() {
         <button
           type="button"
           onClick={() => setFiltersOpen(true)}
-          className="rounded-full border border-border bg-white px-4 py-2 text-[13px] font-bold text-primary lg:hidden"
+          className="rounded-full border border-border bg-white px-4 py-2 text-[15px] font-bold text-primary lg:hidden"
         >
           {t.search.filters}
         </button>
@@ -272,7 +272,7 @@ function SearchPageContent() {
                 {activePromo.title}
               </h2>
               {activePromo.subtitle ? (
-                <p className="text-[13.5px] text-muted">{activePromo.subtitle}</p>
+                <p className="text-[15.5px] text-muted">{activePromo.subtitle}</p>
               ) : null}
             </div>
           ) : null}
@@ -288,7 +288,7 @@ function SearchPageContent() {
                       key={c.id}
                       type="button"
                       onClick={() => updateParams({ category: c.id, promo: null })}
-                      className="shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold"
+                      className="shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-[14px] font-semibold"
                       style={
                         category === c.id
                           ? { background: "var(--color-accent)", color: "#fff" }
@@ -303,7 +303,7 @@ function SearchPageContent() {
             </div>
           ) : null}
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <p className="text-[13px] text-muted">
+            <p className="text-[15px] text-muted">
               {isLoading ? (
                 <span className="inline-block h-4 w-24 animate-pulse rounded bg-surface-alt align-middle" />
               ) : (
@@ -317,7 +317,7 @@ function SearchPageContent() {
                   key={opt.value}
                   type="button"
                   onClick={() => updateParams({ sort: opt.value === "newest" ? null : opt.value })}
-                  className="rounded-full px-3.5 py-1.5 text-[12.5px] font-bold"
+                  className="rounded-full px-3.5 py-1.5 text-[14px] font-bold"
                   style={
                     sort === opt.value
                       ? { background: "var(--color-primary)", color: "#fff" }
@@ -358,7 +358,7 @@ function SearchPageContent() {
                   );
                 })}
             {!isLoading && products?.length === 0 ? (
-              <div className="col-span-full rounded-lg border border-dashed border-border p-10 text-center text-sm text-muted">
+              <div className="col-span-full rounded-lg border border-dashed border-border p-10 text-center text-[15.5px] text-muted">
                 {t.search.noResults}
               </div>
             ) : null}
@@ -374,11 +374,11 @@ function SearchPageContent() {
           />
           <div className="flex w-[85%] max-w-[320px] flex-col gap-6 overflow-y-auto bg-surface p-6">
             <div className="flex items-center justify-between">
-              <p className="text-base font-bold text-ink">{t.search.filters}</p>
+              <p className="text-[17px] font-bold text-ink">{t.search.filters}</p>
               <button
                 type="button"
                 onClick={() => setFiltersOpen(false)}
-                className="text-sm font-bold text-primary"
+                className="text-[15.5px] font-bold text-primary"
               >
                 {t.search.done}
               </button>

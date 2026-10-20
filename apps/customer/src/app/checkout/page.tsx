@@ -270,7 +270,7 @@ function CheckoutContent() {
       <div className="mt-6 grid grid-cols-1 gap-[26px] lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="flex flex-col gap-5">
           <section className="flex flex-col gap-3.5 rounded-xl border border-border bg-surface p-6">
-            <h2 className="text-base font-bold tracking-[-0.02em] text-ink">
+            <h2 className="text-[17px] font-bold tracking-[-0.02em] text-ink">
               Email <span className="font-medium text-danger">*</span>
             </h2>
             {isGuest ? (
@@ -281,19 +281,19 @@ function CheckoutContent() {
                   placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
+                  className="rounded-lg border border-border px-[13px] py-[11px] text-[15.5px] outline-none focus:border-primary-light"
                 />
-                <p className="text-[12px] text-muted">
+                <p className="text-[13.5px] text-muted">
                   We&rsquo;ll email you a link to set a password, so you can sign in and track this order anytime.
                 </p>
               </>
             ) : (
-              <p className="text-[13.5px] text-ink-dark">{user?.email}</p>
+              <p className="text-[15.5px] text-ink-dark">{user?.email}</p>
             )}
           </section>
 
           <section className="flex flex-col gap-3.5 rounded-xl border border-border bg-surface p-6">
-            <h2 className="text-base font-bold tracking-[-0.02em] text-ink">Delivery address</h2>
+            <h2 className="text-[17px] font-bold tracking-[-0.02em] text-ink">Delivery address</h2>
 
             {addresses && addresses.length > 0 && !addingAddress ? (
               <div className="flex flex-col gap-2.5">
@@ -304,7 +304,7 @@ function CheckoutContent() {
                       key={addr.id}
                       type="button"
                       onClick={() => setSelectedAddressId(addr.id)}
-                      className="rounded-[9px] p-3.5 text-left text-[13px]"
+                      className="rounded-[9px] p-3.5 text-left text-[15px]"
                       style={
                         selected
                           ? { border: "1.5px solid var(--color-accent)", background: "var(--color-accent-tint)" }
@@ -324,7 +324,7 @@ function CheckoutContent() {
                 <button
                   type="button"
                   onClick={() => setAddingAddress(true)}
-                  className="w-fit text-[12.5px] font-bold text-accent"
+                  className="w-fit text-[14px] font-bold text-accent"
                 >
                   + Add a new address
                 </button>
@@ -336,29 +336,29 @@ function CheckoutContent() {
                     placeholder="Full name"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
+                    className="rounded-lg border border-border px-[13px] py-[11px] text-[15.5px] outline-none focus:border-primary-light"
                   />
                   <input
                     placeholder="Phone number"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
+                    className="rounded-lg border border-border px-[13px] py-[11px] text-[15.5px] outline-none focus:border-primary-light"
                   />
                 </div>
                 <input
                   placeholder="Street address, house / flat number"
                   value={addressLine}
                   onChange={(e) => setAddressLine(e.target.value)}
-                  className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
+                  className="rounded-lg border border-border px-[13px] py-[11px] text-[15.5px] outline-none focus:border-primary-light"
                 />
                 <input
                   placeholder="Area / town"
                   value={area}
                   onChange={(e) => setArea(e.target.value)}
-                  className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
+                  className="rounded-lg border border-border px-[13px] py-[11px] text-[15.5px] outline-none focus:border-primary-light"
                 />
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[12.5px] font-semibold text-muted">
+                  <label className="text-[14px] font-semibold text-muted">
                     City <span className="font-medium text-danger">*</span>
                   </label>
                   <SearchableSelect
@@ -367,7 +367,7 @@ function CheckoutContent() {
                     onChange={setAddressCity}
                     placeholder="Select your city…"
                   />
-                  <p className="text-[11.5px] text-muted">
+                  <p className="text-[13px] text-muted">
                     Delivery charges are calculated for this city at checkout.
                   </p>
                 </div>
@@ -383,7 +383,7 @@ function CheckoutContent() {
                   <button
                     type="button"
                     onClick={() => setAddingAddress(false)}
-                    className="w-fit text-[12.5px] font-bold text-primary"
+                    className="w-fit text-[14px] font-bold text-primary"
                   >
                     Use a saved address instead
                   </button>
@@ -393,7 +393,7 @@ function CheckoutContent() {
           </section>
 
           <section className="flex flex-col gap-3.5 rounded-xl border border-border bg-surface p-6">
-            <h2 className="text-base font-bold tracking-[-0.02em] text-ink">Payment method</h2>
+            <h2 className="text-[17px] font-bold tracking-[-0.02em] text-ink">Payment method</h2>
             <div className="flex flex-col gap-2.5">
               {PAYMENT_OPTIONS.map((opt) => {
                 const selected = paymentMethod === opt.value;
@@ -418,8 +418,8 @@ function CheckoutContent() {
                       }}
                     />
                     <span className="flex flex-col gap-0.5">
-                      <span className="text-[13.5px] font-bold text-ink-dark">{opt.label}</span>
-                      <span className="text-[11.5px] text-muted">{opt.sub}</span>
+                      <span className="text-[15.5px] font-bold text-ink-dark">{opt.label}</span>
+                      <span className="text-[13px] text-muted">{opt.sub}</span>
                     </span>
                   </button>
                 );
@@ -429,10 +429,10 @@ function CheckoutContent() {
         </div>
 
         <div className="flex flex-col gap-4 rounded-xl border border-border bg-surface p-6 lg:sticky lg:top-6 lg:self-start">
-          <p className="text-[17px] font-bold text-ink">{t.checkout.orderSummary}</p>
+          <p className="text-[18.5px] font-bold text-ink">{t.checkout.orderSummary}</p>
           <div className="flex flex-col gap-2 border-t border-[#F1EAE6] pt-3.5">
             {items?.map((item) => (
-              <div key={item.id} className="flex justify-between text-[12.5px] text-muted">
+              <div key={item.id} className="flex justify-between text-[14px] text-muted">
                 <span>
                   {item.products.name} × {item.quantity}
                 </span>
@@ -447,18 +447,18 @@ function CheckoutContent() {
           </div>
           {deliveryFeesByVendor.length > 1 ? (
             <div className="flex flex-col gap-1 border-t border-[#F1EAE6] pt-3">
-              <span className="text-[12px] font-bold uppercase tracking-[0.04em] text-muted">
+              <span className="text-[13.5px] font-bold uppercase tracking-[0.04em] text-muted">
                 {t.checkout.delivery}
               </span>
               {deliveryFeesByVendor.map((v) => (
-                <div key={v.vendorId} className="flex justify-between text-[12.5px]">
+                <div key={v.vendorId} className="flex justify-between text-[14px]">
                   <span className="text-muted">{v.storeName}</span>
                   <span className="font-semibold text-ink-dark">
                     {v.fee === 0 ? t.checkout.free : `Rs. ${v.fee.toLocaleString()}`}
                   </span>
                 </div>
               ))}
-              <div className="flex justify-between text-[13.5px]">
+              <div className="flex justify-between text-[15.5px]">
                 <span className="font-semibold text-ink-dark">Total delivery</span>
                 <span className="font-semibold text-success">
                   {deliveryFee === 0 ? t.checkout.free : `Rs. ${deliveryFee.toLocaleString()}`}
@@ -466,7 +466,7 @@ function CheckoutContent() {
               </div>
             </div>
           ) : (
-            <div className="flex justify-between text-[13.5px]">
+            <div className="flex justify-between text-[15.5px]">
               <span className="text-muted">{t.checkout.delivery}</span>
               <span className="font-semibold text-success">
                 {deliveryFee === 0 ? t.checkout.free : `Rs. ${deliveryFee.toLocaleString()}`}
@@ -475,7 +475,7 @@ function CheckoutContent() {
           )}
 
           {promotionDiscount > 0 ? (
-            <div className="flex justify-between text-[13.5px]">
+            <div className="flex justify-between text-[15.5px]">
               <span className="text-muted">{t.checkout.promotion}</span>
               <span className="font-semibold text-accent">
                 − Rs. {promotionDiscount.toLocaleString()}
@@ -484,7 +484,7 @@ function CheckoutContent() {
           ) : null}
 
           {coupon && !couponAppliesHere ? (
-            <p className="text-xs text-muted">
+            <p className="text-[13.5px] text-muted">
               {t.checkout.promotionSupersedesCoupon}{" "}
               <span className="font-mono font-bold">{coupon.code}</span>{" "}
               {t.checkout.promotionSupersedesCouponSuffix}
@@ -492,7 +492,7 @@ function CheckoutContent() {
           ) : null}
 
           {couponAppliesHere ? (
-            <div className="flex justify-between text-[13.5px]">
+            <div className="flex justify-between text-[15.5px]">
               <span className="text-muted">
                 {t.checkout.coupon} <span className="font-mono font-bold text-primary">{coupon.code}</span>
               </span>
@@ -504,29 +504,29 @@ function CheckoutContent() {
                 placeholder={t.checkout.couponCode}
                 value={couponInput}
                 onChange={(e) => setCouponInput(e.target.value)}
-                className="flex-1 rounded-lg border border-border px-3 py-2 text-[13px] outline-none focus:border-primary-light"
+                className="flex-1 rounded-lg border border-border px-3 py-2 text-[15px] outline-none focus:border-primary-light"
               />
               <button
                 type="button"
                 onClick={applyCoupon}
-                className="rounded-lg border border-border bg-white px-3.5 py-2 text-xs font-bold text-primary"
+                className="rounded-lg border border-border bg-white px-3.5 py-2 text-[13.5px] font-bold text-primary"
               >
                 {t.checkout.apply}
               </button>
             </div>
           )}
-          {couponError ? <p className="text-xs text-danger">{couponError}</p> : null}
+          {couponError ? <p className="text-[13.5px] text-danger">{couponError}</p> : null}
 
           {loyaltyOn && loyalty!.balance > 0 ? (
             <div className="flex flex-col gap-1.5 rounded-lg bg-primary-tint px-3.5 py-3">
-              <p className="text-[12.5px] font-bold text-primary">
+              <p className="text-[14px] font-bold text-primary">
                 {fill(t.loyalty.youHave, {
                   points: loyalty!.balance.toLocaleString(),
                   value: Math.floor(loyalty!.balance * loyalty!.point_value).toLocaleString(),
                 })}
               </p>
               {canUsePoints ? (
-                <label className="flex cursor-pointer items-center gap-2 text-[13px] text-ink-dark">
+                <label className="flex cursor-pointer items-center gap-2 text-[15px] text-ink-dark">
                   <input type="checkbox" checked={usePoints} onChange={(e) => setUsePoints(e.target.checked)} />
                   {fill(t.loyalty.usePoints, {
                     points: usablePoints.toLocaleString(),
@@ -534,13 +534,13 @@ function CheckoutContent() {
                   })}
                 </label>
               ) : (
-                <p className="text-xs text-muted">{fill(t.loyalty.needMore, { min: loyalty!.min_redeem_points })}</p>
+                <p className="text-[13.5px] text-muted">{fill(t.loyalty.needMore, { min: loyalty!.min_redeem_points })}</p>
               )}
             </div>
           ) : null}
 
           {loyaltyDiscount > 0 ? (
-            <div className="flex justify-between text-[13.5px]">
+            <div className="flex justify-between text-[15.5px]">
               <span className="text-muted">{t.loyalty.pointsDiscount}</span>
               <span className="font-semibold text-accent">− Rs. {loyaltyDiscount.toLocaleString()}</span>
             </div>
@@ -551,11 +551,11 @@ function CheckoutContent() {
             <span className="text-accent">Rs. {total.toLocaleString()}</span>
           </div>
           {pointsToEarn > 0 ? (
-            <p className="-mt-1 text-xs font-semibold text-success">
+            <p className="-mt-1 text-[13.5px] font-semibold text-success">
               ★ {fill(t.loyalty.willEarn, { points: pointsToEarn.toLocaleString() })}
             </p>
           ) : null}
-          {error ? <p className="text-sm text-danger">{error}</p> : null}
+          {error ? <p className="text-[15.5px] text-danger">{error}</p> : null}
           <Button
             className="w-full"
             disabled={!effectiveAddressId || !items?.length || placeOrderMutation.isPending}
@@ -584,7 +584,7 @@ function StepIndicator() {
         <div key={step.n} className="flex items-center gap-2.5">
           <div className="flex items-center gap-2">
             <span
-              className="flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold"
+              className="flex h-6 w-6 items-center justify-center rounded-full text-[13.5px] font-bold"
               style={
                 step.done
                   ? { background: "var(--color-accent)", color: "#fff" }
@@ -594,7 +594,7 @@ function StepIndicator() {
               {step.n}
             </span>
             <span
-              className="text-[13px] font-bold"
+              className="text-[15px] font-bold"
               style={{ color: step.done ? "var(--color-ink-dark)" : "var(--color-muted-table)" }}
             >
               {step.label}

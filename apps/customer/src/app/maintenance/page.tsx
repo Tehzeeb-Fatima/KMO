@@ -21,7 +21,7 @@ export default function MaintenancePage() {
         <img src="/kmo-icon.png" alt="Karachi Mart" className="h-full w-full object-cover" />
       </span>
 
-      <p className="mt-6 font-mono text-[11px] tracking-[0.22em] text-accent">
+      <p className="mt-6 font-mono text-[12.5px] tracking-[0.22em] text-accent">
         KARACHI MART ONLINE
       </p>
 
@@ -29,19 +29,19 @@ export default function MaintenancePage() {
         We&rsquo;ll be back in a bit.
       </h1>
 
-      <p className="mt-4 max-w-[440px] text-[15px] leading-[1.6] text-[#D5C4E2]">
+      <p className="mt-4 max-w-[440px] text-[16.5px] leading-[1.6] text-[#D5C4E2]">
         We&rsquo;re doing some quick maintenance to make things better. The site will be back
         online shortly — thanks for your patience.
       </p>
 
       <div className="mt-9 flex items-center gap-2.5 rounded-full border border-white/15 bg-white/5 px-5 py-3">
         <span className="h-2 w-2 animate-pulse rounded-full bg-accent" />
-        <span className="text-[12.5px] font-semibold text-white/80">
+        <span className="text-[14px] font-semibold text-white/80">
           Working on it right now
         </span>
       </div>
 
-      <div className="mt-10 flex flex-col items-center gap-1.5 text-[12.5px] text-[#B9A3CD]">
+      <div className="mt-10 flex flex-col items-center gap-1.5 text-[14px] text-[#B9A3CD]">
         <span>Need something urgently?</span>
         <a
           href="mailto:contact@karachimartonline.com"
@@ -53,7 +53,7 @@ export default function MaintenancePage() {
 
       <Link
         href="/login"
-        className="mt-12 text-[11px] font-medium text-[#7B5A96] hover:text-[#B9A3CD]"
+        className="mt-12 text-[12.5px] font-medium text-[#7B5A96] hover:text-[#B9A3CD]"
       >
         Team sign in
       </Link>

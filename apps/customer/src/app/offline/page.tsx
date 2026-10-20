@@ -10,7 +10,7 @@ export default function OfflinePage() {
         <img src="/kmo-icon.png" alt="Karachi Mart" className="h-full w-full object-cover" />
       </span>
 
-      <p className="mt-6 font-mono text-[11px] tracking-[0.22em] text-accent">
+      <p className="mt-6 font-mono text-[12.5px] tracking-[0.22em] text-accent">
         KARACHI MART ONLINE
       </p>
 
@@ -18,14 +18,14 @@ export default function OfflinePage() {
         You&rsquo;re offline
       </h1>
 
-      <p className="mt-4 max-w-[400px] text-[15px] leading-[1.6] text-[#D5C4E2]">
+      <p className="mt-4 max-w-[400px] text-[16.5px] leading-[1.6] text-[#D5C4E2]">
         Check your internet connection and try again — your cart and saved items will still be
         here when you&rsquo;re back online.
       </p>
 
       <a
         href="/"
-        className="mt-8 rounded-full bg-accent px-7 py-3 text-sm font-bold text-white"
+        className="mt-8 rounded-full bg-accent px-7 py-3 text-[15.5px] font-bold text-white"
       >
         Try again
       </a>

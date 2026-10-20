@@ -64,10 +64,10 @@ export function SiteHeader() {
             <img src="/kmo-icon.png" alt="" className="h-full w-full object-cover" />
           </span>
           <span className="hidden leading-[1.05] sm:block">
-            <span className="block text-[17px] font-extrabold tracking-[-0.028em] text-ink-dark">
+            <span className="block text-[18.5px] font-extrabold tracking-[-0.028em] text-ink-dark">
               Karachi Mart
             </span>
-            <span className="block font-mono text-[9px] tracking-[0.22em] text-accent">
+            <span className="block font-mono text-[10.5px] tracking-[0.22em] text-accent">
               ONLINE
             </span>
           </span>
@@ -81,11 +81,11 @@ export function SiteHeader() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t.header.searchPlaceholder}
-            className="min-w-0 flex-1 truncate bg-transparent text-sm text-ink outline-none placeholder:text-muted-table"
+            className="min-w-0 flex-1 truncate bg-transparent text-[15.5px] text-ink outline-none placeholder:text-muted-table"
           />
           <button
             type="submit"
-            className="shrink-0 rounded-full bg-accent px-6 py-2.5 text-[13px] font-bold text-white"
+            className="shrink-0 rounded-full bg-accent px-6 py-2.5 text-[15px] font-bold text-white"
           >
             {t.header.search}
           </button>
@@ -95,8 +95,8 @@ export function SiteHeader() {
           <div className="hidden shrink-0 items-center gap-2 lg:flex">
             <span className="h-[7px] w-[7px] rounded-full bg-accent" />
             <span className="leading-[1.25]">
-              <span className="block text-[10.5px] text-muted-table">{t.header.deliverTo}</span>
-              <span className="block text-[13px] font-bold text-ink-dark">{t.header.city}</span>
+              <span className="block text-[12px] text-muted-table">{t.header.deliverTo}</span>
+              <span className="block text-[15px] font-bold text-ink-dark">{t.header.city}</span>
             </span>
           </div>
 
@@ -104,7 +104,7 @@ export function SiteHeader() {
 
           <Link
             href={accountHref}
-            className="flex shrink-0 items-center gap-1.5 text-[13.5px] font-semibold text-primary"
+            className="flex shrink-0 items-center gap-1.5 text-[15.5px] font-semibold text-primary"
           >
             <User className="h-[18px] w-[18px]" strokeWidth={2} />
             <span className="hidden lg:inline">{accountLabel}</span>
@@ -112,12 +112,12 @@ export function SiteHeader() {
 
           <Link
             href="/cart"
-            className="relative flex shrink-0 items-center gap-1.5 pr-1 text-[13.5px] font-bold text-primary"
+            className="relative flex shrink-0 items-center gap-1.5 pr-1 text-[15.5px] font-bold text-primary"
           >
             <ShoppingCart className="h-[19px] w-[19px]" strokeWidth={2} />
             <span className="hidden lg:inline">{t.header.cart}</span>
             {cartCount > 0 ? (
-              <span className="absolute -right-1 -top-2 flex h-[17px] min-w-[17px] items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-white">
+              <span className="absolute -right-1 -top-2 flex h-[17px] min-w-[17px] items-center justify-center rounded-full bg-accent px-1 text-[11.5px] font-bold text-white">
                 {cartCount}
               </span>
             ) : null}
@@ -127,7 +127,7 @@ export function SiteHeader() {
 
       <div className="flex items-center gap-1.5 bg-surface px-4 pb-2 lg:hidden">
         <span className="h-[6px] w-[6px] shrink-0 rounded-full bg-accent" />
-        <span className="text-[11.5px] text-muted-table">
+        <span className="text-[13px] text-muted-table">
           {t.header.deliverTo} <span className="font-bold text-ink-dark">{t.header.city}</span>
         </span>
       </div>
@@ -138,9 +138,9 @@ export function SiteHeader() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t.header.searchPlaceholderShort}
-            className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-table"
+            className="flex-1 bg-transparent text-[15.5px] outline-none placeholder:text-muted-table"
           />
-          <button type="submit" className="rounded-full bg-accent px-4 py-2 text-xs font-bold text-white">
+          <button type="submit" className="rounded-full bg-accent px-4 py-2 text-[13.5px] font-bold text-white">
             {t.header.go}
           </button>
         </div>
@@ -154,7 +154,7 @@ export function SiteHeader() {
               <Link
                 key={c.id}
                 href={`/category/${c.slug}`}
-                className="shrink-0 whitespace-nowrap border-b-[3px] border-transparent px-[15px] py-[13px] text-[12.5px] font-semibold text-[#F8E4DA] hover:text-white"
+                className="shrink-0 whitespace-nowrap border-b-[3px] border-transparent px-[15px] py-[13px] text-[14px] font-semibold text-[#F8E4DA] hover:text-white"
               >
                 {c.name}
               </Link>

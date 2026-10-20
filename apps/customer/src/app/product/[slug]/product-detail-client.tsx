@@ -218,7 +218,7 @@ export default function ProductDetailClient({
     return (
       <div className="flex flex-1 flex-col items-center justify-center p-10 text-center">
         <h1 className="text-xl font-bold text-ink">{t.product.notFound}</h1>
-        <p className="mt-2 text-sm text-muted">{t.product.notFoundHint}</p>
+        <p className="mt-2 text-[15.5px] text-muted">{t.product.notFoundHint}</p>
       </div>
     );
   }
@@ -352,7 +352,7 @@ export default function ProductDetailClient({
                 >
                   <ChevronRight className="h-5 w-5" />
                 </button>
-                <span className="absolute bottom-2.5 right-2.5 rounded-full bg-black/55 px-2.5 py-1 text-[11px] font-semibold text-white">
+                <span className="absolute bottom-2.5 right-2.5 rounded-full bg-black/55 px-2.5 py-1 text-[12.5px] font-semibold text-white">
                   {activeImage + 1} / {images.length}
                 </span>
               </>
@@ -380,7 +380,7 @@ export default function ProductDetailClient({
         {/* info */}
         <div className="flex flex-col gap-4 rounded-[10px] border border-border bg-surface p-6">
           {product.vendors ? (
-            <p className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-muted-table">
+            <p className="font-mono text-[12px] uppercase tracking-[0.14em] text-muted-table">
               {product.vendors.store_name}
             </p>
           ) : null}
@@ -388,7 +388,7 @@ export default function ProductDetailClient({
             {product.name}
           </h1>
           {product.brand ? (
-            <p className="text-sm text-muted">
+            <p className="text-[15.5px] text-muted">
               {t.product.brand} <span className="font-semibold text-ink-dark">{product.brand}</span>
             </p>
           ) : null}
@@ -398,25 +398,25 @@ export default function ProductDetailClient({
               Rs. {price.toLocaleString()}
             </span>
             {wasPrice ? (
-              <span className="text-sm font-semibold text-ink-dark line-through decoration-danger decoration-2">
+              <span className="text-[15.5px] font-semibold text-ink-dark line-through decoration-danger decoration-2">
                 Rs. {wasPrice.toLocaleString()}
               </span>
             ) : null}
             {promoMatch.promotion?.badge_text ? (
-              <span className="rounded-full bg-accent px-2.5 py-1 text-[13px] font-bold text-white">
+              <span className="rounded-full bg-accent px-2.5 py-1 text-[15px] font-bold text-white">
                 {promoMatch.promotion.badge_text}
               </span>
             ) : discountPct ? (
-              <span className="rounded-full bg-accent px-2.5 py-1 text-[13px] font-bold text-white">
+              <span className="rounded-full bg-accent px-2.5 py-1 text-[15px] font-bold text-white">
                 -{discountPct}%
               </span>
             ) : null}
-            <span className="rounded-full bg-primary-tint px-2.5 py-1 font-mono text-[10px] tracking-[0.1em] text-primary">
+            <span className="rounded-full bg-primary-tint px-2.5 py-1 font-mono text-[11.5px] tracking-[0.1em] text-primary">
               {t.product.codAvailableBadge}
             </span>
           </div>
 
-          <p className="text-sm font-semibold" style={{ color: !outOfStock ? "var(--color-success)" : "var(--color-danger)" }}>
+          <p className="text-[15.5px] font-semibold" style={{ color: !outOfStock ? "var(--color-success)" : "var(--color-danger)" }}>
             {outOfStock
               ? t.product.outOfStock
               : stock === null
@@ -426,7 +426,7 @@ export default function ProductDetailClient({
 
           {variantGroups.map(([optionName, values]) => (
             <div key={optionName} className="flex flex-col gap-2">
-              <span className="text-[13px] text-muted">
+              <span className="text-[15px] text-muted">
                 {optionName}:{" "}
                 <strong className="font-bold text-ink-dark">
                   {selectedOptions[optionName] ?? t.product.select}
@@ -465,8 +465,8 @@ export default function ProductDetailClient({
                       }
                       className={
                         isColor
-                          ? "flex items-center gap-1.5 rounded-full py-1.5 pl-1.5 pr-3.5 text-[13px] font-bold"
-                          : "min-w-[52px] rounded-full px-3.5 py-2.5 text-[13px] font-bold"
+                          ? "flex items-center gap-1.5 rounded-full py-1.5 pl-1.5 pr-3.5 text-[15px] font-bold"
+                          : "min-w-[52px] rounded-full px-3.5 py-2.5 text-[15px] font-bold"
                       }
                       style={
                         selected
@@ -502,7 +502,7 @@ export default function ProductDetailClient({
               >
                 −
               </button>
-              <span className="min-w-[34px] text-center text-sm font-bold">{qty}</span>
+              <span className="min-w-[34px] text-center text-[15.5px] font-bold">{qty}</span>
               <button
                 type="button"
                 onClick={() => setQty((q) => Math.min(stock || 10, q + 1))}
@@ -514,7 +514,7 @@ export default function ProductDetailClient({
           </div>
 
           {missingOption && !outOfStock ? (
-            <p className="-mb-1 text-[12.5px] font-semibold text-accent">
+            <p className="-mb-1 text-[14px] font-semibold text-accent">
               {t.product.select} {missingOption}
             </p>
           ) : null}
@@ -555,7 +555,7 @@ export default function ProductDetailClient({
         {/* sidebar */}
         <div className="flex flex-col gap-4">
           <div className="rounded-[10px] border border-border bg-surface p-5">
-            <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-table">
+            <p className="mb-3 font-mono text-[12.5px] uppercase tracking-[0.14em] text-muted-table">
               {t.product.deliveryPayment}
             </p>
             <div className="flex flex-col gap-3">
@@ -568,8 +568,8 @@ export default function ProductDetailClient({
                 <div key={row.label} className="flex gap-2.5">
                   <span className="mt-[6px] h-[7px] w-[7px] shrink-0 rounded-full bg-accent" />
                   <div>
-                    <p className="text-[13px] font-bold text-ink-dark">{row.label}</p>
-                    {row.sub ? <p className="text-[11.5px] leading-[1.4] text-muted">{row.sub}</p> : null}
+                    <p className="text-[15px] font-bold text-ink-dark">{row.label}</p>
+                    {row.sub ? <p className="text-[13px] leading-[1.4] text-muted">{row.sub}</p> : null}
                   </div>
                 </div>
               ))}
@@ -578,19 +578,19 @@ export default function ProductDetailClient({
 
           {product.vendors ? (
             <div className="rounded-[10px] border border-border bg-surface p-5">
-              <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.14em] text-muted-table">
+              <p className="mb-3 font-mono text-[12.5px] uppercase tracking-[0.14em] text-muted-table">
                 {t.product.soldBy}
               </p>
               <div className="flex items-center gap-3">
-                <span className="flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-[10px] bg-primary text-sm font-bold text-white">
+                <span className="flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-[10px] bg-primary text-[15.5px] font-bold text-white">
                   {product.vendors.store_name.charAt(0)}
                 </span>
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-bold text-ink-dark">
+                  <p className="truncate text-[15.5px] font-bold text-ink-dark">
                     {product.vendors.store_name}
                   </p>
                   {reviewCount > 0 ? (
-                    <p className="text-xs text-muted">
+                    <p className="text-[13.5px] text-muted">
                       <span className="font-bold text-accent">★ {reviewAverage.toFixed(1)}</span>
                       {" · "}
                       {reviewCount} {t.product.ratingsWord}
@@ -601,13 +601,13 @@ export default function ProductDetailClient({
               <div className="mt-4 flex gap-2">
                 <Link
                   href={`/store/${product.vendors.slug}`}
-                  className="flex-1 rounded-lg border border-border px-4 py-[11px] text-center text-sm font-bold text-primary"
+                  className="flex-1 rounded-lg border border-border px-4 py-[11px] text-center text-[15.5px] font-bold text-primary"
                 >
                   {t.product.visitStore}
                 </Link>
                 <a
                   href="#ask-a-question"
-                  className="flex-1 rounded-lg border border-border px-4 py-[11px] text-center text-sm font-bold text-primary"
+                  className="flex-1 rounded-lg border border-border px-4 py-[11px] text-center text-[15.5px] font-bold text-primary"
                 >
                   {t.product.askQuestion}
                 </a>
@@ -623,7 +623,7 @@ export default function ProductDetailClient({
           {shownDescription ? (
             <>
               <h2 className="mb-2 text-lg font-bold text-ink">{t.product.description}</h2>
-              <p className="max-w-[900px] whitespace-pre-line break-words text-sm leading-[1.75] text-ink-dark">
+              <p className="max-w-[900px] whitespace-pre-line break-words text-[15.5px] leading-[1.75] text-ink-dark">
                 {shownDescription}
               </p>
             </>
@@ -631,7 +631,7 @@ export default function ProductDetailClient({
           {product.tags && product.tags.length > 0 ? (
             <div className={`flex flex-wrap gap-2 ${shownDescription ? "mt-4" : ""}`}>
               {product.tags.map((tag) => (
-                <span key={tag} className="rounded-full bg-surface-alt px-3 py-1 text-xs font-medium text-muted">
+                <span key={tag} className="rounded-full bg-surface-alt px-3 py-1 text-[13.5px] font-medium text-muted">
                   {tag}
                 </span>
               ))}
@@ -658,10 +658,10 @@ export default function ProductDetailClient({
                 <p className="tracking-[0.1em] text-accent">
                   {"★".repeat(Math.round(reviewAverage))}
                 </p>
-                <p className="mt-1 text-[12.5px] text-muted">{reviewCount} {t.product.reviewsWord}</p>
+                <p className="mt-1 text-[14px] text-muted">{reviewCount} {t.product.reviewsWord}</p>
                 <div className="mt-4 flex flex-col gap-1.5">
                   {reviewBars.map((b) => (
-                    <div key={b.stars} className="flex items-center gap-2 text-xs">
+                    <div key={b.stars} className="flex items-center gap-2 text-[13.5px]">
                       <span className="w-6 text-muted">{b.stars}★</span>
                       <div className="h-1.5 flex-1 rounded-full bg-surface-alt">
                         <div className="h-1.5 rounded-full bg-accent" style={{ width: `${b.pct}%` }} />
@@ -672,7 +672,7 @@ export default function ProductDetailClient({
                 </div>
               </>
             ) : (
-              <p className="text-sm text-muted">
+              <p className="text-[15.5px] text-muted">
                 {t.product.noReviewsYet} {t.product.beFirstReview}
               </p>
             )}
@@ -697,7 +697,7 @@ export default function ProductDetailClient({
                   value={reviewBody}
                   onChange={(e) => setReviewBody(e.target.value)}
                   rows={3}
-                  className="w-full resize-y rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary-light"
+                  className="w-full resize-y rounded-lg border border-border bg-surface px-3 py-2 text-[15.5px] outline-none focus:border-primary-light"
                 />
                 <Button
                   variant="secondary"
@@ -716,14 +716,14 @@ export default function ProductDetailClient({
               {reviews.map((r) => (
                 <div key={r.id} className="border-t border-[#F1EAE6] pt-4 first:border-t-0 first:pt-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-ink-dark">
+                    <span className="text-[15.5px] font-bold text-ink-dark">
                       {r.profiles?.full_name ?? "Customer"}
                     </span>
-                    <span className="text-xs text-accent">{"★".repeat(r.rating)}</span>
+                    <span className="text-[13.5px] text-accent">{"★".repeat(r.rating)}</span>
                   </div>
-                  {r.body ? <p className="mt-1 text-sm text-ink-dark">{r.body}</p> : null}
+                  {r.body ? <p className="mt-1 text-[15.5px] text-ink-dark">{r.body}</p> : null}
                   {r.vendor_reply ? (
-                    <div className="mt-2 rounded-lg bg-primary-tint p-2.5 text-xs text-primary">
+                    <div className="mt-2 rounded-lg bg-primary-tint p-2.5 text-[13.5px] text-primary">
                       <strong className="font-bold">{t.product.vendorReply}</strong> {r.vendor_reply}
                     </div>
                   ) : null}
@@ -737,8 +737,8 @@ export default function ProductDetailClient({
       {/* questions */}
       <div id="ask-a-question" className="mt-8 rounded-[10px] border border-border bg-surface p-6">
         <div className="rounded-[10px] border border-[#EFCBBB] bg-accent-tint p-5">
-          <p className="text-[15px] font-bold text-ink">{t.product.askQuestion}</p>
-          <p className="mt-1 text-[12.5px] text-muted">
+          <p className="text-[16.5px] font-bold text-ink">{t.product.askQuestion}</p>
+          <p className="mt-1 text-[14px] text-muted">
             {product.vendors?.store_name ?? t.product.theVendor} {t.product.vendorRepliesWithin}
           </p>
           <div className="mt-3.5 flex flex-col gap-2 sm:flex-row">
@@ -746,13 +746,13 @@ export default function ProductDetailClient({
               placeholder={t.product.questionPlaceholder}
               value={questionDraft}
               onChange={(e) => setQuestionDraft(e.target.value)}
-              className="flex-1 rounded-full border border-border bg-white px-4 py-2.5 text-sm outline-none focus:border-primary-light"
+              className="flex-1 rounded-full border border-border bg-white px-4 py-2.5 text-[15.5px] outline-none focus:border-primary-light"
             />
             <button
               type="button"
               disabled={!questionDraft.trim() || questionMutation.isPending}
               onClick={() => questionMutation.mutate()}
-              className="rounded-full bg-accent px-5 py-2.5 text-sm font-bold text-white disabled:opacity-60"
+              className="rounded-full bg-accent px-5 py-2.5 text-[15.5px] font-bold text-white disabled:opacity-60"
             >
               {questionMutation.isPending ? t.product.sending : t.product.submitQuestion}
             </button>
@@ -760,7 +760,7 @@ export default function ProductDetailClient({
         </div>
 
         <div className="mt-5">
-          <p className="text-[15px] font-bold text-ink">
+          <p className="text-[16.5px] font-bold text-ink">
             {questions && questions.length > 0
               ? `${questions.length} ${t.product.answeredQuestions}`
               : t.product.noQuestionsYet}
@@ -768,15 +768,15 @@ export default function ProductDetailClient({
           <div className="mt-3 flex flex-col gap-3.5">
             {questions?.map((q) => (
               <div key={q.id} className="border-t border-[#F1EAE6] pt-3.5 first:border-t-0 first:pt-0">
-                <p className="text-sm text-ink-dark">
+                <p className="text-[15.5px] text-ink-dark">
                   <span className="font-mono font-bold text-primary">Q:</span> {q.question}
                 </p>
                 {q.answer ? (
-                  <p className="mt-1.5 text-sm text-ink-dark">
+                  <p className="mt-1.5 text-[15.5px] text-ink-dark">
                     <span className="font-mono font-bold text-accent">A:</span> {q.answer}
                   </p>
                 ) : (
-                  <p className="mt-1.5 text-xs text-muted">{t.product.awaitingReply}</p>
+                  <p className="mt-1.5 text-[13.5px] text-muted">{t.product.awaitingReply}</p>
                 )}
               </div>
             ))}
@@ -858,9 +858,9 @@ function ProductVideo({ url }: { url: string }) {
     <button
       type="button"
       onClick={() => setOpen(true)}
-      className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-[10px] border border-border bg-surface py-3 text-[13.5px] font-bold text-primary"
+      className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-[10px] border border-border bg-surface py-3 text-[15.5px] font-bold text-primary"
     >
-      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-[11px] text-white">▶</span>
+      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-[12.5px] text-white">▶</span>
       Watch video
     </button>
   );

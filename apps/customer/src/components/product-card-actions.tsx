@@ -76,7 +76,7 @@ export function AddToCartButton({
   });
 
   const base =
-    "flex w-full items-center justify-center gap-2 rounded-[7px] px-3 py-2.5 text-[12.5px] font-bold disabled:opacity-60";
+    "flex w-full items-center justify-center gap-2 rounded-[7px] px-3 py-2.5 text-[14px] font-bold disabled:opacity-60";
 
   if (outOfStock) {
     return (

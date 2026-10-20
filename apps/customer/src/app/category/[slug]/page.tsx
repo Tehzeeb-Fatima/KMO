@@ -58,13 +58,13 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
         <h1 className="text-[26px] font-extrabold tracking-[-0.02em] text-ink sm:text-[30px]">{category.name}</h1>
         <Link
           href={`/search?category=${category.id}`}
-          className="flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-surface px-4 py-2 text-[13px] font-bold text-ink-dark hover:border-accent hover:text-accent"
+          className="flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-surface px-4 py-2 text-[15px] font-bold text-ink-dark hover:border-accent hover:text-accent"
         >
           <SlidersHorizontal className="h-4 w-4" />
           Filter &amp; sort
         </Link>
       </div>
-      <p className="mt-2 max-w-[760px] text-[14px] leading-relaxed text-muted">{copy.intro}</p>
+      <p className="mt-2 max-w-[760px] text-[16px] leading-relaxed text-muted">{copy.intro}</p>
 
       {children.length > 0 ? (
         <div className="mt-4 flex flex-wrap gap-2">
@@ -72,7 +72,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
             <Link
               key={c.id}
               href={`/category/${c.slug}`}
-              className="rounded-full border border-border bg-surface px-3.5 py-1.5 text-[12.5px] font-semibold text-ink-dark hover:border-accent hover:text-accent"
+              className="rounded-full border border-border bg-surface px-3.5 py-1.5 text-[14px] font-semibold text-ink-dark hover:border-accent hover:text-accent"
             >
               {c.name}
             </Link>

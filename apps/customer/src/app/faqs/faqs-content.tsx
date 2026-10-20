@@ -77,14 +77,14 @@ export function FaqsContent() {
   const c = locale === "ur" ? UR : EN;
   return (
     <main className="mx-auto w-full max-w-[760px] px-4 py-12 sm:px-6">
-      <p className="font-mono text-xs uppercase tracking-[0.14em] text-muted">{c.badge}</p>
+      <p className="font-mono text-[13.5px] uppercase tracking-[0.14em] text-muted">{c.badge}</p>
       <h1 className="mt-2 text-3xl font-extrabold tracking-[-0.03em] text-ink">{c.title}</h1>
 
       <div className="mt-6 flex flex-col gap-4">
         {c.faqs.map((item) => (
           <div key={item.q} className="rounded-xl border border-border bg-surface p-5">
-            <p className="text-[15px] font-bold text-ink">{item.q}</p>
-            <p className="mt-1.5 text-sm leading-relaxed text-ink-dark">{item.a}</p>
+            <p className="text-[16.5px] font-bold text-ink">{item.q}</p>
+            <p className="mt-1.5 text-[15.5px] leading-relaxed text-ink-dark">{item.a}</p>
           </div>
         ))}
       </div>

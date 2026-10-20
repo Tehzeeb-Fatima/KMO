@@ -29,10 +29,10 @@ export function AboutContent() {
   const c = locale === "ur" ? UR : EN;
   return (
     <main className="mx-auto w-full max-w-[760px] px-4 py-12 sm:px-6">
-      <p className="font-mono text-xs uppercase tracking-[0.14em] text-muted">{c.badge}</p>
+      <p className="font-mono text-[13.5px] uppercase tracking-[0.14em] text-muted">{c.badge}</p>
       <h1 className="mt-2 text-3xl font-extrabold tracking-[-0.03em] text-ink">{c.title}</h1>
 
-      <div className="mt-6 flex flex-col gap-5 text-[15px] leading-[1.75] text-ink-dark">
+      <div className="mt-6 flex flex-col gap-5 text-[16.5px] leading-[1.75] text-ink-dark">
         {c.paragraphs.map((p, i) => (
           <p key={i}>{p}</p>
         ))}

@@ -28,7 +28,7 @@ export default function VendorsPage() {
       <h1 className="mt-2 text-2xl font-bold tracking-[-0.025em] text-ink sm:text-[26px]">
         {t.vendorsPage.title}
       </h1>
-      <p className="mt-1 text-[13.5px] text-muted">
+      <p className="mt-1 text-[15.5px] text-muted">
         {t.vendorsPage.subtitle}
       </p>
 
@@ -37,7 +37,7 @@ export default function VendorsPage() {
         placeholder={t.vendorsPage.searchPlaceholder}
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        className="mt-5 w-full max-w-[400px] rounded-lg border border-border bg-surface px-3.5 py-2.5 text-[13.5px] outline-none focus:border-primary-light"
+        className="mt-5 w-full max-w-[400px] rounded-lg border border-border bg-surface px-3.5 py-2.5 text-[15.5px] outline-none focus:border-primary-light"
       />
 
       <div className="mt-6">
@@ -48,7 +48,7 @@ export default function VendorsPage() {
             ))}
           </div>
         ) : !vendors || vendors.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-border p-10 text-center text-sm text-muted">
+          <div className="rounded-lg border border-dashed border-border p-10 text-center text-[15.5px] text-muted">
             {t.vendorsPage.noVendors}
           </div>
         ) : (
@@ -65,7 +65,7 @@ export default function VendorsPage() {
                 />
                 <div className="-mt-[34px] flex flex-col gap-2.5 p-4">
                   <span
-                    className="flex h-[50px] w-[50px] items-center justify-center rounded-[10px] bg-primary text-sm font-bold text-white ring-[3px] ring-white bg-cover bg-center"
+                    className="flex h-[50px] w-[50px] items-center justify-center rounded-[10px] bg-primary text-[15.5px] font-bold text-white ring-[3px] ring-white bg-cover bg-center"
                     style={
                       v.logo_url
                         ? { backgroundImage: `url(${v.logo_url})` }
@@ -75,19 +75,19 @@ export default function VendorsPage() {
                     {!v.logo_url && v.store_name.charAt(0)}
                   </span>
                   <div className="flex items-center gap-2">
-                    <span className="text-[15.5px] font-bold tracking-[-0.015em] text-ink-dark">
+                    <span className="text-[17px] font-bold tracking-[-0.015em] text-ink-dark">
                       {v.store_name}
                     </span>
-                    <span className="rounded bg-danger-tint px-[5px] py-[3px] font-mono text-[9px] tracking-[0.05em] text-danger">
+                    <span className="rounded bg-danger-tint px-[5px] py-[3px] font-mono text-[10.5px] tracking-[0.05em] text-danger">
                       {t.home.verified}
                     </span>
                   </div>
                   {v.description ? (
-                    <p className="line-clamp-2 text-[13px] leading-[1.55] text-muted">
+                    <p className="line-clamp-2 text-[15px] leading-[1.55] text-muted">
                       {v.description}
                     </p>
                   ) : null}
-                  <div className="flex items-center justify-between border-t border-[#F1EAE6] pt-[11px] text-[12.5px]">
+                  <div className="flex items-center justify-between border-t border-[#F1EAE6] pt-[11px] text-[14px]">
                     <span className="text-muted">{v.area || t.header.city}</span>
                     <span className="font-bold text-primary">{t.home.visit}</span>
                   </div>

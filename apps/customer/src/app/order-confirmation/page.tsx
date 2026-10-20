@@ -62,14 +62,14 @@ function OrderConfirmationContent() {
       </h1>
       {searchParams.get("guest") === "1" ? (
         <div className="mt-4 max-w-[440px] rounded-xl border border-border bg-surface px-5 py-4 text-left">
-          <p className="text-sm font-bold text-ink-dark">Please check your email</p>
-          <p className="mt-1 text-[13px] leading-[1.6] text-muted">
+          <p className="text-[15.5px] font-bold text-ink-dark">Please check your email</p>
+          <p className="mt-1 text-[15px] leading-[1.6] text-muted">
             We sent a link to your email. Open it to set a password, then log in to track this order and your future
             orders.
           </p>
         </div>
       ) : null}
-      <p className="mt-3 max-w-[440px] text-sm leading-[1.6] text-muted">
+      <p className="mt-3 max-w-[440px] text-[15.5px] leading-[1.6] text-muted">
         {orders.length === 1
           ? `Order #${primary.order_number} has been placed. You'll pay Rs. ${total.toLocaleString()} on delivery. Expect it within 1–2 working days.`
           : `Orders ${orders.map((o) => `#${o.order_number}`).join(", ")} have been placed across ${orders.length} vendors. You'll pay Rs. ${total.toLocaleString()} total on delivery.`}
@@ -77,23 +77,23 @@ function OrderConfirmationContent() {
 
       <div className="mt-3 flex flex-wrap justify-center gap-9 rounded-xl border border-border bg-surface px-[30px] py-[22px]">
         <div className="flex flex-col gap-1">
-          <span className="text-[11px] text-muted-table">Order number</span>
-          <span className="text-sm font-bold text-ink-dark">
+          <span className="text-[12.5px] text-muted-table">Order number</span>
+          <span className="text-[15.5px] font-bold text-ink-dark">
             {orders.map((o) => o.order_number).join(", ")}
           </span>
         </div>
         <div className="flex flex-col gap-1">
-          <span className="text-[11px] text-muted-table">Payment</span>
-          <span className="text-sm font-bold text-ink-dark">{paymentLabel}</span>
+          <span className="text-[12.5px] text-muted-table">Payment</span>
+          <span className="text-[15.5px] font-bold text-ink-dark">{paymentLabel}</span>
         </div>
         <div className="flex flex-col gap-1">
-          <span className="text-[11px] text-muted-table">Estimated delivery</span>
-          <span className="text-sm font-bold text-ink-dark">1–2 working days</span>
+          <span className="text-[12.5px] text-muted-table">Estimated delivery</span>
+          <span className="text-[15.5px] font-bold text-ink-dark">1–2 working days</span>
         </div>
       </div>
 
       {user?.is_anonymous ? (
-        <p className="mt-4 max-w-[440px] rounded-lg bg-accent-tint px-4 py-3 text-[12.5px] leading-[1.6] text-ink-dark">
+        <p className="mt-4 max-w-[440px] rounded-lg bg-accent-tint px-4 py-3 text-[14px] leading-[1.6] text-ink-dark">
           Check your email and confirm it to activate your account — you can then set a password
           and log in anytime to track this order.
         </p>

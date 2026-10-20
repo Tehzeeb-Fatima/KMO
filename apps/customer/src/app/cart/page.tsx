@@ -68,7 +68,7 @@ function CartContent() {
     return (
       <div className="mx-auto flex max-w-[600px] flex-1 flex-col items-center justify-center p-10 text-center">
         <h1 className="text-xl font-bold text-ink">{t.cart.empty}</h1>
-        <p className="mt-2 text-sm text-muted">{t.cart.emptyHint}</p>
+        <p className="mt-2 text-[15.5px] text-muted">{t.cart.emptyHint}</p>
         <Link href="/search" className="mt-4">
           <Button>{t.cart.startShopping}</Button>
         </Link>
@@ -96,10 +96,10 @@ function CartContent() {
             return (
               <div key={group.vendorName} className="flex flex-col gap-3">
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-[11px] uppercase tracking-[0.1em] text-muted-table">
+                  <span className="font-mono text-[12.5px] uppercase tracking-[0.1em] text-muted-table">
                     {group.vendorName}
                   </span>
-                  <span className="text-[12.5px] text-muted">
+                  <span className="text-[14px] text-muted">
                     {t.cart.subtotalLabel}{" "}
                     <strong className="text-ink-dark">Rs. {groupSubtotal.toLocaleString()}</strong>
                   </span>
@@ -123,18 +123,18 @@ function CartContent() {
                         }}
                       />
                       <div className="flex min-w-0 flex-col gap-1">
-                        <span className="truncate text-[14.5px] font-semibold text-ink-dark">
+                        <span className="truncate text-[16px] font-semibold text-ink-dark">
                           {item.products.name}
                         </span>
                         {item.product_variants ? (
-                          <span className="text-xs text-muted">
+                          <span className="text-[13.5px] text-muted">
                             {variantLabel(item.product_variants)}
                           </span>
                         ) : null}
                         <button
                           type="button"
                           onClick={() => setPendingRemoveId(item.id)}
-                          className="w-fit text-xs font-bold text-accent"
+                          className="w-fit text-[13.5px] font-bold text-accent"
                         >
                           {t.cart.remove}
                         </button>
@@ -146,11 +146,11 @@ function CartContent() {
                             onClick={() =>
                               updateMutation.mutate({ id: item.id, quantity: Math.max(1, item.quantity - 1) })
                             }
-                            className="cursor-pointer px-3 py-2 text-sm text-primary"
+                            className="cursor-pointer px-3 py-2 text-[15.5px] text-primary"
                           >
                             −
                           </button>
-                          <span className="min-w-[26px] text-center text-[13px] font-bold">
+                          <span className="min-w-[26px] text-center text-[15px] font-bold">
                             {item.quantity}
                           </span>
                           <button
@@ -158,7 +158,7 @@ function CartContent() {
                             onClick={() =>
                               updateMutation.mutate({ id: item.id, quantity: item.quantity + 1 })
                             }
-                            className="cursor-pointer px-3 py-2 text-sm text-primary"
+                            className="cursor-pointer px-3 py-2 text-[15.5px] text-primary"
                           >
                             +
                           </button>
@@ -176,8 +176,8 @@ function CartContent() {
         </div>
 
         <div className="flex flex-col gap-4 rounded-xl border border-border bg-surface p-6 lg:sticky lg:top-6 lg:self-start">
-          <p className="text-[17px] font-bold tracking-[-0.02em] text-ink">{t.checkout.orderSummary}</p>
-          <div className="flex justify-between border-t border-[#F1EAE6] pt-3.5 text-[13.5px]">
+          <p className="text-[18.5px] font-bold tracking-[-0.02em] text-ink">{t.checkout.orderSummary}</p>
+          <div className="flex justify-between border-t border-[#F1EAE6] pt-3.5 text-[15.5px]">
             <span className="text-muted">{t.cart.subtotal}</span>
             <span className="font-semibold text-ink-dark">Rs. {subtotal.toLocaleString()}</span>
           </div>
@@ -185,12 +185,12 @@ function CartContent() {
             <span className="text-ink">{t.cart.total}</span>
             <span className="text-accent">Rs. {subtotal.toLocaleString()}</span>
           </div>
-          <p className="-mt-2 text-[11.5px] text-muted">Delivery is calculated at checkout.</p>
+          <p className="-mt-2 text-[13px] text-muted">Delivery is calculated at checkout.</p>
           <div className="flex items-center gap-2 rounded-lg bg-primary-tint px-3 py-2.5">
-            <span className="rounded bg-white px-1.5 py-1 font-mono text-[9.5px] tracking-[0.08em] text-primary">
+            <span className="rounded bg-white px-1.5 py-1 font-mono text-[11px] tracking-[0.08em] text-primary">
               COD
             </span>
-            <span className="text-xs text-primary">{t.cart.codAvailable}</span>
+            <span className="text-[13.5px] text-primary">{t.cart.codAvailable}</span>
           </div>
           <Link href="/checkout">
             <Button className="w-full">{t.cart.proceedToCheckout}</Button>

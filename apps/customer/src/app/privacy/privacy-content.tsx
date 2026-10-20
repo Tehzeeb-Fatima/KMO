@@ -67,14 +67,14 @@ export function PrivacyContent() {
   const c = locale === "ur" ? UR : EN;
   return (
     <main className="mx-auto w-full max-w-[760px] px-4 py-12 sm:px-6">
-      <p className="font-mono text-xs uppercase tracking-[0.14em] text-muted">{c.badge}</p>
+      <p className="font-mono text-[13.5px] uppercase tracking-[0.14em] text-muted">{c.badge}</p>
       <h1 className="mt-2 text-3xl font-extrabold tracking-[-0.03em] text-ink">{c.title}</h1>
-      <p className="mt-2 text-sm text-muted">{c.lastUpdated}</p>
+      <p className="mt-2 text-[15.5px] text-muted">{c.lastUpdated}</p>
 
-      <div className="mt-6 flex flex-col gap-6 text-sm leading-[1.75] text-ink-dark">
+      <div className="mt-6 flex flex-col gap-6 text-[15.5px] leading-[1.75] text-ink-dark">
         {c.sections.map((s) => (
           <div key={s.title}>
-            <h2 className="mb-1.5 text-base font-bold text-ink">{s.title}</h2>
+            <h2 className="mb-1.5 text-[17px] font-bold text-ink">{s.title}</h2>
             <p>
               {s.body === "contactSection" ? (
                 locale === "ur" ? (

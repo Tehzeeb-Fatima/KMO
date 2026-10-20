@@ -9,18 +9,18 @@ export default function Error({ reset }: { error: Error & { digest?: string }; r
       <h1 className="mt-5 text-2xl font-extrabold tracking-[-0.03em] text-ink">
         Something went wrong
       </h1>
-      <p className="mt-2 max-w-sm text-sm text-muted">
+      <p className="mt-2 max-w-sm text-[15.5px] text-muted">
         We hit an unexpected error loading this page. Try again, or head back home.
       </p>
       <div className="mt-5 flex gap-3">
         <button
           type="button"
           onClick={reset}
-          className="rounded-full border border-primary px-6 py-3 text-sm font-bold text-primary"
+          className="rounded-full border border-primary px-6 py-3 text-[15.5px] font-bold text-primary"
         >
           Try again
         </button>
-        <a href="/" className="rounded-full bg-accent px-6 py-3 text-sm font-bold text-white">
+        <a href="/" className="rounded-full bg-accent px-6 py-3 text-[15.5px] font-bold text-white">
           Back to home
         </a>
       </div>

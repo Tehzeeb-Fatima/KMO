@@ -42,7 +42,7 @@ export default async function LandingPage({ params }: { params: Promise<{ landin
         ]}
       />
       <h1 className="text-[26px] font-extrabold tracking-[-0.02em] text-ink sm:text-[30px]">{page.h1}</h1>
-      <div className="mt-2 flex max-w-[760px] flex-col gap-2 text-[14px] leading-relaxed text-muted">
+      <div className="mt-2 flex max-w-[760px] flex-col gap-2 text-[16px] leading-relaxed text-muted">
         {page.intro.map((p) => (
           <p key={p}>{p}</p>
         ))}

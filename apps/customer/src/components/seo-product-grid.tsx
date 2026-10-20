@@ -5,7 +5,7 @@ import type { GridProduct } from "@/lib/seo-data";
 /** Server-rendered product grid for the category and keyword pages. */
 export function SeoProductGrid({ products }: { products: GridProduct[] }) {
   if (products.length === 0) {
-    return <p className="text-sm text-muted">New products are on the way. Please check back soon.</p>;
+    return <p className="text-[15.5px] text-muted">New products are on the way. Please check back soon.</p>;
   }
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5">
@@ -40,8 +40,8 @@ export function SeoFaqs({ faqs }: { faqs: { q: string; a: string }[] }) {
       <div className="mt-3 flex flex-col gap-2.5">
         {faqs.map((f) => (
           <details key={f.q} className="rounded-lg border border-border bg-surface px-4 py-3">
-            <summary className="cursor-pointer text-[14px] font-semibold text-ink-dark">{f.q}</summary>
-            <p className="mt-2 text-[13.5px] leading-relaxed text-muted">{f.a}</p>
+            <summary className="cursor-pointer text-[16px] font-semibold text-ink-dark">{f.q}</summary>
+            <p className="mt-2 text-[15.5px] leading-relaxed text-muted">{f.a}</p>
           </details>
         ))}
       </div>

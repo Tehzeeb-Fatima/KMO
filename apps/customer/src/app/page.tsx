@@ -101,7 +101,7 @@ export default function Home() {
           className="relative flex flex-col justify-center gap-4 overflow-hidden rounded-xl p-7 text-white transition-all duration-300 [transform-style:preserve-3d] hover:[transform:perspective(900px)_rotateX(4deg)_rotateY(-4deg)_translateY(-6px)] hover:shadow-[0_24px_40px_-18px_rgba(74,34,102,0.6)] sm:p-[34px_30px]"
           style={{ background: "linear-gradient(135deg,#4a2266 0%,#7a2f6c 100%)" }}
         >
-          <p className="font-mono text-[10.5px] tracking-[0.18em] text-[#F3D2C2]">
+          <p className="font-mono text-[12px] tracking-[0.18em] text-[#F3D2C2]">
             {t.home.heroLiveBadge}
           </p>
           {/* full width so the title sits on two lines */}
@@ -110,13 +110,13 @@ export default function Home() {
           </h1>
           <div className="grid items-center gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)]">
             <div className="flex min-w-0 flex-col gap-4">
-              <p className="max-w-[420px] text-[15px] leading-[1.6] text-white/85">
+              <p className="max-w-[420px] text-[16.5px] leading-[1.6] text-white/85">
                 {t.home.heroLiveDesc}
               </p>
               <div className="mt-1 flex items-end justify-between gap-3">
                 <Link
                   href="/search"
-                  className="w-fit shrink-0 rounded-full bg-white px-7 py-3.5 text-sm font-bold text-primary"
+                  className="w-fit shrink-0 rounded-full bg-white px-7 py-3.5 text-[15.5px] font-bold text-primary"
                 >
                   {t.home.heroLiveCta}
                 </Link>
@@ -142,18 +142,18 @@ export default function Home() {
           <div className="flex flex-col gap-3">
             <div className="flex items-start gap-2">
               <span className="mt-[5px] h-2 w-2 shrink-0 rounded-full bg-accent" />
-              <BrandBadge text={t.home.heroWelcomeBadge} className="font-mono text-[10px] leading-[1.6] tracking-[0.16em] text-accent" />
+              <BrandBadge text={t.home.heroWelcomeBadge} className="font-mono text-[11.5px] leading-[1.6] tracking-[0.16em] text-accent" />
             </div>
             <h2 className="text-2xl font-extrabold leading-[1.15] tracking-[-0.03em] text-ink-dark">
               {t.home.heroWelcomeTitle}
             </h2>
-            <p className="text-[13px] leading-[1.55] text-muted">
+            <p className="text-[15px] leading-[1.55] text-muted">
               {t.home.heroWelcomeDesc}
             </p>
           </div>
           <Link
             href="/search"
-            className="w-fit rounded-full bg-primary px-5 py-2.5 text-[13px] font-bold text-white"
+            className="w-fit rounded-full bg-primary px-5 py-2.5 text-[15px] font-bold text-white"
           >
             {t.home.heroWelcomeCta}
           </Link>
@@ -169,18 +169,18 @@ export default function Home() {
           <div className="flex flex-col gap-3">
             <div className="flex items-start gap-2">
               <span className="mt-[5px] h-2 w-2 shrink-0 rounded-full bg-primary" />
-              <BrandBadge text={t.home.heroSellBadge} className="font-mono text-[10px] leading-[1.6] tracking-[0.16em] text-primary" />
+              <BrandBadge text={t.home.heroSellBadge} className="font-mono text-[11.5px] leading-[1.6] tracking-[0.16em] text-primary" />
             </div>
             <h2 className="text-2xl font-extrabold leading-[1.15] tracking-[-0.03em] text-ink-dark">
               {t.home.heroSellTitle}
             </h2>
-            <p className="text-[13px] leading-[1.55] text-muted">
+            <p className="text-[15px] leading-[1.55] text-muted">
               {t.home.heroSellDesc}
             </p>
           </div>
           <a
             href={`${VENDOR_URL}/signup`}
-            className="w-fit rounded-full bg-accent px-5 py-2.5 text-[13px] font-bold text-white"
+            className="w-fit rounded-full bg-accent px-5 py-2.5 text-[15px] font-bold text-white"
           >
             {t.home.heroSellCta}
           </a>
@@ -195,7 +195,7 @@ export default function Home() {
             <h2 className="text-xl font-bold tracking-[-0.025em] text-ink sm:text-[21px]">
               {t.home.browseCategories}
             </h2>
-            <Link href="/search" className="text-[13px] font-bold text-accent">
+            <Link href="/search" className="text-[15px] font-bold text-accent">
               {t.home.allCategories}
             </Link>
           </div>
@@ -223,7 +223,7 @@ export default function Home() {
                     </span>
                   ) : null}
                 </div>
-                <span className="line-clamp-2 text-[12.5px] font-bold text-ink-dark">{c.name}</span>
+                <span className="line-clamp-2 text-[14px] font-bold text-ink-dark">{c.name}</span>
               </Link>
             ))}
           </HorizontalSlider>
@@ -245,14 +245,14 @@ export default function Home() {
             <h2 className="text-xl font-bold tracking-[-0.025em] text-ink sm:text-[21px]">
               {t.home.featuredVendors}
             </h2>
-            <p className="text-[13.5px] text-muted">{t.home.featuredVendorsSub}</p>
+            <p className="text-[15.5px] text-muted">{t.home.featuredVendorsSub}</p>
           </div>
-          <Link href="/vendors" className="shrink-0 text-[13px] font-bold text-accent">
+          <Link href="/vendors" className="shrink-0 text-[15px] font-bold text-accent">
             {t.home.seeAllVendors}
           </Link>
         </div>
         {!vendors || vendors.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-border p-10 text-center text-sm text-muted">
+          <div className="rounded-lg border border-dashed border-border p-10 text-center text-[15.5px] text-muted">
             {t.home.noVendorsYet}
           </div>
         ) : (
@@ -269,7 +269,7 @@ export default function Home() {
                 />
                 <div className="-mt-[34px] flex flex-col gap-2.5 p-4">
                   <span
-                    className="flex h-[50px] w-[50px] items-center justify-center rounded-[10px] bg-primary text-sm font-bold text-white ring-[3px] ring-white bg-cover bg-center"
+                    className="flex h-[50px] w-[50px] items-center justify-center rounded-[10px] bg-primary text-[15.5px] font-bold text-white ring-[3px] ring-white bg-cover bg-center"
                     style={
                       v.logo_url
                         ? { backgroundImage: `url(${v.logo_url})` }
@@ -279,19 +279,19 @@ export default function Home() {
                     {!v.logo_url && v.store_name.charAt(0)}
                   </span>
                   <div className="flex items-center gap-2">
-                    <span className="text-[15.5px] font-bold tracking-[-0.015em] text-ink-dark">
+                    <span className="text-[17px] font-bold tracking-[-0.015em] text-ink-dark">
                       {v.store_name}
                     </span>
-                    <span className="rounded bg-danger-tint px-[5px] py-[3px] font-mono text-[9px] tracking-[0.05em] text-danger">
+                    <span className="rounded bg-danger-tint px-[5px] py-[3px] font-mono text-[10.5px] tracking-[0.05em] text-danger">
                       {t.home.verified}
                     </span>
                   </div>
                   {v.description ? (
-                    <p className="line-clamp-2 text-[13px] leading-[1.55] text-muted">
+                    <p className="line-clamp-2 text-[15px] leading-[1.55] text-muted">
                       {v.description}
                     </p>
                   ) : null}
-                  <div className="flex items-center justify-between border-t border-[#F1EAE6] pt-[11px] text-[12.5px]">
+                  <div className="flex items-center justify-between border-t border-[#F1EAE6] pt-[11px] text-[14px]">
                     <span className="text-muted">{v.area || t.header.city}</span>
                     <span className="font-bold text-primary">{t.home.visit}</span>
                   </div>
@@ -312,7 +312,7 @@ export default function Home() {
             <h2 className="text-xl font-bold tracking-[-0.025em] text-ink sm:text-[21px]">
               {t.home.ratingsReviews}
             </h2>
-            <Link href="/search" className="text-[13px] font-bold text-accent">
+            <Link href="/search" className="text-[15px] font-bold text-accent">
               {t.home.seeAllReviews}
             </Link>
           </div>
@@ -322,12 +322,12 @@ export default function Home() {
                 {ratingSummary.average.toFixed(1)}
               </p>
               <p className="tracking-[0.1em] text-accent">{"★".repeat(Math.round(ratingSummary.average))}</p>
-              <p className="mt-1 text-[12.5px] text-muted">
+              <p className="mt-1 text-[14px] text-muted">
                 {ratingSummary.count.toLocaleString()} {t.home.ratingsAcrossVendors}
               </p>
               <div className="mt-4 flex flex-col gap-1.5">
                 {ratingSummary.bars.map((b) => (
-                  <div key={b.stars} className="flex items-center gap-2 text-xs">
+                  <div key={b.stars} className="flex items-center gap-2 text-[13.5px]">
                     <span className="w-6 text-muted">{b.stars}★</span>
                     <div className="h-1.5 flex-1 rounded-full bg-surface-alt">
                       <div
@@ -345,20 +345,20 @@ export default function Home() {
                 <div key={r.id} className="rounded-[10px] border border-border bg-surface p-[18px_20px]">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2.5">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-[13.5px] font-bold text-white">
                         {(r.profiles?.full_name ?? "K").charAt(0)}
                       </span>
                       <div>
-                        <p className="text-[13px] font-bold text-ink-dark">
+                        <p className="text-[15px] font-bold text-ink-dark">
                           {r.profiles?.full_name ?? "Customer"}
                         </p>
-                        <p className="text-[11px] text-muted-table">{r.products?.name}</p>
+                        <p className="text-[12.5px] text-muted-table">{r.products?.name}</p>
                       </div>
                     </div>
                     <span className="shrink-0 text-accent">{"★".repeat(r.rating)}</span>
                   </div>
                   {r.body ? (
-                    <p className="mt-2.5 text-[12.5px] leading-[1.6] text-ink-dark">{r.body}</p>
+                    <p className="mt-2.5 text-[14px] leading-[1.6] text-ink-dark">{r.body}</p>
                   ) : null}
                 </div>
               ))}
@@ -415,7 +415,7 @@ function HomeBanner({ banners }: { banners: BannerRow[] | undefined }) {
     >
       {current.title ? (
         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-5 sm:p-8">
-          <p className="text-[18px] font-extrabold text-white sm:text-[26px]">{current.title}</p>
+          <p className="text-[19.5px] font-extrabold text-white sm:text-[26px]">{current.title}</p>
         </div>
       ) : null}
     </div>
@@ -495,9 +495,9 @@ function PromotionsSection({
           <h2 className="text-xl font-bold tracking-[-0.025em] text-ink sm:text-[21px]">
             {t.home.limitedTimeDeals}
           </h2>
-          <p className="text-[13.5px] text-muted">{t.home.grabDeals}</p>
+          <p className="text-[15.5px] text-muted">{t.home.grabDeals}</p>
         </div>
-        <Link href="/search" className="shrink-0 text-[13px] font-bold text-accent">
+        <Link href="/search" className="shrink-0 text-[15px] font-bold text-accent">
           {t.home.shopAll}
         </Link>
       </div>
@@ -556,7 +556,7 @@ function PromotionBlock({
       <div className="flex flex-wrap items-center justify-between gap-4 bg-primary px-5 py-4 sm:px-6">
         <div className="flex min-w-0 flex-col gap-1.5">
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="rounded-full bg-accent px-2.5 py-1 text-[11px] font-extrabold text-white">
+            <span className="rounded-full bg-accent px-2.5 py-1 text-[12.5px] font-extrabold text-white">
               {promo.badge_text ||
                 (promo.discount_type === "percentage"
                   ? `${Number(promo.discount_value)}${t.home.percentOff}`
@@ -567,19 +567,19 @@ function PromotionBlock({
             {promo.title}
           </h3>
           {promo.subtitle ? (
-            <p className="line-clamp-1 text-[13px] text-white/80">{promo.subtitle}</p>
+            <p className="line-clamp-1 text-[15px] text-white/80">{promo.subtitle}</p>
           ) : null}
         </div>
         <div className="flex items-center gap-4">
           <div className="flex flex-col gap-1">
-            <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-white/60">
+            <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-white/60">
               {t.home.endsIn}
             </span>
             <Countdown endsAt={promo.ends_at} onExpire={onExpire} />
           </div>
           <Link
             href={`/search?promo=${promo.id}`}
-            className="shrink-0 rounded-[7px] bg-white px-4 py-2 text-[12.5px] font-bold text-primary"
+            className="shrink-0 rounded-[7px] bg-white px-4 py-2 text-[14px] font-bold text-primary"
           >
             {t.home.shopNow}
           </Link>
@@ -691,7 +691,7 @@ function TopCategorySection({
           <h2 className="text-xl font-bold tracking-[-0.025em] text-ink sm:text-[21px]">
             {t.home.topIn} {category.name}
           </h2>
-          <p className="text-[13.5px] text-muted">
+          <p className="text-[15.5px] text-muted">
             {category.sold_count > 0
               ? `${category.sold_count.toLocaleString()} ${t.home.soldByShoppers}`
               : t.home.popularWithShoppers}
@@ -699,7 +699,7 @@ function TopCategorySection({
         </div>
         <Link
           href={`/category/${category.slug}`}
-          className="shrink-0 text-[13px] font-bold text-accent"
+          className="shrink-0 text-[15px] font-bold text-accent"
         >
           {t.home.seeAll}
         </Link>
@@ -741,7 +741,7 @@ function FeaturedProducts({
               key={opt.key}
               type="button"
               onClick={() => setFilter(opt.key)}
-              className="rounded-full px-[15px] py-2 text-[12.5px] font-semibold"
+              className="rounded-full px-[15px] py-2 text-[14px] font-semibold"
               style={
                 filter === opt.key
                   ? { background: "var(--color-accent)", color: "#fff" }
@@ -754,7 +754,7 @@ function FeaturedProducts({
         </div>
       </div>
       {!products || products.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-border p-10 text-center text-sm text-muted">
+        <div className="rounded-lg border border-dashed border-border p-10 text-center text-[15.5px] text-muted">
           {t.home.noProductsYet}
         </div>
       ) : (
@@ -803,7 +803,7 @@ function Testimonials({ enabled }: { enabled: boolean }) {
         <h2 className="text-xl font-bold tracking-[-0.025em] text-ink sm:text-[21px]">
           {t.home.whatKarachiSaying}
         </h2>
-        <p className="text-[13.5px] text-muted">{t.home.realFeedback}</p>
+        <p className="text-[15.5px] text-muted">{t.home.realFeedback}</p>
       </div>
       <div className="grid gap-[18px] sm:grid-cols-3">
         {testimonials.map((t) => (
@@ -814,14 +814,14 @@ function Testimonials({ enabled }: { enabled: boolean }) {
             <span className="font-serif text-[28px] font-extrabold leading-none text-accent">
               &ldquo;
             </span>
-            <p className="text-sm leading-[1.65] text-ink-dark">{t.quote}</p>
+            <p className="text-[15.5px] leading-[1.65] text-ink-dark">{t.quote}</p>
             <div className="flex items-center gap-2.5 border-t border-[#F2DDD3] pt-3.5">
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-bold text-white">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-[15.5px] font-bold text-white">
                 {t.name.charAt(0)}
               </span>
               <div>
-                <p className="text-[13.5px] font-bold text-ink-dark">{t.name}</p>
-                {t.area ? <p className="text-[11.5px] text-danger">{t.area}</p> : null}
+                <p className="text-[15.5px] font-bold text-ink-dark">{t.name}</p>
+                {t.area ? <p className="text-[13px] text-danger">{t.area}</p> : null}
               </div>
             </div>
           </div>
@@ -853,11 +853,11 @@ function ContactSection() {
     <section id="contact-us" className="px-4 py-11 sm:px-10">
       <div className="grid gap-10 lg:grid-cols-[1fr_1.3fr]">
         <div className="flex flex-col gap-3.5 pt-2">
-          <p className="font-mono text-[10.5px] tracking-[0.16em] text-accent">{t.contact.getInTouch}</p>
+          <p className="font-mono text-[12px] tracking-[0.16em] text-accent">{t.contact.getInTouch}</p>
           <h2 className="text-[26px] font-extrabold leading-[1.2] tracking-[-0.03em] text-ink">
             {t.contact.haveQuestion}
           </h2>
-          <p className="max-w-[340px] text-sm leading-[1.65] text-muted">
+          <p className="max-w-[340px] text-[15.5px] leading-[1.65] text-muted">
             {t.contact.description}
           </p>
           <div className="mt-2 flex flex-col gap-2.5">
@@ -865,7 +865,7 @@ function ContactSection() {
               <span className="h-[7px] w-[7px] shrink-0 rounded-full bg-accent" />
               <a
                 href="mailto:contact@karachimartonline.com"
-                className="text-[13.5px] text-ink-dark hover:text-primary hover:underline"
+                className="text-[15.5px] text-ink-dark hover:text-primary hover:underline"
               >
                 contact@karachimartonline.com
               </a>
@@ -874,7 +874,7 @@ function ContactSection() {
               <span className="h-[7px] w-[7px] shrink-0 rounded-full bg-accent" />
               <a
                 href="tel:+923712104790"
-                className="text-[13.5px] text-ink-dark hover:text-primary hover:underline"
+                className="text-[15.5px] text-ink-dark hover:text-primary hover:underline"
               >
                 +92 371 2104790
               </a>
@@ -890,7 +890,7 @@ function ContactSection() {
           className="flex flex-col gap-4 rounded-xl border border-border bg-surface p-7"
         >
           {mutation.isSuccess ? (
-            <p className="text-[12.5px] font-bold text-success">{t.contact.thanksMessage}</p>
+            <p className="text-[14px] font-bold text-success">{t.contact.thanksMessage}</p>
           ) : (
             <>
               <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
@@ -900,7 +900,7 @@ function ContactSection() {
                     placeholder={t.contact.firstName}
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
+                    className="rounded-lg border border-border px-[13px] py-[11px] text-[15.5px] outline-none focus:border-primary-light"
                   />
                 </Field>
                 <Field label={t.contact.lastName}>
@@ -909,7 +909,7 @@ function ContactSection() {
                     placeholder={t.contact.lastName}
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
+                    className="rounded-lg border border-border px-[13px] py-[11px] text-[15.5px] outline-none focus:border-primary-light"
                   />
                 </Field>
               </div>
@@ -921,7 +921,7 @@ function ContactSection() {
                     placeholder={t.contact.phoneNumber}
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
+                    className="rounded-lg border border-border px-[13px] py-[11px] text-[15.5px] outline-none focus:border-primary-light"
                   />
                 </Field>
                 <Field label={t.contact.businessName} optional optionalLabel={t.contact.optional}>
@@ -929,7 +929,7 @@ function ContactSection() {
                     placeholder={t.contact.yourShopName}
                     value={businessName}
                     onChange={(e) => setBusinessName(e.target.value)}
-                    className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
+                    className="rounded-lg border border-border px-[13px] py-[11px] text-[15.5px] outline-none focus:border-primary-light"
                   />
                 </Field>
               </div>
@@ -940,13 +940,13 @@ function ContactSection() {
                   placeholder={t.contact.messagePlaceholder}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  className="resize-y rounded-lg border border-border px-[13px] py-[11px] font-sans text-[13.5px] outline-none focus:border-primary-light"
+                  className="resize-y rounded-lg border border-border px-[13px] py-[11px] font-sans text-[15.5px] outline-none focus:border-primary-light"
                 />
               </Field>
               <button
                 type="submit"
                 disabled={mutation.isPending}
-                className="w-fit rounded-[9px] bg-accent px-[30px] py-[13px] text-sm font-bold text-white disabled:opacity-60"
+                className="w-fit rounded-[9px] bg-accent px-[30px] py-[13px] text-[15.5px] font-bold text-white disabled:opacity-60"
               >
                 {mutation.isPending ? t.contact.sending : t.contact.sendMessage}
               </button>
@@ -971,7 +971,7 @@ function Field({
 }) {
   return (
     <div className="flex flex-col gap-[7px]">
-      <span className="text-[12.5px] font-bold text-ink-dark">
+      <span className="text-[14px] font-bold text-ink-dark">
         {label}
         {optional ? (
           <span className="font-medium text-muted-table"> {optionalLabel}</span>
@@ -1001,7 +1001,7 @@ function VerifyEmailBanner() {
   if (!email) return null;
 
   return (
-    <div className="flex items-start justify-between gap-4 bg-primary-tint px-4 py-3 text-sm text-ink-dark sm:px-10">
+    <div className="flex items-start justify-between gap-4 bg-primary-tint px-4 py-3 text-[15.5px] text-ink-dark sm:px-10">
       <p>
         Account created. We sent a verification link to <span className="font-semibold">{email}</span>. Please open it to
         activate your account and sign in.
@@ -1053,7 +1053,7 @@ function HeroPhotoFan({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={pic.src} alt="" className="aspect-[4/5] h-full w-auto max-w-none rounded-[3px] object-cover" loading="eager" />
           {showLabels ? (
-            <span className="absolute inset-x-0 bottom-1 truncate px-1 text-center text-[11px] font-bold text-primary">
+            <span className="absolute inset-x-0 bottom-1 truncate px-1 text-center text-[12.5px] font-bold text-primary">
               {pic.label}
             </span>
           ) : null}

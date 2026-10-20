@@ -61,12 +61,12 @@ export function SiteFooter() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/kmo-icon.png" alt="" className="h-full w-full object-cover" />
             </span>
-            <span className="text-base font-extrabold text-white">Karachi Mart</span>
+            <span className="text-[17px] font-extrabold text-white">Karachi Mart</span>
           </Link>
-          <p className="max-w-[280px] text-[13px] leading-[1.6] text-[#B9A3CD]">
+          <p className="max-w-[280px] text-[15px] leading-[1.6] text-[#B9A3CD]">
             {t.footer.description}
           </p>
-          <div className="mt-1 flex flex-col gap-2 text-[13px]">
+          <div className="mt-1 flex flex-col gap-2 text-[15px]">
             <a
               href="mailto:contact@karachimartonline.com"
               className="flex w-fit items-center gap-2 text-[#D5C4E2] hover:text-white"
@@ -99,7 +99,7 @@ export function SiteFooter() {
 
         {columns.map((col) => (
           <div key={col.heading}>
-            <p className="text-xs font-bold uppercase tracking-[0.08em] text-[#7B5A96]">
+            <p className="text-[13.5px] font-bold uppercase tracking-[0.08em] text-[#7B5A96]">
               {col.heading}
             </p>
             <ul className="mt-3 flex flex-col gap-2.5">
@@ -107,7 +107,7 @@ export function SiteFooter() {
                 <li key={link.label + i}>
                   <Link
                     href={link.href}
-                    className="text-[13.5px] text-[#D5C4E2] hover:text-white"
+                    className="text-[15.5px] text-[#D5C4E2] hover:text-white"
                   >
                     {link.label}
                   </Link>
@@ -119,20 +119,20 @@ export function SiteFooter() {
       </div>
       {/* Popular searches: links to the keyword pages so shoppers and search engines find them. */}
       <div className="mx-auto w-full max-w-[1358px] border-t border-[#45305C] px-4 py-5 sm:px-10">
-        <p className="text-xs font-bold uppercase tracking-[0.08em] text-[#7B5A96]">Popular searches</p>
+        <p className="text-[13.5px] font-bold uppercase tracking-[0.08em] text-[#7B5A96]">Popular searches</p>
         <div className="mt-2.5 flex flex-wrap gap-x-4 gap-y-2">
           {LANDING_PAGES.map((p) => (
-            <Link key={p.slug} href={`/${p.slug}`} className="text-[13px] text-[#D5C4E2] hover:text-white">
+            <Link key={p.slug} href={`/${p.slug}`} className="text-[15px] text-[#D5C4E2] hover:text-white">
               {p.h1.replace(/ in Karachi$/, "")}
             </Link>
           ))}
         </div>
       </div>
       <div className="mx-auto flex w-full max-w-[1358px] flex-col items-center justify-between gap-2 border-t border-[#45305C] px-4 py-5 text-center sm:flex-row sm:px-10 sm:text-left">
-        <p className="text-xs text-[#8A749E]">
+        <p className="text-[13.5px] text-[#8A749E]">
           © {new Date().getFullYear()} {t.footer.rightsReserved}
         </p>
-        <p className="text-xs text-[#8A749E]">{t.footer.codAvailable}</p>
+        <p className="text-[13.5px] text-[#8A749E]">{t.footer.codAvailable}</p>
       </div>
     </footer>
   );

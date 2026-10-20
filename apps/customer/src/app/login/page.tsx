@@ -115,12 +115,12 @@ function LoginContent() {
             onChange={(e) => setPassword(e.target.value)}
           />
           <div className="mt-1.5 text-right">
-            <Link href="/reset-password" className="text-xs font-medium text-primary hover:text-primary-light">
+            <Link href="/reset-password" className="text-[13.5px] font-medium text-primary hover:text-primary-light">
               {t.auth.forgotPassword}
             </Link>
           </div>
         </div>
-        {error ? <p className="text-sm text-danger">{error}</p> : null}
+        {error ? <p className="text-[15.5px] text-danger">{error}</p> : null}
         <Button type="submit" disabled={submitting} className="mt-1 w-full">
           {submitting ? t.auth.signingIn : t.auth.signInButton}
         </Button>

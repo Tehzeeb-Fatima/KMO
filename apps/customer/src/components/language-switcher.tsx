@@ -6,7 +6,7 @@ export function LanguageSwitcher() {
   const { locale, setLocale } = useLanguage();
 
   return (
-    <div className="flex shrink-0 items-center overflow-hidden rounded-full border border-border text-[11.5px] font-bold">
+    <div className="flex shrink-0 items-center overflow-hidden rounded-full border border-border text-[13px] font-bold">
       <button
         type="button"
         onClick={() => setLocale("en")}

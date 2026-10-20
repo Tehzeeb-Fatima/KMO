@@ -42,22 +42,22 @@ export default function TrackOrderPage() {
   return (
     <main className="mx-auto w-full max-w-[560px] px-4 py-12 sm:px-6">
       <h1 className="text-2xl font-extrabold tracking-[-0.03em] text-ink">Track my order</h1>
-      <p className="mt-2 text-sm text-muted">
+      <p className="mt-2 text-[15.5px] text-muted">
         Enter the order number from your confirmation and the email you used at checkout.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4 rounded-xl border border-border bg-surface p-6">
-        <label className="flex flex-col gap-1.5 text-sm font-semibold text-ink-dark">
+        <label className="flex flex-col gap-1.5 text-[15.5px] font-semibold text-ink-dark">
           Order number
           <input
             required
             value={orderNumber}
             onChange={(e) => setOrderNumber(e.target.value)}
             placeholder="e.g. KMO-2026-000123"
-            className="rounded-md border border-border px-3 py-2 text-sm font-normal"
+            className="rounded-md border border-border px-3 py-2 text-[15.5px] font-normal"
           />
         </label>
-        <label className="flex flex-col gap-1.5 text-sm font-semibold text-ink-dark">
+        <label className="flex flex-col gap-1.5 text-[15.5px] font-semibold text-ink-dark">
           Email
           <input
             type="email"
@@ -65,7 +65,7 @@ export default function TrackOrderPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
-            className="rounded-md border border-border px-3 py-2 text-sm font-normal"
+            className="rounded-md border border-border px-3 py-2 text-[15.5px] font-normal"
           />
         </label>
         <Button type="submit" disabled={submitting} className="w-full">
@@ -73,10 +73,10 @@ export default function TrackOrderPage() {
         </Button>
       </form>
 
-      {error ? <p className="mt-4 text-sm text-danger">{error}</p> : null}
+      {error ? <p className="mt-4 text-[15.5px] text-danger">{error}</p> : null}
 
       {searched && !submitting && !error && !result ? (
-        <p className="mt-4 text-sm text-muted">
+        <p className="mt-4 text-[15.5px] text-muted">
           No order found for that number and email. Check both and try again.
         </p>
       ) : null}
@@ -84,12 +84,12 @@ export default function TrackOrderPage() {
       {result ? (
         <div className="mt-4 flex flex-col gap-3 rounded-xl border border-border bg-surface p-6">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-bold text-ink-dark">#{result.order_number}</span>
+            <span className="text-[15.5px] font-bold text-ink-dark">#{result.order_number}</span>
             <StatusBadge variant={ORDER_STATUS_META[result.status].variant}>
               {ORDER_STATUS_META[result.status].label}
             </StatusBadge>
           </div>
-          <p className="text-sm text-muted">
+          <p className="text-[15.5px] text-muted">
             Placed on {new Date(result.created_at).toLocaleDateString()} at{" "}
             {new Date(result.created_at).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })} · Total
             Rs. {result.total.toLocaleString()} ·{" "}

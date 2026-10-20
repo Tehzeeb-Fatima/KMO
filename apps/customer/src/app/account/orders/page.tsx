@@ -37,7 +37,7 @@ function OrdersContent() {
       {isLoading ? (
         <ListSkeleton rows={3} rowClassName="h-28" />
       ) : !orders || orders.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border p-10 text-center text-sm text-muted">
+        <div className="rounded-xl border border-dashed border-border p-10 text-center text-[15.5px] text-muted">
           {t.account.noOrdersPlaced}
         </div>
       ) : (
@@ -82,10 +82,10 @@ function OrderCard({ order }: { order: OrderWithItems }) {
     <div className="rounded-xl border border-border bg-surface p-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <p className="text-sm font-bold text-ink-dark">
+          <p className="text-[15.5px] font-bold text-ink-dark">
             {t.account.orderNumber}{order.order_number} · {order.vendors?.store_name}
           </p>
-          <p className="text-xs text-muted">
+          <p className="text-[13.5px] text-muted">
             {t.account.placed}{" "}
             {new Date(order.created_at).toLocaleDateString(undefined, {
               day: "numeric",
@@ -121,7 +121,7 @@ function OrderCard({ order }: { order: OrderWithItems }) {
 
       <div className="mt-4 flex flex-col gap-2 border-t border-[#F1EAE6] pt-4">
         {order.order_items.map((item) => (
-          <div key={item.id} className="flex items-center justify-between text-[13px]">
+          <div key={item.id} className="flex items-center justify-between text-[15px]">
             <span className="text-ink-dark">
               {item.product_name}
               {item.variant_label ? ` (${item.variant_label})` : ""} × {item.quantity}
@@ -134,7 +134,7 @@ function OrderCard({ order }: { order: OrderWithItems }) {
                 <button
                   type="button"
                   onClick={() => setReturningItemId(item.id)}
-                  className="text-xs font-bold text-accent"
+                  className="text-[13.5px] font-bold text-accent"
                 >
                   {t.account.returnAction}
                 </button>
@@ -151,21 +151,21 @@ function OrderCard({ order }: { order: OrderWithItems }) {
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             rows={2}
-            className="rounded-lg border border-border px-3 py-2 text-[13px] outline-none focus:border-primary-light"
+            className="rounded-lg border border-border px-3 py-2 text-[15px] outline-none focus:border-primary-light"
           />
           <div className="flex gap-2">
             <button
               type="button"
               disabled={!reason.trim() || returnMutation.isPending}
               onClick={() => returnMutation.mutate(returningItemId)}
-              className="rounded-lg bg-accent px-4 py-2 text-xs font-bold text-white disabled:opacity-60"
+              className="rounded-lg bg-accent px-4 py-2 text-[13.5px] font-bold text-white disabled:opacity-60"
             >
               {returnMutation.isPending ? t.account.submittingReturn : t.account.submitReturnRequest}
             </button>
             <button
               type="button"
               onClick={() => setReturningItemId(null)}
-              className="text-xs font-bold text-primary"
+              className="text-[13.5px] font-bold text-primary"
             >
               {t.account.cancel}
             </button>
@@ -173,7 +173,7 @@ function OrderCard({ order }: { order: OrderWithItems }) {
         </div>
       ) : null}
 
-      <div className="mt-4 flex justify-between border-t border-[#F1EAE6] pt-4 text-sm font-bold">
+      <div className="mt-4 flex justify-between border-t border-[#F1EAE6] pt-4 text-[15.5px] font-bold">
         <span className="text-ink">{t.account.total}</span>
         <span className="text-accent">Rs. {order.total.toLocaleString()}</span>
       </div>

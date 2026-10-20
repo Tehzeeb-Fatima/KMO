@@ -86,10 +86,10 @@ function AddressesContent() {
               className="flex items-start justify-between rounded-xl border border-border bg-surface p-4"
             >
               <div>
-                <p className="text-sm font-bold text-ink-dark">
+                <p className="text-[15.5px] font-bold text-ink-dark">
                   {addr.label} · {addr.full_name} · {addr.phone}
                 </p>
-                <p className="text-sm text-muted">
+                <p className="text-[15.5px] text-muted">
                   {addr.address_line}
                   {addr.area ? `, ${addr.area}` : ""}, {addr.city}
                 </p>
@@ -97,14 +97,14 @@ function AddressesContent() {
               <button
                 type="button"
                 onClick={() => setPendingDeleteId(addr.id)}
-                className="text-xs font-bold text-danger"
+                className="text-[13.5px] font-bold text-danger"
               >
                 {t.account.remove}
               </button>
             </div>
           ))}
           {addresses?.length === 0 && !adding ? (
-            <p className="text-sm text-muted">{t.account.noSavedAddresses}</p>
+            <p className="text-[15.5px] text-muted">{t.account.noSavedAddresses}</p>
           ) : null}
         </div>
       )}
@@ -116,32 +116,32 @@ function AddressesContent() {
               placeholder={t.account.labelPlaceholder}
               value={label}
               onChange={(e) => setLabel(e.target.value)}
-              className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
+              className="rounded-lg border border-border px-[13px] py-[11px] text-[15.5px] outline-none focus:border-primary-light"
             />
             <input
               placeholder={t.account.phoneNumber}
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
+              className="rounded-lg border border-border px-[13px] py-[11px] text-[15.5px] outline-none focus:border-primary-light"
             />
           </div>
           <input
             placeholder={t.account.fullNamePlaceholder}
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
+            className="rounded-lg border border-border px-[13px] py-[11px] text-[15.5px] outline-none focus:border-primary-light"
           />
           <input
             placeholder={t.account.streetAddressPlaceholder}
             value={addressLine}
             onChange={(e) => setAddressLine(e.target.value)}
-            className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
+            className="rounded-lg border border-border px-[13px] py-[11px] text-[15.5px] outline-none focus:border-primary-light"
           />
           <input
             placeholder={t.account.areaPlaceholder}
             value={area}
             onChange={(e) => setArea(e.target.value)}
-            className="rounded-lg border border-border px-[13px] py-[11px] text-[13.5px] outline-none focus:border-primary-light"
+            className="rounded-lg border border-border px-[13px] py-[11px] text-[15.5px] outline-none focus:border-primary-light"
           />
           <div className="flex gap-2">
             <Button
@@ -153,7 +153,7 @@ function AddressesContent() {
             <button
               type="button"
               onClick={() => setAdding(false)}
-              className="text-sm font-bold text-primary"
+              className="text-[15.5px] font-bold text-primary"
             >
               {t.account.cancel}
             </button>

@@ -9,10 +9,10 @@ export default function NotFound() {
       <h1 className="mt-5 text-2xl font-extrabold tracking-[-0.03em] text-ink">
         This page wandered off somewhere in Karachi
       </h1>
-      <p className="mt-2 max-w-sm text-sm text-muted">
+      <p className="mt-2 max-w-sm text-[15.5px] text-muted">
         The page you&rsquo;re looking for doesn&rsquo;t exist or may have moved.
       </p>
-      <Link href="/" className="mt-5 rounded-full bg-accent px-6 py-3 text-sm font-bold text-white">
+      <Link href="/" className="mt-5 rounded-full bg-accent px-6 py-3 text-[15.5px] font-bold text-white">
         Back to home
       </Link>
     </main>

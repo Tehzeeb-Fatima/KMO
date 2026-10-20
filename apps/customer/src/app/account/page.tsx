@@ -31,7 +31,7 @@ function AccountContent() {
 
   return (
     <main className="mx-auto w-full max-w-[600px] px-4 py-10 sm:px-6">
-      <p className="font-mono text-xs uppercase tracking-[0.14em] text-muted">{t.account.yourAccount}</p>
+      <p className="font-mono text-[13.5px] uppercase tracking-[0.14em] text-muted">{t.account.yourAccount}</p>
       <h1 className="mt-2 text-2xl font-bold text-ink">
         {t.account.welcome} {profile?.full_name ?? t.account.there}
       </h1>
@@ -43,8 +43,8 @@ function AccountContent() {
             href={link.href}
             className="rounded-xl border border-border bg-surface p-4 hover:border-primary-light"
           >
-            <p className="text-sm font-bold text-ink-dark">{link.label}</p>
-            <p className="text-xs text-muted">{link.sub}</p>
+            <p className="text-[15.5px] font-bold text-ink-dark">{link.label}</p>
+            <p className="text-[13.5px] text-muted">{link.sub}</p>
           </Link>
         ))}
       </div>
@@ -52,7 +52,7 @@ function AccountContent() {
       <button
         type="button"
         onClick={() => void signOut()}
-        className="mt-6 rounded-full border border-primary px-5 py-2 text-sm font-semibold text-primary"
+        className="mt-6 rounded-full border border-primary px-5 py-2 text-[15.5px] font-semibold text-primary"
       >
         {t.account.signOut}
       </button>

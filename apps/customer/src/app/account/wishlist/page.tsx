@@ -53,7 +53,7 @@ function WishlistContent() {
       {isLoading ? (
         <ListSkeleton rows={3} rowClassName="h-24" />
       ) : !items || items.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border p-10 text-center text-sm text-muted">
+        <div className="rounded-xl border border-dashed border-border p-10 text-center text-[15.5px] text-muted">
           {t.account.wishlistEmptyHint}
         </div>
       ) : (
@@ -84,7 +84,7 @@ function WishlistContent() {
               <button
                 type="button"
                 onClick={() => setPendingRemoveId(item.product_id)}
-                className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-white text-sm text-danger shadow"
+                className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-white text-[15.5px] text-danger shadow"
               >
                 ×
               </button>

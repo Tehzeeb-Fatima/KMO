@@ -49,7 +49,7 @@ function FollowingContent() {
       {isLoading ? (
         <ListSkeleton rows={3} rowClassName="h-16" />
       ) : !vendors || vendors.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border p-10 text-center text-sm text-muted">
+        <div className="rounded-xl border border-dashed border-border p-10 text-center text-[15.5px] text-muted">
           {t.account.noFollowedHint}
         </div>
       ) : (
@@ -60,19 +60,19 @@ function FollowingContent() {
               className="flex items-center gap-3 rounded-xl border border-border bg-surface p-4"
             >
               <span
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[10px] bg-primary text-sm font-bold text-white bg-cover bg-center"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[10px] bg-primary text-[15.5px] font-bold text-white bg-cover bg-center"
                 style={v.logo_url ? { backgroundImage: `url(${v.logo_url})` } : undefined}
               >
                 {!v.logo_url && v.store_name.charAt(0)}
               </span>
               <Link href={`/store/${v.slug}`} className="min-w-0 flex-1">
-                <p className="truncate text-[13.5px] font-bold text-ink-dark">{v.store_name}</p>
-                <p className="truncate text-xs text-muted">{v.area || t.header.city}</p>
+                <p className="truncate text-[15.5px] font-bold text-ink-dark">{v.store_name}</p>
+                <p className="truncate text-[13.5px] text-muted">{v.area || t.header.city}</p>
               </Link>
               <button
                 type="button"
                 onClick={() => setPendingUnfollowId(v.id)}
-                className="shrink-0 rounded-full border border-border px-3 py-1.5 text-[11px] font-bold text-danger"
+                className="shrink-0 rounded-full border border-border px-3 py-1.5 text-[12.5px] font-bold text-danger"
               >
                 {t.account.unfollow}
               </button>

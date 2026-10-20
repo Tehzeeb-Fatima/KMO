@@ -123,7 +123,7 @@ export default function StoreClient() {
     return (
       <div className="flex flex-1 flex-col items-center justify-center p-10 text-center">
         <h1 className="text-xl font-bold text-ink">{t.store.storeNotFound}</h1>
-        <p className="mt-2 text-sm text-muted">{t.store.storeNotFoundHint}</p>
+        <p className="mt-2 text-[15.5px] text-muted">{t.store.storeNotFoundHint}</p>
       </div>
     );
   }
@@ -176,7 +176,7 @@ export default function StoreClient() {
                 <h1 className="text-[19px] font-extrabold tracking-[-0.02em] text-ink sm:text-[25px] sm:tracking-[-0.032em]">
                   {vendor.store_name}
                 </h1>
-                <span className="rounded-[5px] bg-danger-tint px-[7px] py-1 font-mono text-[8.5px] uppercase tracking-[0.1em] text-danger sm:text-[9.5px]">
+                <span className="rounded-[5px] bg-danger-tint px-[7px] py-1 font-mono text-[10px] uppercase tracking-[0.1em] text-danger sm:text-[11px]">
                   <span className="hidden sm:inline">{t.store.verifiedVendor}</span>
                   <span className="sm:hidden">{t.store.verified}</span>
                 </span>
@@ -184,12 +184,12 @@ export default function StoreClient() {
 
               {vendor.description ? (
                 // Opening line only; the full text is on the About tab.
-                <p className="line-clamp-2 max-w-[620px] text-[13px] leading-relaxed text-muted sm:text-[13.5px] sm:leading-[1.6]">
+                <p className="line-clamp-2 max-w-[620px] text-[15px] leading-relaxed text-muted sm:text-[15.5px] sm:leading-[1.6]">
                   {vendor.description.trim().split("\n")[0]}
                 </p>
               ) : null}
 
-              <div className="flex items-center gap-[18px] text-[12.5px] text-muted">
+              <div className="flex items-center gap-[18px] text-[14px] text-muted">
                 {vendor.area ? <span>{t.store.shipsFrom} {vendor.area}</span> : null}
               </div>
             </div>
@@ -205,7 +205,7 @@ export default function StoreClient() {
                 type="button"
                 onClick={handleFollowClick}
                 disabled={followMutation.isPending}
-                className="flex-1 rounded-lg px-4 py-[11px] text-sm font-bold disabled:opacity-60"
+                className="flex-1 rounded-lg px-4 py-[11px] text-[15.5px] font-bold disabled:opacity-60"
                 style={
                   isFollowing
                     ? { border: "1px solid var(--color-border)", color: "var(--color-primary)", background: "#fff" }
@@ -218,7 +218,7 @@ export default function StoreClient() {
                 type="button"
                 onClick={handleChat}
                 disabled={chatMutation.isPending}
-                className="flex-1 rounded-lg border border-border px-4 py-[11px] text-sm font-bold text-primary"
+                className="flex-1 rounded-lg border border-border px-4 py-[11px] text-[15.5px] font-bold text-primary"
               >
                 {t.store.chat}
               </button>
@@ -230,7 +230,7 @@ export default function StoreClient() {
           <div className="px-4 pt-[14px] sm:px-[40px]">
             <div className="flex items-center gap-[13px] rounded-[9px] border border-[#EFCBBB] bg-danger-tint px-4 py-[13px] sm:px-5 sm:py-[15px]">
               <span className="h-[9px] w-[9px] shrink-0 rounded-full bg-accent" />
-              <p className="text-[13.5px] leading-[1.55] text-[#7A3018]">
+              <p className="text-[15.5px] leading-[1.55] text-[#7A3018]">
                 <strong className="font-bold">{t.store.storeOnVacation}</strong>{" "}
                 {vendor.vacation_message || t.store.vacationDefaultMessage}
               </p>
@@ -288,7 +288,7 @@ function HoursPill({ onVacation, sub }: { onVacation: boolean; sub?: string }) {
         className="h-[9px] w-[9px] shrink-0 rounded-full"
         style={{ background: onVacation ? "var(--color-accent)" : "var(--color-success)" }}
       />
-      <span className="text-xs">
+      <span className="text-[13.5px]">
         <span className="font-bold text-ink">
           {onVacation ? t.store.onVacation : t.store.openNow}
         </span>
@@ -313,7 +313,7 @@ function ProductsTab({ vendorId }: { vendorId: string }) {
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
-        <p className="text-[13px] text-muted">
+        <p className="text-[15px] text-muted">
           {isLoading ? (
             <span className="inline-block h-4 w-32 animate-pulse rounded bg-surface-alt align-middle" />
           ) : (
@@ -329,7 +329,7 @@ function ProductsTab({ vendorId }: { vendorId: string }) {
             ))}
           </div>
         ) : !products || products.length === 0 ? (
-          <div className="col-span-full rounded-lg border border-dashed border-border p-10 text-center text-sm text-muted">
+          <div className="col-span-full rounded-lg border border-dashed border-border p-10 text-center text-[15.5px] text-muted">
             {t.store.noProductsListed}
           </div>
         ) : (
@@ -372,8 +372,8 @@ function PolicyCard({ title, body }: { title: string; body?: string }) {
   const { t } = useLanguage();
   return (
     <div className="rounded-lg border border-border bg-surface p-5">
-      <p className="text-[15px] font-bold text-ink">{title}</p>
-      <p className="mt-2 text-[13.5px] leading-relaxed text-ink-dark">
+      <p className="text-[16.5px] font-bold text-ink">{title}</p>
+      <p className="mt-2 text-[15.5px] leading-relaxed text-ink-dark">
         {body || t.store.notProvidedYet}
       </p>
     </div>
@@ -383,7 +383,7 @@ function PolicyCard({ title, body }: { title: string; body?: string }) {
 function ReviewsTab() {
   const { t } = useLanguage();
   return (
-    <div className="rounded-lg border border-dashed border-border p-10 text-center text-sm text-muted">
+    <div className="rounded-lg border border-dashed border-border p-10 text-center text-[15.5px] text-muted">
       {t.store.noReviewsYet}
     </div>
   );
@@ -401,18 +401,18 @@ function AboutTab({
     <div className="grid gap-6 sm:grid-cols-[minmax(0,1fr)_330px]">
       <div>
         <h2 className="text-lg font-bold tracking-[-0.02em] text-ink">{t.store.aboutStore}</h2>
-        <p className="mt-3 max-w-[640px] whitespace-pre-line text-sm leading-[1.7] text-ink-dark">
+        <p className="mt-3 max-w-[640px] whitespace-pre-line text-[15.5px] leading-[1.7] text-ink-dark">
           {description || t.store.noDescriptionYet}
         </p>
       </div>
 
       <div className="rounded-lg border border-border bg-surface p-5">
-        <p className="text-[15px] font-bold text-ink">{t.store.storeHours}</p>
+        <p className="text-[16.5px] font-bold text-ink">{t.store.storeHours}</p>
         <div className="mt-2 flex flex-col">
           {WEEK_DAYS.map((day) => (
             <div
               key={day.key}
-              className="flex justify-between border-t border-[#F1EAE6] py-[10px] text-[13px] first:border-t-0"
+              className="flex justify-between border-t border-[#F1EAE6] py-[10px] text-[15px] first:border-t-0"
             >
               <span className="text-muted">{day.label}</span>
               <span className="font-medium text-ink-dark">
