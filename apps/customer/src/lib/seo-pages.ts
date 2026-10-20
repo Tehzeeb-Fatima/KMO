@@ -75,10 +75,10 @@ export const CATEGORY_COPY: Record<string, CategoryCopy> = {
       "Buy handmade crochet clothing, bags, baby sets, toys and gifts made by Karachi artisans. Cash on delivery.",
     intro: "Crochet clothing, bags, baby sets, toys, hand embroidery and gifts, handmade by Karachi artisans.",
   },
-  "food-dry-fruits": {
-    title: "Dry Fruits Online in Karachi – Nuts, Dates & Gift Boxes",
-    description: "Buy dry fruits, nuts, dates and gift boxes online in Karachi. Cash on delivery.",
-    intro: "Dry fruits, nuts, dates and gift boxes from Karachi sellers, delivered to your door.",
+  "food-items": {
+    title: "Food Items Online in Karachi – Dry Fruits, Nuts, Dates & Gift Boxes",
+    description: "Buy food items online in Karachi: dry fruits, nuts, dates and gift boxes from local sellers. Cash on delivery.",
+    intro: "Dry fruits, nuts, dates, gift boxes and other food items from Karachi sellers, delivered to your door.",
   },
 };
 
