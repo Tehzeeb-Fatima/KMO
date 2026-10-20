@@ -17,7 +17,7 @@ import {
   uploadProductImage,
 } from "@kmo/shared/api";
 import type { ProductStatus } from "@kmo/shared/types";
-import { categoryMatchesSearch, categoryPath, mainImageUrl, OPTION_SEPARATOR, splitSizes, suggestCategories, variantLabel } from "@kmo/shared/lib";
+import { categoryMatchesSearch, categoryPath, isColourOption, mainImageUrl, OPTION_SEPARATOR, splitSizes, suggestCategories, variantLabel, variantOptions } from "@kmo/shared/lib";
 import { BulkUploadProducts, ConfirmDialog, ProductVideoField } from "@kmo/shared/ui";
 import { supabase } from "../lib/supabase";
 
@@ -429,7 +429,7 @@ function ProductsList({
   );
 }
 
-type FormImage = { key: string; url: string; id?: string; file?: File };
+type FormImage = { key: string; url: string; id?: string; file?: File; /** Colour this photo shows, if any. */ colour?: string | null };
 type FormVariant = { key: string; option_name: string; option_value: string; stock_quantity: number | null; id?: string };
 
 const VARIANT_TYPES = ["Size", "Colour", "Colour + Size", "Other"] as const;
@@ -532,7 +532,11 @@ function ProductForm({
       product.product_images
         .slice()
         .sort((a, b) => a.sort_order - b.sort_order)
-        .map((img) => ({ key: img.id, id: img.id, url: img.url })),
+        .map((img) => {
+          const v = product.product_variants.find((x) => x.id === img.variant_id);
+          const colour = v ? (Object.entries(variantOptions(v)).find(([n]) => isColourOption(n))?.[1] ?? null) : null;
+          return { key: img.id, id: img.id, url: img.url, colour };
+        }),
     );
     setVariants(
       product.product_variants.map((v) => ({
@@ -578,6 +582,17 @@ function ProductForm({
     setImages((prev) => [img, ...prev.filter((i) => i.key !== img.key)]);
   }
 
+  // Colours entered in the options below, for tagging photos.
+  const formColours = [
+    ...new Set(
+      variants.flatMap((v) =>
+        Object.entries(variantOptions(v))
+          .filter(([n]) => isColourOption(n))
+          .map(([, val]) => val)
+          .filter(Boolean),
+      ),
+    ),
+  ];
   const optionName = variantType === "Other" ? customType.trim() : variantType;
   const isCombo = variantType === "Colour + Size";
   const splitList = (v: string) => [...new Set(v.split(",").map((x) => x.trim()).filter(Boolean))];
@@ -643,6 +658,13 @@ function ProductForm({
         throw new Error("Original price must be higher than the selling price, or leave it empty.");
       }
       if (images.length === 0) throw new Error("Add at least one photo.");
+      // With several colours, each needs its own photo so picking "Black" shows black.
+      if (formColours.length > 1) {
+        const missing = formColours.filter((c) => !images.some((img) => img.colour === c));
+        if (missing.length) {
+          throw new Error(`Choose the colour under each photo. No photo is tagged for: ${missing.join(", ")}.`);
+        }
+      }
 
       const payload = {
         name: name.trim(),
@@ -685,24 +707,37 @@ function ProductForm({
       for (const imageId of removedImageIds) await removeProductImage(supabase, imageId);
       for (const variantId of removedVariantIds) await removeProductVariant(supabase, variantId);
 
-      // Photos in on-screen order; the first one is the main photo.
-      for (let i = 0; i < images.length; i++) {
-        const img = images[i];
-        if (img.file) {
-          const url = await uploadProductImage(supabase, id, img.file);
-          await addProductImage(supabase, id, url, i, null);
-        } else if (img.id) {
-          await supabase.from("product_images").update({ sort_order: i }).eq("id", img.id);
-        }
-      }
+      // New options first, so photos can be tied to their colour's option row.
+      const savedVariants: { id: string; option_name: string; option_value: string }[] = variants
+        .filter((v) => v.id)
+        .map((v) => ({ id: v.id!, option_name: v.option_name, option_value: v.option_value }));
       for (const v of variants) {
         if (!v.id) {
-          await createProductVariant(supabase, {
+          const created = await createProductVariant(supabase, {
             product_id: id,
             option_name: v.option_name,
             option_value: v.option_value,
             stock_quantity: v.stock_quantity,
           });
+          savedVariants.push(created);
+        }
+      }
+      const variantForColour = (colour: string | null | undefined) =>
+        colour
+          ? (savedVariants.find((v) =>
+              Object.entries(variantOptions(v)).some(([n, val]) => isColourOption(n) && val.toLowerCase() === colour.toLowerCase()),
+            )?.id ?? null)
+          : null;
+
+      // Photos in on-screen order; the first one is the main photo.
+      for (let i = 0; i < images.length; i++) {
+        const img = images[i];
+        const variantId = variantForColour(img.colour);
+        if (img.file) {
+          const url = await uploadProductImage(supabase, id, img.file);
+          await addProductImage(supabase, id, url, i, variantId);
+        } else if (img.id) {
+          await supabase.from("product_images").update({ sort_order: i, variant_id: variantId }).eq("id", img.id);
         }
       }
     },
@@ -798,10 +833,14 @@ function ProductForm({
           </Section>
 
           {/* 2. photos */}
-          <Section title="2. Photos" hint="Add clear photos. The first photo is the main one shoppers see.">
+          <Section
+            title="2. Photos"
+            hint="Add clear photos. The first photo is the main one shoppers see. If the product comes in colours, choose the colour under each photo."
+          >
             <div className="flex flex-wrap gap-3">
               {images.map((img, i) => (
-                <div key={img.key} className="relative h-[110px] w-[110px]">
+                <div key={img.key} className="flex w-[110px] flex-col gap-1.5">
+                <div className="relative h-[110px] w-[110px]">
                   <div
                     className="h-full w-full rounded-[10px] border border-border bg-surface-alt bg-cover bg-center"
                     style={{ backgroundImage: `url(${img.url})` }}
@@ -827,6 +866,23 @@ function ProductForm({
                   >
                     ×
                   </button>
+                </div>
+                {formColours.length > 0 ? (
+                  <select
+                    value={img.colour ?? ""}
+                    onChange={(e) =>
+                      setImages((prev) => prev.map((x) => (x.key === img.key ? { ...x, colour: e.target.value || null } : x)))
+                    }
+                    className={`w-full rounded-md border px-1.5 py-1 text-[11.5px] ${img.colour ? "border-border" : "border-warning text-warning"}`}
+                  >
+                    <option value="">Colour?</option>
+                    {formColours.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+                ) : null}
                 </div>
               ))}
               <button
