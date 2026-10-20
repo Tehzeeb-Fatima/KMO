@@ -33,7 +33,7 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
   return (
     <>
       <SiteHeader />
-      <div className="flex flex-1 flex-col">{children}</div>
+      <div className="flex min-h-[70vh] flex-1 flex-col">{children}</div>
       <SiteFooter />
       <WhatsAppButton />
       <ReferralCapture />

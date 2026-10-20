@@ -103,6 +103,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
+        {/* Runs before anything renders so a refresh always opens at the top
+            (the browser otherwise restores the old scroll position onto the footer) */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{history.scrollRestoration='manual';if(!location.hash)window.scrollTo(0,0)}catch(e){}",
+          }}
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(SITE_JSON_LD) }}
