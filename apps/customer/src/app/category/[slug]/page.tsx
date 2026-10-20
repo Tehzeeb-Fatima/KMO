@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SlidersHorizontal } from "lucide-react";
 import { notFound } from "next/navigation";
 import { Breadcrumbs } from "@kmo/shared/ui/breadcrumbs";
 import { categoryProducts, listAllCategories } from "@/lib/seo-data";
@@ -53,7 +54,16 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
           { name: category.name, url: `${SITE_URL}/category/${category.slug}` },
         ]}
       />
-      <h1 className="text-[26px] font-extrabold tracking-[-0.02em] text-ink sm:text-[30px]">{category.name}</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-[26px] font-extrabold tracking-[-0.02em] text-ink sm:text-[30px]">{category.name}</h1>
+        <Link
+          href={`/search?category=${category.id}`}
+          className="flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-surface px-4 py-2 text-[13px] font-bold text-ink-dark hover:border-accent hover:text-accent"
+        >
+          <SlidersHorizontal className="h-4 w-4" />
+          Filter &amp; sort
+        </Link>
+      </div>
       <p className="mt-2 max-w-[760px] text-[14px] leading-relaxed text-muted">{copy.intro}</p>
 
       {children.length > 0 ? (
@@ -72,12 +82,6 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
 
       <div className="mt-6">
         <SeoProductGrid products={products} />
-      </div>
-
-      <div className="mt-6">
-        <Link href={`/search?category=${category.id}`} className="text-[13.5px] font-bold text-accent">
-          Filter and sort all {category.name.toLowerCase()} →
-        </Link>
       </div>
     </div>
   );
