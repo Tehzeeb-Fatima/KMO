@@ -17,7 +17,7 @@ import {
   uploadProductImage,
 } from "@kmo/shared/api";
 import type { ProductStatus } from "@kmo/shared/types";
-import { categoryPath, mainImageUrl, OPTION_SEPARATOR, splitSizes, variantLabel } from "@kmo/shared/lib";
+import { categoryMatchesSearch, categoryPath, mainImageUrl, OPTION_SEPARATOR, splitSizes, suggestCategories, variantLabel } from "@kmo/shared/lib";
 import { BulkUploadProducts, ConfirmDialog, ProductVideoField } from "@kmo/shared/ui";
 import { supabase } from "../lib/supabase";
 
@@ -472,23 +472,24 @@ function ProductForm({
     queryFn: () => listCategories(supabase),
   });
 
-  // Each category assigned to this store, with the sub-categories under it
-  // (e.g. Women's Fashion → Lingerie, Kurtis, ...). The vendor taps one.
-  const categoryGroups = useMemo(
-    () =>
-      (categories ?? [])
-        .slice()
-        .sort((a, b) => a.name.localeCompare(b.name))
-        .map((parent) => ({
-          parent,
-          children: parent.parent_id
-            ? []
-            : (allCategories ?? [])
-                .filter((c) => c.parent_id === parent.id)
-                .sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name)),
-        })),
-    [categories, allCategories],
-  );
+  // Every main category with its sub-categories. The store's own categories
+  // come first, but vendors can pick any category, so a product never gets
+  // squeezed into the nearest wrong one (towels under Cleaning, etc.).
+  const [categorySearch, setCategorySearch] = useState("");
+  const [showAllCategories, setShowAllCategories] = useState(false);
+  const categoryGroups = useMemo(() => {
+    const assigned = new Set((categories ?? []).map((c) => c.id));
+    return (allCategories ?? [])
+      .filter((c) => !c.parent_id)
+      .map((parent) => ({
+        parent,
+        assigned: assigned.has(parent.id),
+        children: (allCategories ?? [])
+          .filter((c) => c.parent_id === parent.id)
+          .sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name)),
+      }))
+      .sort((a, b) => Number(b.assigned) - Number(a.assigned) || a.parent.name.localeCompare(b.parent.name));
+  }, [categories, allCategories]);
 
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
@@ -732,51 +733,19 @@ function ProductForm({
 
             <FormField label="Category">
               {categoryGroups.length > 0 ? (
-                <div className="flex flex-col gap-3.5">
-                  <p className="text-[12px] text-muted">Tap the one that fits your product best.</p>
-                  {categoryGroups.map((g) => (
-                    <div key={g.parent.id}>
-                      {g.children.length > 0 ? (
-                        <p className="mb-2 text-[12.5px] font-bold text-ink-dark">{g.parent.name}</p>
-                      ) : null}
-                      <div className="flex flex-wrap gap-2">
-                        {/* A main category with sub-categories can't be picked itself,
-                            so every product lands in a sub-category shoppers browse. */}
-                        {(g.children.length > 0
-                          ? g.children.map((c) => ({ id: c.id, label: c.name }))
-                          : [{ id: g.parent.id, label: g.parent.name }]
-                        ).map((c) => {
-                          const selected = categoryId === c.id;
-                          return (
-                            <button
-                              key={c.id}
-                              type="button"
-                              onClick={() => setCategoryId(c.id)}
-                              className="rounded-full px-3.5 py-2 text-[12.5px] font-semibold"
-                              style={
-                                selected
-                                  ? { background: "var(--color-primary)", color: "#fff" }
-                                  : { background: "#fff", border: "1px solid var(--color-border)", color: "var(--color-ink-secondary)" }
-                              }
-                            >
-                              {selected ? "✓ " : ""}
-                              {c.label}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
-                  {categoryId && allCategories ? (
-                    <p className="text-[12px] font-semibold text-success-dark">
-                      Selected: {categoryPath(allCategories, categoryId)}
-                    </p>
-                  ) : null}
-                </div>
+                <CategoryPicker
+                  name={name}
+                  groups={categoryGroups}
+                  allCategories={allCategories ?? []}
+                  categoryId={categoryId}
+                  onSelect={setCategoryId}
+                  search={categorySearch}
+                  onSearch={setCategorySearch}
+                  showAll={showAllCategories}
+                  onShowAll={setShowAllCategories}
+                />
               ) : (
-                <p className="text-[12px] text-danger">
-                  No categories are assigned to your store yet — please contact the KMO team.
-                </p>
+                <p className="text-[12px] text-muted">Loading categories…</p>
               )}
             </FormField>
 
@@ -1149,6 +1118,112 @@ function FormField({ label, children }: { label: string; children: React.ReactNo
     <div className="flex flex-col gap-[7px]">
       <span className="text-[12.5px] font-bold text-ink-dark">{label}</span>
       {children}
+    </div>
+  );
+}
+
+type PickerCategory = { id: string; name: string; slug: string; parent_id: string | null; sort_order: number };
+
+/** Category chooser: suggestions from the product name, a search box, the
+ *  store's own categories open, and every other category one tap away. */
+function CategoryPicker({
+  name,
+  groups,
+  allCategories,
+  categoryId,
+  onSelect,
+  search,
+  onSearch,
+  showAll,
+  onShowAll,
+}: {
+  name: string;
+  groups: { parent: PickerCategory; assigned: boolean; children: PickerCategory[] }[];
+  allCategories: PickerCategory[];
+  categoryId: string;
+  onSelect: (id: string) => void;
+  search: string;
+  onSearch: (v: string) => void;
+  showAll: boolean;
+  onShowAll: (v: boolean) => void;
+}) {
+  const suggested = suggestCategories(name, allCategories);
+  const searching = search.trim().length > 0;
+  const visibleGroups = groups
+    .map((g) => {
+      // A main category with sub-categories can't be picked itself, so every
+      // product lands in a sub-category shoppers browse.
+      const options = g.children.length > 0 ? g.children : [g.parent];
+      return {
+        ...g,
+        options: searching
+          ? options.filter((c) => categoryMatchesSearch(c, search) || g.parent.name.toLowerCase().includes(search.trim().toLowerCase()))
+          : options,
+      };
+    })
+    .filter((g) => g.options.length > 0 && (searching || showAll || g.assigned));
+
+  const chip = (c: PickerCategory, label = c.name) => {
+    const selected = categoryId === c.id;
+    return (
+      <button
+        key={c.id}
+        type="button"
+        onClick={() => onSelect(c.id)}
+        className="rounded-full px-3.5 py-2 text-[12.5px] font-semibold"
+        style={
+          selected
+            ? { background: "var(--color-primary)", color: "#fff" }
+            : { background: "#fff", border: "1px solid var(--color-border)", color: "var(--color-ink-secondary)" }
+        }
+      >
+        {selected ? "✓ " : ""}
+        {label}
+      </button>
+    );
+  };
+
+  return (
+    <div className="flex flex-col gap-3.5">
+      {suggested.length > 0 ? (
+        <div className="rounded-lg border border-accent/40 bg-accent-tint p-3">
+          <p className="mb-2 text-[12px] font-bold text-ink-dark">Suggested for “{name.trim()}”</p>
+          <div className="flex flex-wrap gap-2">
+            {suggested.map((c) => chip(c, categoryPath(allCategories, c.id)))}
+          </div>
+        </div>
+      ) : null}
+
+      <input
+        placeholder="Search category, e.g. towel, blender, slippers"
+        value={search}
+        onChange={(e) => onSearch(e.target.value)}
+        className="w-full rounded-lg border border-border px-3 py-2.5 text-[13px] outline-none focus:border-primary-light"
+      />
+
+      {visibleGroups.map((g) => (
+        <div key={g.parent.id}>
+          {g.children.length > 0 ? <p className="mb-2 text-[12.5px] font-bold text-ink-dark">{g.parent.name}</p> : null}
+          <div className="flex flex-wrap gap-2">{g.options.map((c) => chip(c))}</div>
+        </div>
+      ))}
+      {searching && visibleGroups.length === 0 ? (
+        <p className="text-[12px] text-muted">No category matches “{search}”. Try another word.</p>
+      ) : null}
+
+      {!searching ? (
+        <button
+          type="button"
+          onClick={() => onShowAll(!showAll)}
+          className="self-start text-[12.5px] font-bold text-accent"
+        >
+          {showAll ? "Show only my store's categories" : "Product doesn't fit? Show all categories"}
+        </button>
+      ) : null}
+
+      {categoryId ? (
+        <p className="text-[12px] font-semibold text-success-dark">Selected: {categoryPath(allCategories, categoryId)}</p>
+      ) : null}
     </div>
   );
 }

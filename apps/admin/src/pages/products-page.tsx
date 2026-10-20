@@ -1,3 +1,4 @@
+import { categoryPath, suggestCategories } from "@kmo/shared/lib";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -283,13 +284,16 @@ export function ProductsModerationPage() {
                 checked={selected.has(p.id)}
                 onChange={() => toggleSelected(p.id)}
               />
-              <button
-                type="button"
-                onClick={() => setEditing(p)}
-                className="truncate text-left font-bold text-ink-dark hover:text-primary"
-              >
-                {p.name}
-              </button>
+              <div className="min-w-0">
+                <button
+                  type="button"
+                  onClick={() => setEditing(p)}
+                  className="block max-w-full truncate text-left font-bold text-ink-dark hover:text-primary"
+                >
+                  {p.name}
+                </button>
+                <CategoryCheck name={p.name} categoryId={p.category_id} categories={categories ?? []} />
+              </div>
               <span className="text-muted">{p.vendors?.store_name}</span>
               <span className="text-ink-dark">Rs. {p.price.toLocaleString()}</span>
               <span><span className="rounded-full bg-surface-alt px-2.5 py-1 text-[11.5px] font-semibold capitalize text-ink-dark">{p.status}</span></span>
@@ -374,5 +378,32 @@ export function ProductsModerationPage() {
 
       {previewing ? <ProductPreviewModal product={previewing} onClose={() => setPreviewing(null)} /> : null}
     </div>
+  );
+}
+
+/** Shows a product's category under its name, and flags it when the name
+ *  points to a different category, so mistakes are caught at approval. */
+function CategoryCheck({
+  name,
+  categoryId,
+  categories,
+}: {
+  name: string;
+  categoryId: string | null;
+  categories: { id: string; name: string; slug: string; parent_id: string | null }[];
+}) {
+  if (!categories.length) return null;
+  if (!categoryId) return <p className="mt-0.5 text-[11.5px] font-semibold text-danger">No category</p>;
+  const suggested = suggestCategories(name, categories, 3);
+  const looksWrong = suggested.length > 0 && !suggested.some((c) => c.id === categoryId);
+  return (
+    <p className="mt-0.5 truncate text-[11.5px] text-muted">
+      {categoryPath(categories, categoryId)}
+      {looksWrong ? (
+        <span className="ml-1.5 rounded bg-warning-tint px-1.5 py-0.5 font-semibold text-warning">
+          Check: maybe {categoryPath(categories, suggested[0].id)}
+        </span>
+      ) : null}
+    </p>
   );
 }

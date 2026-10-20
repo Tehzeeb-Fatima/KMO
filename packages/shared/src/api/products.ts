@@ -3,7 +3,7 @@ import type { Database } from "../types";
 import { nonEmptyCategories } from "../lib/category-tree";
 import { parseCsv, toCsv } from "../lib/csv";
 import { cleanProductText, formatProductTitle } from "../lib/product-title";
-import { listVendorCategories } from "./vendors";
+import { suggestCategories } from "../lib/category-suggest";
 
 type Client = SupabaseClient<Database>;
 type ProductRow = Database["public"]["Tables"]["products"]["Row"];
@@ -561,15 +561,9 @@ export async function bulkCreateProductsFromCsv(
   const categories = await listCategories(supabase);
   const categoryByName = new Map(categories.map((c) => [c.name.trim().toLowerCase(), c.id]));
 
-  // A vendor only sells in the categories an admin assigned them — same rule
-  // the single-product form uses. Allowed = the assigned categories plus
-  // every sub-category under them.
-  const assignedCategories = await listVendorCategories(supabase, vendorId);
-  const assignedIds = new Set(assignedCategories.map((c) => c.id));
-  const allowedCategoryIds = new Set(assignedIds);
-  for (const c of categories) {
-    if (c.parent_id && assignedIds.has(c.parent_id)) allowedCategoryIds.add(c.id);
-  }
+  // Any sub-category is allowed (the admin checks it when approving). A main
+  // category that has sub-categories isn't, so products land where shoppers browse.
+  const hasChildren = new Set(categories.filter((c) => c.parent_id).map((c) => c.parent_id as string));
 
   let created = 0;
   for (const row of rows) {
@@ -580,13 +574,16 @@ export async function bulkCreateProductsFromCsv(
         allErrors.push({ row: row.rowNumber, message: `Category "${row.categoryName}" not found — skipped.` });
         continue;
       }
-      if (!allowedCategoryIds.has(categoryId)) {
+      if (hasChildren.has(categoryId)) {
         allErrors.push({
           row: row.rowNumber,
-          message: `You're not assigned category "${row.categoryName}" — ask an admin to assign it, or use one of your own categories. Skipped.`,
+          message: `"${row.categoryName}" is a main category — use one of its sub-categories instead. Skipped.`,
         });
         continue;
       }
+    } else {
+      // No category given: use the best match for the product name.
+      categoryId = suggestCategories(row.name, categories, 1)[0]?.id ?? null;
     }
 
     const slug = `${row.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${Date.now().toString(36)}-${row.rowNumber}`;
