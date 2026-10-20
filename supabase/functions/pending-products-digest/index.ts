@@ -45,12 +45,18 @@ Deno.serve(async (req) => {
     .order("created_at", { ascending: false })
     .limit(200);
   if (error) return new Response(error.message, { status: 500 });
-  if (!rows?.length) return Response.json({ sent: false, pending: 0 });
+  const { data: vrows } = await db
+    .from("vendors")
+    .select("store_name, phone, area, created_at")
+    .eq("verification_status", "pending")
+    .order("created_at", { ascending: false });
+  const pendingVendors = vrows ?? [];
+  if (!rows?.length && !pendingVendors.length) return Response.json({ sent: false, pending: 0 });
 
   const since = Date.now() - 3 * 60 * 60 * 1000;
-  const fresh = rows.filter((r) => new Date(r.created_at).getTime() >= since).length;
+  const fresh = (rows ?? []).filter((r) => new Date(r.created_at).getTime() >= since).length;
   const byVendor = new Map<string, typeof rows>();
-  for (const r of rows) {
+  for (const r of rows ?? []) {
     const v = (r.vendors as { store_name?: string } | null)?.store_name ?? "Unknown vendor";
     byVendor.set(v, [...(byVendor.get(v) ?? []), r]);
   }
@@ -69,20 +75,30 @@ Deno.serve(async (req) => {
     })
     .join("");
 
+  const vendorSection = pendingVendors.length
+    ? `<h2 style="color:#c4552f;margin:0 0 6px">${pendingVendors.length} vendor${pendingVendors.length === 1 ? "" : "s"} waiting for approval</h2><p><a href="https://admin.karachimartonline.com/vendors" style="background:#c4552f;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:bold">Review vendors</a></p><table style="border-collapse:collapse;width:100%;font-size:14px;margin-bottom:24px">${pendingVendors
+        .map((v) => `<tr><td style="padding:6px 8px;border-bottom:1px solid #eadfda"><b>${esc(v.store_name)}</b></td><td style="padding:6px 8px;border-bottom:1px solid #eadfda">${esc(v.phone ?? "")}</td><td style="padding:6px 8px;border-bottom:1px solid #eadfda;color:#6e6478">${esc(v.area ?? "")} · ${fmt(v.created_at)}</td></tr>`)
+        .join("")}</table>`
+    : "";
+  const productCount = (rows ?? []).length;
   const html = `<div style="font-family:Arial,sans-serif;color:#241b2b;max-width:640px">
-<h2 style="color:#4a2266;margin:0 0 4px">${rows.length} product${rows.length === 1 ? "" : "s"} waiting for approval</h2>
+${vendorSection}${productCount ? `
+<h2 style="color:#4a2266;margin:0 0 4px">${productCount} product${productCount === 1 ? "" : "s"} waiting for approval</h2>
 <p style="margin:0 0 12px;color:#6e6478">${fresh} new in the last 3 hours.</p>
 <p><a href="${ADMIN_URL}" style="background:#4a2266;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:bold">Review in admin</a></p>
-${sections}
-<p style="margin-top:20px;font-size:12px;color:#9c8c7e">Sent every 3 hours while products are pending.</p></div>`;
+${sections}` : ""}
+<p style="margin-top:20px;font-size:12px;color:#9c8c7e">Sent every 3 hours while approvals are pending.</p></div>`;
 
   const to = (Deno.env.get("DIGEST_TO") ?? "tehzeeb.pirani@gmail.com").split(",").map((s) => s.trim()).filter(Boolean);
   const { transport, from } = mailer();
   await transport.sendMail({
     from,
     to,
-    subject: `KMO: ${rows.length} product${rows.length === 1 ? "" : "s"} pending approval${fresh ? ` (${fresh} new)` : ""}`,
+    subject: [
+      pendingVendors.length ? `${pendingVendors.length} vendor${pendingVendors.length === 1 ? "" : "s"}` : "",
+      productCount ? `${productCount} product${productCount === 1 ? "" : "s"}` : "",
+    ].filter(Boolean).join(" + ").replace(/^/, "KMO: ") + ` pending approval${fresh ? ` (${fresh} new)` : ""}`,
     html,
   });
-  return Response.json({ sent: true, pending: rows.length, fresh });
+  return Response.json({ sent: true, pending: productCount, vendors: pendingVendors.length, fresh });
 });
