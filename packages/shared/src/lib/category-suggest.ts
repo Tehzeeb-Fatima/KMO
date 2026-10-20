@@ -10,7 +10,7 @@ interface Cat {
 
 /** Words shoppers and vendors use, per sub-category slug. Matched as whole words. */
 const KEYWORDS: Record<string, string[]> = {
-  "electronics-home-appliances": ["air fryer", "blender", "mixer", "chopper", "oven", "toaster", "sandwich maker", "waffle", "cooker", "kettle", "iron", "heater", "fan", "lint remover", "juicer", "grinder", "microwave"],
+  "electronics-home-appliances": ["digital air fryer", "electric air fryer", "blender", "hand mixer", "electric chopper", "meat chopper", "oven toaster", "electric oven", "sandwich maker", "waffle maker", "rice cooker", "ceramic cooker", "kettle", "steam iron", "heater", "room heater", "lint remover", "juicer", "grinder"],
   "electronics-mobile-accessories": ["charger", "adapter", "adopater", "cable", "power adapter", "usb", "otg", "holder stand"],
   "electronics-mobile-cases-covers": ["case", "cover for iphone", "phone case", "mobile cover", "back cover", "magsafe case"],
   "electronics-earbuds-headphones": ["earbuds", "earpods", "airpods", "headphone", "headphones", "earphone", "handsfree"],
@@ -81,14 +81,19 @@ function escape(s: string) {
 }
 
 /** Up to `limit` sub-categories that fit a product name, best match first. */
-export function suggestCategories<T extends Cat>(productName: string, categories: T[], limit = 3): T[] {
+/** Accessories for an appliance (liners, covers, lids) are not the appliance. */
+const ACCESSORY = /\b(liner|liners|cover|lid|stand|holder|case|bag|sheet)\b/;
+
+/** `minScore` 5 = only confident matches (a two-word keyword such as "air fryer"); used for warnings. */
+export function suggestCategories<T extends Cat>(productName: string, categories: T[], limit = 3, minScore = 1): T[] {
   const name = ` ${productName.toLowerCase().replace(/[^a-z0-9&'\s-]/g, " ")} `;
   if (name.trim().length < 3) return [];
   // "Girls' top (8 years)" belongs in kids' wear, not women's western wear.
-  const forKids = /(kids?|girls?|boys?|baby|toddler|years?|months?)/.test(name);
+  const forKids = /\b(kids?|girls?|boys?|baby|toddler|years?|months?)\b/.test(name);
   const scored: { cat: T; score: number }[] = [];
   for (const cat of categories) {
     if (forKids && /^(womens|mens)-fashion/.test(cat.slug)) continue;
+    if (cat.slug === "electronics-home-appliances" && ACCESSORY.test(name)) continue;
     // Only leaf categories can hold products.
     if (categories.some((c) => c.parent_id === cat.id)) continue;
     const words = [...(KEYWORDS[cat.slug] ?? []), cat.name.toLowerCase().replace(/[^a-z0-9&'\s-]/g, " ")];
@@ -97,7 +102,7 @@ export function suggestCategories<T extends Cat>(productName: string, categories
       const re = new RegExp(`\\b${escape(w.trim())}\\b`);
       if (w.trim() && re.test(name)) score += w.trim().split(/\s+/).length * 2 + 1;
     }
-    if (score > 0) scored.push({ cat, score });
+    if (score >= minScore) scored.push({ cat, score });
   }
   return scored.sort((a, b) => b.score - a.score).slice(0, limit).map((s) => s.cat);
 }

@@ -394,7 +394,7 @@ function CategoryCheck({
 }) {
   if (!categories.length) return null;
   if (!categoryId) return <p className="mt-0.5 text-[11.5px] font-semibold text-danger">No category</p>;
-  const suggested = suggestCategories(name, categories, 3);
+  const suggested = suggestCategories(name, categories, 3, 5);
   const looksWrong = suggested.length > 0 && !suggested.some((c) => c.id === categoryId);
   return (
     <p className="mt-0.5 truncate text-[11.5px] text-muted">

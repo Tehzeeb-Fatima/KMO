@@ -116,7 +116,7 @@ Deno.serve(async (req) => {
     } else if (parents.has(cat.id)) {
       report(p, `In main category "${cat.name}" — needs a sub-category`);
     } else {
-      const suggested = suggestCategories(p.name, categories, 3);
+      const suggested = suggestCategories(p.name, categories, 3, 5);
       if (suggested.length > 0 && !suggested.some((c) => c.id === cat.id)) {
         report(p, `Category may be wrong: now ${path(categories, cat.id)}, looks like ${path(categories, suggested[0].id)}`);
       }
