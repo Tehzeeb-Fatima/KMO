@@ -89,3 +89,32 @@ export async function clearCart(supabase: Client, customerId: string): Promise<v
   const { error } = await supabase.from("cart_items").delete().eq("customer_id", customerId);
   if (error) throw error;
 }
+
+export interface GuestCartLine {
+  product_id: string;
+  variant_id: string | null;
+  quantity: number;
+}
+
+/** Read the current session's raw cart lines (used to carry a guest cart over
+ *  to an account when the visitor signs in). */
+export async function readCartLines(supabase: Client): Promise<GuestCartLine[]> {
+  const { data } = await supabase.from("cart_items").select("product_id, variant_id, quantity");
+  return (data ?? []) as GuestCartLine[];
+}
+
+/** Add saved guest lines to the signed-in customer's cart (adds to the
+ *  quantity when the same item is already there). Never throws. */
+export async function mergeCartLines(
+  supabase: Client,
+  customerId: string,
+  lines: GuestCartLine[],
+): Promise<void> {
+  for (const l of lines) {
+    try {
+      await addToCart(supabase, customerId, l.product_id, l.variant_id, l.quantity);
+    } catch {
+      /* skip an item that can no longer be added */
+    }
+  }
+}

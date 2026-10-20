@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AuthLayout, Button, Input, PasswordInput } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
+import { mergeCartLines, readCartLines } from "@kmo/shared/api";
 import { supabase } from "@/lib/supabase";
 import { friendlyError } from "@/lib/friendly-error";
 import { useLanguage } from "@/lib/i18n/language-context";
@@ -70,12 +71,16 @@ function LoginContent() {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
+    // A guest's cart belongs to the guest session, so save it before signing in
+    const { data: sess } = await supabase.auth.getSession();
+    const guestLines = sess.session?.user.is_anonymous ? await readCartLines(supabase) : [];
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     setSubmitting(false);
     if (error) {
       setError(friendlyError(error));
       return;
     }
+    if (guestLines.length) await mergeCartLines(supabase, data.user.id, guestLines);
     await redirectAfterSignIn(data.user.id);
   }
 
