@@ -314,7 +314,7 @@ export default function ProductDetailClient({
         ]}
       />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[500px_minmax(0,1fr)_316px] lg:items-start lg:gap-[26px]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[420px_minmax(0,1fr)] lg:items-start lg:gap-[26px] xl:grid-cols-[460px_minmax(0,1fr)_316px]">
         {/* gallery: scrolls with the page, no inner scroll areas */}
         <div>
           <div
@@ -552,8 +552,8 @@ export default function ProductDetailClient({
           </div>
         </div>
 
-        {/* sidebar */}
-        <div className="flex flex-col gap-4">
+        {/* sidebar: sits under the other two on laptops, beside them on wide screens */}
+        <div className="flex flex-col gap-4 lg:col-span-2 xl:col-span-1">
           <div className="rounded-[10px] border border-border bg-surface p-5">
             <p className="mb-3 font-mono text-[12.5px] uppercase tracking-[0.14em] text-muted-table">
               {t.product.deliveryPayment}
@@ -662,11 +662,11 @@ export default function ProductDetailClient({
                 <div className="mt-4 flex flex-col gap-1.5">
                   {reviewBars.map((b) => (
                     <div key={b.stars} className="flex items-center gap-2 text-[13.5px]">
-                      <span className="w-6 text-muted">{b.stars}★</span>
+                      <span className="w-8 shrink-0 text-muted">{b.stars}★</span>
                       <div className="h-1.5 flex-1 rounded-full bg-surface-alt">
                         <div className="h-1.5 rounded-full bg-accent" style={{ width: `${b.pct}%` }} />
                       </div>
-                      <span className="w-8 text-right text-muted">{b.pct}%</span>
+                      <span className="w-10 shrink-0 text-right text-muted">{b.pct}%</span>
                     </div>
                   ))}
                 </div>

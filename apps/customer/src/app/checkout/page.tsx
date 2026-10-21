@@ -579,9 +579,9 @@ function StepIndicator() {
     { n: 3, label: "Review", done: false },
   ];
   return (
-    <div className="flex items-center gap-2.5">
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-2 sm:gap-x-2.5">
       {steps.map((step, i) => (
-        <div key={step.n} className="flex items-center gap-2.5">
+        <div key={step.n} className="flex items-center gap-2 sm:gap-2.5">
           <div className="flex items-center gap-2">
             <span
               className="flex h-6 w-6 items-center justify-center rounded-full text-[13.5px] font-bold"
@@ -600,7 +600,7 @@ function StepIndicator() {
               {step.label}
             </span>
           </div>
-          {i < steps.length - 1 ? <span className="h-0.5 w-9 bg-border" /> : null}
+          {i < steps.length - 1 ? <span className="h-0.5 w-4 bg-border sm:w-9" /> : null}
         </div>
       ))}
     </div>

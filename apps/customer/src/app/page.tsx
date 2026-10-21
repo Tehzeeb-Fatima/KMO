@@ -105,7 +105,7 @@ export default function Home() {
             {t.home.heroLiveBadge}
           </p>
           {/* full width so the title sits on two lines */}
-          <h1 className="max-w-[640px] text-[32px] font-extrabold leading-[1.05] tracking-[-0.038em] text-white [text-wrap:balance] sm:text-[40px] lg:text-[36px] xl:text-[40px]">
+          <h1 className="max-w-[640px] text-[32px] font-extrabold leading-[1.15] tracking-[-0.038em] text-white [text-wrap:balance] sm:text-[40px] lg:text-[36px] xl:text-[40px]">
             {t.home.heroLiveTitle}
           </h1>
           <div className="grid items-center gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)]">
@@ -328,14 +328,14 @@ export default function Home() {
               <div className="mt-4 flex flex-col gap-1.5">
                 {ratingSummary.bars.map((b) => (
                   <div key={b.stars} className="flex items-center gap-2 text-[13.5px]">
-                    <span className="w-6 text-muted">{b.stars}★</span>
+                    <span className="w-8 shrink-0 text-muted">{b.stars}★</span>
                     <div className="h-1.5 flex-1 rounded-full bg-surface-alt">
                       <div
                         className="h-1.5 rounded-full bg-accent"
                         style={{ width: `${b.pct}%` }}
                       />
                     </div>
-                    <span className="w-8 text-right text-muted">{b.pct}%</span>
+                    <span className="w-10 shrink-0 text-right text-muted">{b.pct}%</span>
                   </div>
                 ))}
               </div>
