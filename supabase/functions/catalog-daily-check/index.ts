@@ -88,7 +88,7 @@ Deno.serve(async (req) => {
   if (catError) return new Response(catError.message, { status: 500 });
   const { data: rows, error } = await db
     .from("products")
-    .select("id, name, status, category_id, category_reviewed_id, vendors(store_name), product_variants(*), product_images(variant_id)")
+    .select("id, name, description, status, category_id, category_reviewed_id, vendors(store_name), product_variants(*), product_images(variant_id)")
     .in("status", ["published", "pending"])
     .limit(5000);
   if (error) return new Response(error.message, { status: 500 });
@@ -165,7 +165,9 @@ Deno.serve(async (req) => {
     }
 
     // Clothing and footwear need sizes.
-    if (cat && FASHION.test(cat.slug) && !NO_SIZE_NEEDED.test(cat.slug)) {
+    // Unstitched cloth is sold by the set, so it has no sizes
+    const unstitched = /un-?stitched/i.test(`${p.name} ${p.description ?? ""}`);
+    if (cat && FASHION.test(cat.slug) && !NO_SIZE_NEEDED.test(cat.slug) && !unstitched) {
       const hasSize = p.product_variants.some((v) => normaliseOptionName(v.option_name).split(SEP).includes("Size"));
       if (!hasSize) report(p, "Clothing/footwear without sizes");
     }
