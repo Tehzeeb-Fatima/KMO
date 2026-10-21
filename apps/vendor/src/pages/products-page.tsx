@@ -705,7 +705,6 @@ function ProductForm({
       }
 
       for (const imageId of removedImageIds) await removeProductImage(supabase, imageId);
-      for (const variantId of removedVariantIds) await removeProductVariant(supabase, variantId);
 
       // New options first, so photos can be tied to their colour's option row.
       const savedVariants: { id: string; option_name: string; option_value: string }[] = variants
@@ -722,6 +721,9 @@ function ProductForm({
           savedVariants.push(created);
         }
       }
+      // Remove old options only after the new ones exist, so customers' carts
+      // move to a re-added option with the same name instead of losing the item.
+      for (const variantId of removedVariantIds) await removeProductVariant(supabase, variantId);
       const variantForColour = (colour: string | null | undefined) =>
         colour
           ? (savedVariants.find((v) =>
