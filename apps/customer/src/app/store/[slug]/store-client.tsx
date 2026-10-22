@@ -38,6 +38,14 @@ export default function StoreClient() {
     queryFn: () => getVendorBySlug(supabase, params.slug),
   });
 
+  // Same query as the Products tab, so the count and the grid share one fetch.
+  const { data: vendorProducts } = useQuery({
+    queryKey: ["vendor-products", vendor?.id],
+    queryFn: () => listPublishedProducts(supabase, { vendorId: vendor!.id }),
+    enabled: !!vendor,
+  });
+  const productCount = storeCards(vendorProducts).length;
+
   const { data: isFollowing } = useQuery({
     queryKey: ["is-following-vendor", vendor?.id, user?.id],
     queryFn: () => isFollowingVendor(supabase, user!.id, vendor!.id),
@@ -189,13 +197,18 @@ export default function StoreClient() {
                 </p>
               ) : null}
 
-              <div className="flex items-center gap-[18px] text-[14px] text-muted">
+              <div className="flex flex-wrap items-center gap-x-[18px] gap-y-1 text-[14px] text-muted">
+                {productCount ? (
+                  <span>
+                    <strong className="font-bold text-ink-dark">{productCount}</strong> {t.store.productsWord}
+                  </span>
+                ) : null}
                 {vendor.area ? <span>{t.store.shipsFrom} {vendor.area}</span> : null}
               </div>
             </div>
           </div>
 
-          <div className="flex flex-col gap-2 sm:min-w-[232px]">
+          <div className="flex flex-col gap-2 sm:w-[290px]">
             <HoursPill
               onVacation={vendor.is_on_vacation}
               sub={vendor.is_on_vacation ? undefined : todayHours}
@@ -205,7 +218,7 @@ export default function StoreClient() {
                 type="button"
                 onClick={handleFollowClick}
                 disabled={followMutation.isPending}
-                className="flex-1 rounded-lg px-4 py-[11px] text-[15.5px] font-bold disabled:opacity-60"
+                className="flex-1 whitespace-nowrap rounded-lg px-3 py-[11px] text-[15.5px] font-bold disabled:opacity-60"
                 style={
                   isFollowing
                     ? { border: "1px solid var(--color-border)", color: "var(--color-primary)", background: "#fff" }
@@ -218,7 +231,7 @@ export default function StoreClient() {
                 type="button"
                 onClick={handleChat}
                 disabled={chatMutation.isPending}
-                className="flex-1 rounded-lg border border-border px-4 py-[11px] text-[15.5px] font-bold text-primary"
+                className="flex-1 whitespace-nowrap rounded-lg border border-border px-3 py-[11px] text-[15.5px] font-bold text-primary"
               >
                 {t.store.chat}
               </button>
@@ -298,6 +311,16 @@ function HoursPill({ onVacation, sub }: { onVacation: boolean; sub?: string }) {
   );
 }
 
+/** Each colour with its own photo gets its own card, so the range shows at a glance. */
+function storeCards(products: Awaited<ReturnType<typeof listPublishedProducts>> | undefined) {
+  return (products ?? []).flatMap((p) => {
+    const colours = colourCards(p.product_variants, p.product_images);
+    return colours.length
+      ? colours.map((c) => ({ p, colour: c.colour as string | null, imageUrl: c.imageUrl as string | undefined }))
+      : [{ p, colour: null as string | null, imageUrl: mainImageUrl(p.product_images) }];
+  });
+}
+
 function ProductsTab({ vendorId }: { vendorId: string }) {
   const { t } = useLanguage();
   const { data: products, isLoading } = useQuery({
@@ -309,13 +332,7 @@ function ProductsTab({ vendorId }: { vendorId: string }) {
     queryFn: () => listActivePromotions(supabase, 100),
   });
   const pricingPromotions = toPricingPromotions(activePromotions ?? []);
-  // Each colour with its own photo gets its own card, so the range shows at a glance.
-  const cards = (products ?? []).flatMap((p) => {
-    const colours = colourCards(p.product_variants, p.product_images);
-    return colours.length
-      ? colours.map((c) => ({ p, colour: c.colour as string | null, imageUrl: c.imageUrl as string | undefined }))
-      : [{ p, colour: null as string | null, imageUrl: mainImageUrl(p.product_images) }];
-  });
+  const cards = storeCards(products);
 
   return (
     <div>
