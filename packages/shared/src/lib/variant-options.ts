@@ -119,3 +119,19 @@ export function splitSizes(input: string): string[] {
   }
   return [...new Set(out)];
 }
+
+/** One entry per colour that has its own tagged photo, in option order — lets a
+ *  store page show each colour as its own card (Daraz style). Empty when the
+ *  product has fewer than two such colours, so it stays a single card. */
+export function colourCards(
+  variants: (VariantLike & { id: string })[],
+  images: { url: string; sort_order: number; variant_id?: string | null }[] | null | undefined,
+): { colour: string; imageUrl: string }[] {
+  const colours: string[] = [];
+  for (const [name, values] of optionGroups(variants)) if (isColourOption(name)) colours.push(...values);
+  const cards = colours.flatMap((colour) => {
+    const imageUrl = colourImageUrl(variants, images, colour);
+    return imageUrl ? [{ colour, imageUrl }] : [];
+  });
+  return cards.length >= 2 ? cards : [];
+}

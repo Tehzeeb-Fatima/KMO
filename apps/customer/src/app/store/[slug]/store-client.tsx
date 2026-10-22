@@ -14,7 +14,7 @@ import {
   toPricingPromotions,
   unfollowVendor,
 } from "@kmo/shared/api";
-import { cardPricing, mainImageUrl } from "@kmo/shared/lib";
+import { cardPricing, colourCards, mainImageUrl } from "@kmo/shared/lib";
 import { Breadcrumbs, PillTabs, ProductCard } from "@kmo/shared/ui";
 import { WEEK_DAYS, type BusinessHours, type VendorPolicies } from "@kmo/shared/types";
 import { useAuth } from "@kmo/shared/auth";
@@ -309,6 +309,13 @@ function ProductsTab({ vendorId }: { vendorId: string }) {
     queryFn: () => listActivePromotions(supabase, 100),
   });
   const pricingPromotions = toPricingPromotions(activePromotions ?? []);
+  // Each colour with its own photo gets its own card, so the range shows at a glance.
+  const cards = (products ?? []).flatMap((p) => {
+    const colours = colourCards(p.product_variants, p.product_images);
+    return colours.length
+      ? colours.map((c) => ({ p, colour: c.colour as string | null, imageUrl: c.imageUrl as string | undefined }))
+      : [{ p, colour: null as string | null, imageUrl: mainImageUrl(p.product_images) }];
+  });
 
   return (
     <div>
@@ -317,7 +324,7 @@ function ProductsTab({ vendorId }: { vendorId: string }) {
           {isLoading ? (
             <span className="inline-block h-4 w-32 animate-pulse rounded bg-surface-alt align-middle" />
           ) : (
-            `${t.store.showingProducts} ${products?.length ?? 0} ${t.store.productsWord}`
+            `${t.store.showingProducts} ${cards.length} ${t.store.productsWord}`
           )}
         </p>
       </div>
@@ -333,19 +340,19 @@ function ProductsTab({ vendorId }: { vendorId: string }) {
             {t.store.noProductsListed}
           </div>
         ) : (
-          products.map((p) => {
+          cards.map(({ p, colour, imageUrl }) => {
             const cp = cardPricing(
               { id: p.id, vendorId: p.vendor_id, categoryId: p.category_id, price: p.price, compareAtPrice: p.compare_at_price },
               pricingPromotions,
             );
             return (
               <ProductCard
-                key={p.id}
-                href={`/product/${p.slug}`}
+                key={colour ? `${p.id}-${colour}` : p.id}
+                href={colour ? `/product/${p.slug}?colour=${encodeURIComponent(colour)}` : `/product/${p.slug}`}
                 LinkComponent={Link}
-                imageUrl={mainImageUrl(p.product_images)}
+                imageUrl={imageUrl}
                 vendorName={p.vendors?.store_name}
-                name={p.name}
+                name={colour ? `${p.name} – ${colour}` : p.name}
                 price={cp.price}
                 compareAtPrice={cp.compareAtPrice}
                 promoLabel={cp.badgeText}
