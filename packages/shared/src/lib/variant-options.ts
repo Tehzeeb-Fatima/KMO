@@ -63,11 +63,25 @@ const SWATCH: Record<string, string> = {
   maroon: "#800000", wine: "#722f37", mauve: "#c5a3bf", lilac: "#c8a2c8", lavender: "#d9cff0", gold: "#d4af37",
   silver: "#c0c0c0", "multi": "conic-gradient(#f87171,#facc15,#4ade80,#60a5fa,#c084fc,#f87171)",
   multicolor: "conic-gradient(#f87171,#facc15,#4ade80,#60a5fa,#c084fc,#f87171)",
+  multicolour: "conic-gradient(#f87171,#facc15,#4ade80,#60a5fa,#c084fc,#f87171)",
+  "jet black": "#111111", navy: "#1f2a52", burgundy: "#6d1a2b", "scarlet red": "#d4141e", "dark brown": "#4a2c20",
+  emerald: "#0f6b55", "pine green": "#0f5f5c", "ash grey": "#5c5f63", "denim grey": "#6f7f8e", "rose pink": "#d9a0a4",
+  "coral pink": "#e57a6e", "blush pink": "#c85a86", "pale gold": "#d8b97a", "butter cream": "#efdcb2",
 };
 /** CSS background for a colour swatch. */
 export function swatchColour(name: string): string {
   const key = name.trim().toLowerCase();
   return SWATCH[key] ?? key;
+}
+
+/** Swatch for a colour name the browser or our list knows, else null
+ *  (then the colour comes from the option's photo). */
+export function knownSwatch(name: string): string | null {
+  const key = name.trim().toLowerCase();
+  if (SWATCH[key]) return SWATCH[key];
+  const css = key.replace(/[\s-]+/g, "");
+  if (typeof CSS !== "undefined" && CSS.supports("color", css)) return css;
+  return null;
 }
 
 /** The product colour a search names ("white slipper" → "White"), longest

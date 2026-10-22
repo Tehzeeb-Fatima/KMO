@@ -27,9 +27,9 @@ import {
   mainImageUrl,
   optionGroups,
   uniqueByName,
-  swatchColour,
   variantOptions,
 } from "@kmo/shared/lib";
+import { usePhotoSwatches } from "@/lib/use-photo-swatches";
 import { Breadcrumbs, Button, ProductCard } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "@/lib/supabase";
@@ -63,6 +63,11 @@ export default function ProductDetailClient({
   // [["Colour", ["Ivory","Mint"]], ["Size", ["M","L"]]] — a row can hold one
   // option or a colour/size combination, see variant-options.
   const variantGroups = useMemo(() => (product ? optionGroups(product.product_variants) : []), [product]);
+  const swatchFor = usePhotoSwatches(
+    variantGroups.filter(([name]) => isColourOption(name)).flatMap(([, values]) => values),
+    product?.product_variants ?? [],
+    product?.product_images ?? [],
+  );
 
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
   const [qty, setQty] = useState(1);
@@ -315,8 +320,8 @@ export default function ProductDetailClient({
       />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[420px_minmax(0,1fr)] lg:items-start lg:gap-[26px] xl:grid-cols-[460px_minmax(0,1fr)_316px]">
-        {/* gallery: scrolls with the page, no inner scroll areas */}
-        <div>
+        {/* gallery: stays in view on laptops while the details scroll */}
+        <div className="lg:sticky lg:top-4">
           <div
             className="relative aspect-square w-full overflow-hidden rounded-[10px] border border-border bg-surface"
             style={{
@@ -436,6 +441,8 @@ export default function ProductDetailClient({
                 {values.map((value) => {
                   const selected = selectedOptions[optionName] === value;
                   const isColor = isColourOption(optionName);
+                  // Many shades: round swatches only (the name shows above), so the page stays short.
+                  const compact = isColor && values.length > 12;
                   // Grey out a value no variant offers with the other picks.
                   const offered = product.product_variants.some((v) => {
                     const opts = variantOptions(v);
@@ -463,13 +470,23 @@ export default function ProductDetailClient({
                           return next;
                         })
                       }
+                      title={compact ? value : undefined}
+                      aria-label={compact ? value : undefined}
                       className={
-                        isColor
+                        compact
+                          ? "h-9 w-9 rounded-full p-[3px]"
+                          : isColor
                           ? "flex items-center gap-1.5 rounded-full py-1.5 pl-1.5 pr-3.5 text-[15px] font-bold"
                           : "min-w-[52px] rounded-full px-3.5 py-2.5 text-[15px] font-bold"
                       }
                       style={
-                        selected
+                        compact
+                          ? {
+                              background: "#fff",
+                              border: selected ? "2.5px solid var(--color-accent)" : "1.5px solid var(--color-border)",
+                              opacity: offered ? 1 : 0.4,
+                            }
+                          : selected
                           ? { background: "var(--color-accent)", color: "#fff" }
                           : {
                               background: "#fff",
@@ -479,13 +496,18 @@ export default function ProductDetailClient({
                             }
                       }
                     >
-                      {isColor ? (
+                      {compact ? (
+                        <span
+                          className="block h-full w-full rounded-full border border-black/10"
+                          style={{ background: swatchFor(value) }}
+                        />
+                      ) : isColor ? (
                         <span
                           className="h-4 w-4 shrink-0 rounded-full border border-black/10"
-                          style={{ background: swatchColour(value) }}
+                          style={{ background: swatchFor(value) }}
                         />
                       ) : null}
-                      {value}
+                      {compact ? null : value}
                     </button>
                   );
                 })}
