@@ -294,7 +294,7 @@ function VendorsList({
                       {v.store_name}
                     </span>
                     <span className="text-[11px] text-muted-table">
-                      {v.area || "—"}
+                      {[v.phone, v.area].filter(Boolean).join(" · ") || "—"}
                     </span>
                   </span>
                 </button>
@@ -642,6 +642,23 @@ function VendorDetail({ vendorId, onBack }: { vendorId: string; onBack: () => vo
         </div>
 
         <div className="flex flex-col gap-4">
+          <div className="rounded-lg border border-border bg-surface p-5">
+            <p className="mb-3 font-mono text-xs font-bold uppercase tracking-[0.06em] text-muted-table">
+              Contact
+            </p>
+            <div className="flex justify-between py-1 text-[13px]">
+              <span className="text-muted">Phone</span>
+              {vendor.phone ? (
+                <a href={`tel:${vendor.phone}`} className="font-bold text-primary">{vendor.phone}</a>
+              ) : (
+                <span className="font-bold text-ink-dark">—</span>
+              )}
+            </div>
+            <div className="flex justify-between gap-3 py-1 text-[13px]">
+              <span className="text-muted">Area</span>
+              <span className="text-right font-bold text-ink-dark">{vendor.area || "—"}</span>
+            </div>
+          </div>
           <div className="rounded-lg border border-border bg-surface p-5">
             <p className="mb-3 font-mono text-xs font-bold uppercase tracking-[0.06em] text-muted-table">
               Performance

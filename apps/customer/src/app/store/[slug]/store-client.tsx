@@ -208,12 +208,12 @@ export default function StoreClient() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-2 sm:w-[290px]">
+          <div className="flex flex-col gap-2 sm:w-[290px] sm:items-end">
             <HoursPill
               onVacation={vendor.is_on_vacation}
               sub={vendor.is_on_vacation ? undefined : todayHours}
             />
-            <div className="flex gap-2">
+            <div className="flex w-full gap-2">
               <button
                 type="button"
                 onClick={handleFollowClick}
