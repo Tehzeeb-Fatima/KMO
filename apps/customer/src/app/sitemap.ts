@@ -16,7 +16,9 @@ const STATIC_PAGES = [
   "/return-policy",
 ];
 
-export const revalidate = 3600;
+// Built per request: the hourly ISR copy stayed frozen at deploy time, so
+// products added since then never reached Google.
+export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = createClient(
