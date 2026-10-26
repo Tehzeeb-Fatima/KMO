@@ -11,6 +11,15 @@ const ALWAYS_ALLOWED = ["/maintenance", "/login", "/offline", "/reset-password"]
 const PREVIEW_COOKIE = "kmo_preview";
 
 export async function proxy(request: NextRequest) {
+  // One address for Google: www.karachimartonline.com served the same pages
+  // and was reported as duplicate content.
+  if (request.nextUrl.hostname === "www.karachimartonline.com") {
+    const url = request.nextUrl.clone();
+    url.hostname = "karachimartonline.com";
+    url.port = "";
+    return NextResponse.redirect(url, 308);
+  }
+
   const { pathname } = request.nextUrl;
   if (ALWAYS_ALLOWED.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
     return NextResponse.next();
