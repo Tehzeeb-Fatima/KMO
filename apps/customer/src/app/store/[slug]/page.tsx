@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import StoreClient from "./store-client";
 
@@ -7,12 +8,13 @@ async function fetchSeoData(slug: string) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
   );
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("vendors")
     .select("store_name, description, cover_url, logo_url")
     .eq("slug", slug)
     .maybeSingle();
-  return data;
+  // undefined = lookup failed (render anyway), null = no such store.
+  return error ? undefined : data;
 }
 
 /** Cuts at a word boundary so search results never show half a word. */
@@ -52,6 +54,8 @@ export async function generateMetadata({
   };
 }
 
-export default function StorePage() {
+export default async function StorePage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  if ((await fetchSeoData(slug)) === null) notFound();
   return <StoreClient />;
 }

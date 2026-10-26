@@ -1,5 +1,6 @@
 import { cache, Suspense } from "react";
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import { getProductBySlug } from "@kmo/shared/api";
 import { mainImageUrl } from "@kmo/shared/lib";
@@ -16,7 +17,8 @@ const fetchProduct = cache(async (slug: string) => {
   try {
     return await getProductBySlug(supabase, slug);
   } catch {
-    return null;
+    // A failed lookup is not a missing product: let the client retry.
+    return undefined;
   }
 });
 
@@ -61,6 +63,8 @@ export async function generateMetadata({
 export default async function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const product = await fetchProduct(slug);
+  // A real 404 for unknown slugs (old WooCommerce links), not a 200 "soft 404".
+  if (product === null) notFound();
 
   // The client component already emits the Product structured data; with the
   // product passed in, it now renders (data included) in the server HTML.
