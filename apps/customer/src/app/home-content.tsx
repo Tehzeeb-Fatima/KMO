@@ -204,11 +204,11 @@ export function HomeContent() {
               <Link key={c.id} href={`/category/${c.slug}`} className="group flex flex-col items-center gap-2 text-center">
                 <div
                   className={`flex aspect-square w-full items-center justify-center rounded-[22px] border border-border-primary bg-white bg-cover bg-center shadow-[0_10px_22px_-12px_rgba(74,34,102,0.45)] transition-all duration-500 [transform-style:preserve-3d] group-hover:[transform:perspective(700px)_rotateX(10deg)_rotateY(-8deg)_translateY(-8px)] group-hover:shadow-[0_26px_34px_-16px_rgba(74,34,102,0.55)]`}
-                  // 3D illustrations: centred with room around them, on a soft tint.
+                  // 3D illustrations: centred with room around them, on the brand purple.
                   style={
                     c.image_url
                       ? {
-                          backgroundImage: `url(${cdnImage(c.image_url, 300)}), linear-gradient(160deg, #ffffff 0%, #f4ecfa 100%)`,
+                          backgroundImage: `url(${cdnImage(c.image_url, 300)}), radial-gradient(circle at 50% 40%, #8a4bbf 0%, #6b2fa0 45%, #4a2266 100%)`,
                           backgroundSize: "62%, cover",
                           backgroundRepeat: "no-repeat",
                           backgroundPosition: "center",
