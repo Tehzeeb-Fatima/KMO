@@ -21,5 +21,5 @@ export function cdnImage(url: string | null | undefined, width?: number): string
   const at = url.indexOf(STORAGE_PREFIX);
   if (at === -1) return url;
   const path = url.slice(at + STORAGE_PREFIX.length);
-  return `${IMAGEKIT_URL}/${path}${width ? `?tr=w-${width}` : ""}`;
+  return `${IMAGEKIT_URL}/${path}${width ? `${path.includes("?") ? "&" : "?"}tr=w-${width}` : ""}`;
 }
