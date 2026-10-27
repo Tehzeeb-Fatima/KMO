@@ -9,7 +9,7 @@ const STORAGE_PREFIX = "/storage/v1/object/public/";
 
 // ImageKit URL endpoint (origin: Supabase public storage). Empty = serve
 // photos straight from Supabase.
-const IMAGEKIT_URL = "";
+const IMAGEKIT_URL = "https://ik.imagekit.io/t2ijfneyb";
 
 /** Serves a Supabase Storage photo through ImageKit (resized, WebP, cached),
  *  so customers' downloads don't count against Supabase egress. Any other URL,
