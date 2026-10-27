@@ -204,7 +204,17 @@ export function HomeContent() {
               <Link key={c.id} href={`/category/${c.slug}`} className="group flex flex-col items-center gap-2 text-center">
                 <div
                   className={`flex aspect-square w-full items-center justify-center rounded-[22px] border border-border-primary bg-white bg-cover bg-center shadow-[0_10px_22px_-12px_rgba(74,34,102,0.45)] transition-all duration-500 [transform-style:preserve-3d] group-hover:[transform:perspective(700px)_rotateX(10deg)_rotateY(-8deg)_translateY(-8px)] group-hover:shadow-[0_26px_34px_-16px_rgba(74,34,102,0.55)]`}
-                  style={c.image_url ? { backgroundImage: `url(${cdnImage(c.image_url, 400)})` } : undefined}
+                  // 3D illustrations: centred with room around them, on a soft tint.
+                  style={
+                    c.image_url
+                      ? {
+                          backgroundImage: `url(${cdnImage(c.image_url, 300)}), linear-gradient(160deg, #ffffff 0%, #f4ecfa 100%)`,
+                          backgroundSize: "62%, cover",
+                          backgroundRepeat: "no-repeat",
+                          backgroundPosition: "center",
+                        }
+                      : undefined
+                  }
                 >
                   {!c.image_url ? (
                     <span className="flex aspect-square w-[58%] items-center justify-center rounded-full bg-gradient-to-br from-[#6b2fa0] to-[#4a2266] text-white shadow-[0_6px_14px_-6px_rgba(74,34,102,0.6)] transition-transform duration-500 group-hover:rotate-[-8deg] group-hover:scale-110">
