@@ -9,7 +9,7 @@ import { RequireAuth } from "@/components/require-auth";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/i18n/language-context";
 import { CartSkeleton } from "@/components/page-loader";
-import { variantLabel } from "@kmo/shared/lib";
+import { cdnImage, variantLabel } from "@kmo/shared/lib";
 
 export default function CartPage() {
   return (
@@ -118,7 +118,7 @@ function CartContent() {
                         className="row-span-2 h-[72px] w-[72px] rounded-[9px] sm:row-span-1 sm:h-[88px] sm:w-[88px]"
                         style={{
                           background: image
-                            ? `url(${image}) center/cover`
+                            ? `url(${cdnImage(image, 200)}) center/cover`
                             : "repeating-linear-gradient(135deg,#F3ECE8 0 7px,#E9DFD9 7px 14px)",
                         }}
                       />

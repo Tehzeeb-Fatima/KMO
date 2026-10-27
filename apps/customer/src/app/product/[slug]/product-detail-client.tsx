@@ -22,6 +22,7 @@ import {
 import {
   bestPromotionForProduct,
   cardPricing,
+  cdnImage,
   findVariant,
   isColourOption,
   mainImageUrl,
@@ -326,7 +327,7 @@ export default function ProductDetailClient({
             className="relative aspect-square w-full overflow-hidden rounded-[10px] border border-border bg-surface"
             style={{
               background: images[activeImage]
-                ? `url(${images[activeImage].url}) center/cover`
+                ? `url(${cdnImage(images[activeImage].url, 1200)}) center/cover`
                 : "repeating-linear-gradient(135deg,#F3ECE8 0 10px,#E9DFD9 10px 20px)",
             }}
           >
@@ -334,7 +335,7 @@ export default function ProductDetailClient({
               // A real <img> (not only a CSS background) so search engines index the photo.
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={images[activeImage].url}
+                src={cdnImage(images[activeImage].url, 1200)}
                 alt={product.name}
                 className="absolute inset-0 h-full w-full object-cover"
               />
@@ -372,7 +373,7 @@ export default function ProductDetailClient({
                   onClick={() => setActiveImage(i)}
                   className="h-14 w-14 shrink-0 rounded-lg sm:h-20 sm:w-20"
                   style={{
-                    background: `url(${img.url}) center/cover`,
+                    background: `url(${cdnImage(img.url, 200)}) center/cover`,
                     border: i === activeImage ? "2px solid var(--color-accent)" : "2px solid transparent",
                   }}
                 />

@@ -20,7 +20,7 @@ import {
   toPricingPromotions,
   type TopCategory,
 } from "@kmo/shared/api";
-import { CATEGORY_ICONS, cardPricing, mainCategories, type CategoryIconKey, mainImageUrl, uniqueByName } from "@kmo/shared/lib";
+import { CATEGORY_ICONS, cardPricing, cdnImage, mainCategories, type CategoryIconKey, mainImageUrl, uniqueByName } from "@kmo/shared/lib";
 import { Countdown, ProductCard } from "@kmo/shared/ui";
 import { supabase } from "@/lib/supabase";
 import { HorizontalSlider } from "@/components/horizontal-slider";
@@ -204,7 +204,7 @@ export function HomeContent() {
               <Link key={c.id} href={`/category/${c.slug}`} className="group flex flex-col items-center gap-2 text-center">
                 <div
                   className={`flex aspect-square w-full items-center justify-center rounded-[22px] border border-border-primary bg-white bg-cover bg-center shadow-[0_10px_22px_-12px_rgba(74,34,102,0.45)] transition-all duration-500 [transform-style:preserve-3d] group-hover:[transform:perspective(700px)_rotateX(10deg)_rotateY(-8deg)_translateY(-8px)] group-hover:shadow-[0_26px_34px_-16px_rgba(74,34,102,0.55)]`}
-                  style={c.image_url ? { backgroundImage: `url(${c.image_url})` } : undefined}
+                  style={c.image_url ? { backgroundImage: `url(${cdnImage(c.image_url, 300)})` } : undefined}
                 >
                   {!c.image_url ? (
                     <span className="flex aspect-square w-[58%] items-center justify-center rounded-full bg-gradient-to-br from-[#6b2fa0] to-[#4a2266] text-white shadow-[0_6px_14px_-6px_rgba(74,34,102,0.6)] transition-transform duration-500 group-hover:rotate-[-8deg] group-hover:scale-110">
@@ -265,14 +265,14 @@ export function HomeContent() {
               >
                 <div
                   className="h-[76px] bg-surface-alt bg-cover bg-center"
-                  style={{ backgroundImage: `url(${v.cover_url ?? DEFAULT_VENDOR_BANNER})` }}
+                  style={{ backgroundImage: `url(${cdnImage(v.cover_url, 800) ?? DEFAULT_VENDOR_BANNER})` }}
                 />
                 <div className="-mt-[34px] flex flex-col gap-2.5 p-4">
                   <span
                     className="flex h-[50px] w-[50px] items-center justify-center rounded-[10px] bg-primary text-[15.5px] font-bold text-white ring-[3px] ring-white bg-cover bg-center"
                     style={
                       v.logo_url
-                        ? { backgroundImage: `url(${v.logo_url})` }
+                        ? { backgroundImage: `url(${cdnImage(v.logo_url, 160)})` }
                         : undefined
                     }
                   >
@@ -411,7 +411,7 @@ function HomeBanner({ banners }: { banners: BannerRow[] | undefined }) {
   const slideImage = (
     <div
       className="absolute inset-0 bg-cover bg-center"
-      style={{ backgroundImage: `url(${current.image_url})` }}
+      style={{ backgroundImage: `url(${cdnImage(current.image_url, 1600)})` }}
     >
       {current.title ? (
         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-5 sm:p-8">
@@ -546,7 +546,7 @@ function PromotionBlock({
       style={
         promo.image_url
           ? {
-              backgroundImage: `linear-gradient(to right, rgba(74,34,102,0.95) 0%, rgba(74,34,102,0.8) 60%, rgba(74,34,102,0.55) 100%), url(${promo.image_url})`,
+              backgroundImage: `linear-gradient(to right, rgba(74,34,102,0.95) 0%, rgba(74,34,102,0.8) 60%, rgba(74,34,102,0.55) 100%), url(${cdnImage(promo.image_url, 1200)})`,
               backgroundSize: "cover",
               backgroundPosition: "center",
             }
@@ -1051,7 +1051,7 @@ function HeroPhotoFan({
           } ${placement[i]}`}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={pic.src} alt="" className="aspect-[4/5] h-full w-auto max-w-none rounded-[3px] object-cover" loading="eager" />
+          <img src={cdnImage(pic.src, 400)} alt="" className="aspect-[4/5] h-full w-auto max-w-none rounded-[3px] object-cover" loading="eager" />
           {showLabels ? (
             <span className="absolute inset-x-0 bottom-1 truncate px-1 text-center text-[12.5px] font-bold text-primary">
               {pic.label}

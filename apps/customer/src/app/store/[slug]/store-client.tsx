@@ -14,7 +14,7 @@ import {
   toPricingPromotions,
   unfollowVendor,
 } from "@kmo/shared/api";
-import { cardPricing, colourCards, mainImageUrl } from "@kmo/shared/lib";
+import { cardPricing, cdnImage, colourCards, mainImageUrl } from "@kmo/shared/lib";
 import { Breadcrumbs, PillTabs, ProductCard } from "@kmo/shared/ui";
 import { WEEK_DAYS, type BusinessHours, type VendorPolicies } from "@kmo/shared/types";
 import { useAuth } from "@kmo/shared/auth";
@@ -155,7 +155,7 @@ export default function StoreClient() {
         <div
           className="h-[100px] w-full sm:h-[190px]"
           style={{
-            backgroundImage: `url(${vendor.cover_url ?? DEFAULT_VENDOR_BANNER})`,
+            backgroundImage: `url(${cdnImage(vendor.cover_url, 1600) ?? DEFAULT_VENDOR_BANNER})`,
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
@@ -169,7 +169,7 @@ export default function StoreClient() {
               style={
                 vendor.logo_url
                   ? {
-                      backgroundImage: `url(${vendor.logo_url})`,
+                      backgroundImage: `url(${cdnImage(vendor.logo_url, 200)})`,
                       backgroundSize: "cover",
                       backgroundPosition: "center",
                     }

@@ -8,6 +8,7 @@ import { Breadcrumbs } from "@kmo/shared/ui";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/i18n/language-context";
 import { DEFAULT_VENDOR_BANNER } from "@/lib/vendor-banner";
+import { cdnImage } from "@kmo/shared/lib";
 
 export default function VendorsPage() {
   const { t } = useLanguage();
@@ -61,14 +62,14 @@ export default function VendorsPage() {
               >
                 <div
                   className="h-[76px] bg-surface-alt bg-cover bg-center"
-                  style={{ backgroundImage: `url(${v.cover_url ?? DEFAULT_VENDOR_BANNER})` }}
+                  style={{ backgroundImage: `url(${cdnImage(v.cover_url, 800) ?? DEFAULT_VENDOR_BANNER})` }}
                 />
                 <div className="-mt-[34px] flex flex-col gap-2.5 p-4">
                   <span
                     className="flex h-[50px] w-[50px] items-center justify-center rounded-[10px] bg-primary text-[15.5px] font-bold text-white ring-[3px] ring-white bg-cover bg-center"
                     style={
                       v.logo_url
-                        ? { backgroundImage: `url(${v.logo_url})` }
+                        ? { backgroundImage: `url(${cdnImage(v.logo_url, 160)})` }
                         : undefined
                     }
                   >

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "../lib/utils";
+import { cdnImage } from "../lib/product-image";
 
 export interface ProductCardProps {
   href: string;
@@ -83,14 +84,14 @@ export function ProductCard({
         className="relative mt-2.5 aspect-square bg-white"
         style={{
           background: imageUrl
-            ? `#fff url(${imageUrl}) center/cover no-repeat`
+            ? `#fff url(${cdnImage(imageUrl, 500)}) center/cover no-repeat`
             : "repeating-linear-gradient(135deg,#F3ECE8 0 8px,#E9DFD9 8px 16px)",
         }}
       >
         {imageUrl ? (
           // A real <img> over the background so search engines index the photo.
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={imageUrl} alt={name} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+          <img src={cdnImage(imageUrl, 500)} alt={name} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
         ) : null}
         {promoLabel ? (
           <span className="absolute left-2.5 top-2.5 rounded bg-accent px-[7px] py-1 text-[12px] font-bold text-white">

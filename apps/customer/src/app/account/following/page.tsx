@@ -10,6 +10,7 @@ import { RequireAuth } from "@/components/require-auth";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/i18n/language-context";
 import { ListSkeleton } from "@/components/page-loader";
+import { cdnImage } from "@kmo/shared/lib";
 
 export default function FollowingPage() {
   return (
@@ -61,7 +62,7 @@ function FollowingContent() {
             >
               <span
                 className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[10px] bg-primary text-[15.5px] font-bold text-white bg-cover bg-center"
-                style={v.logo_url ? { backgroundImage: `url(${v.logo_url})` } : undefined}
+                style={v.logo_url ? { backgroundImage: `url(${cdnImage(v.logo_url, 160)})` } : undefined}
               >
                 {!v.logo_url && v.store_name.charAt(0)}
               </span>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { colourImageUrl, knownSwatch } from "@kmo/shared/lib";
+import { cdnImage, colourImageUrl, knownSwatch } from "@kmo/shared/lib";
 
 type Variant = { id: string; option_name: string; option_value: string };
 type Image = { url: string; sort_order: number; variant_id?: string | null };
@@ -41,7 +41,7 @@ function photoColour(url: string): Promise<string | null> {
       }
     };
     img.onerror = () => resolve(null);
-    img.src = url;
+    img.src = cdnImage(url, 80);
   });
 }
 
