@@ -17,6 +17,7 @@ import { ConfirmDialog, SearchableSelect } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { categoryOptions, DELIVERY_CITY_OPTIONS } from "@kmo/shared/lib";
 import { supabase } from "../lib/supabase";
+import { OrderPushNotificationsCard } from "../components/order-push-notifications-card";
 
 const CUSTOMER_URL = import.meta.env.VITE_CUSTOMER_URL ?? "https://karachimartonline.com";
 
@@ -227,6 +228,8 @@ export function SettingsPage() {
 
   return (
     <div className="flex max-w-[640px] flex-col gap-4">
+      <OrderPushNotificationsCard />
+
       <div className="flex flex-col gap-3.5 rounded-xl border border-border bg-surface p-[22px_24px]">
         <p className="text-[15px] font-bold text-ink">Homepage hero boxes</p>
         <p className="text-xs text-muted">The three boxes under the homepage banner (headline, COD and vendor of the week).</p>

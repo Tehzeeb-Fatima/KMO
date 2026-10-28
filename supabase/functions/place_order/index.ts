@@ -10,6 +10,7 @@
 // Deploy with: pnpm dlx supabase functions deploy place_order
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import webpush from "npm:web-push@3.6.7";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -547,8 +548,66 @@ Deno.serve(async (req: Request) => {
 
   await admin.from("cart_items").delete().eq("customer_id", user.id);
 
+  if (createdOrders.length > 0) {
+    await notifyAdminsOfOrder(admin, createdOrders as { order_number: string; total: number }[]);
+  }
+
   return json({ orders: createdOrders }, 200);
 });
+
+// Tells admins a new order came in: an in-app notification bell entry, plus
+// (best-effort) a real push notification to any admin phone/browser that has
+// enabled it in Settings. Never throws — a push failure shouldn't fail checkout.
+async function notifyAdminsOfOrder(
+  admin: ReturnType<typeof createClient>,
+  orders: { order_number: string; total: number }[],
+): Promise<void> {
+  try {
+    const totalAmount = orders.reduce((sum, o) => sum + Number(o.total), 0);
+    const orderNumbers = orders.map((o) => o.order_number).join(", ");
+    const title = orders.length === 1 ? `New order ${orders[0].order_number}` : `${orders.length} new orders`;
+    const body = `Rs. ${totalAmount.toLocaleString()} · ${orderNumbers}`;
+
+    await admin
+      .from("notifications")
+      .insert({ recipient_role: "admin", type: "new_order", title, body, link: "/orders" });
+
+    const vapidPublicKey = Deno.env.get("VAPID_PUBLIC_KEY");
+    const vapidPrivateKey = Deno.env.get("VAPID_PRIVATE_KEY");
+    if (!vapidPublicKey || !vapidPrivateKey) return;
+
+    webpush.setVapidDetails("mailto:admin@karachimartonline.com", vapidPublicKey, vapidPrivateKey);
+
+    const { data: adminProfiles } = await admin.from("profiles").select("id").eq("role", "admin");
+    const adminIds = (adminProfiles ?? []).map((p) => p.id as string);
+    if (adminIds.length === 0) return;
+
+    const { data: subs } = await admin
+      .from("push_subscriptions")
+      .select("id, endpoint, p256dh, auth")
+      .in("user_id", adminIds);
+
+    const payload = JSON.stringify({ title, body, url: "/orders" });
+
+    await Promise.all(
+      (subs ?? []).map(async (sub) => {
+        try {
+          await webpush.sendNotification(
+            { endpoint: sub.endpoint as string, keys: { p256dh: sub.p256dh as string, auth: sub.auth as string } },
+            payload,
+          );
+        } catch (err) {
+          const statusCode = (err as { statusCode?: number }).statusCode;
+          if (statusCode === 404 || statusCode === 410) {
+            await admin.from("push_subscriptions").delete().eq("id", sub.id as string);
+          }
+        }
+      }),
+    );
+  } catch {
+    // Best-effort — order placement already succeeded.
+  }
+}
 
 async function generateOrderNumber(
   admin: ReturnType<typeof createClient>,
