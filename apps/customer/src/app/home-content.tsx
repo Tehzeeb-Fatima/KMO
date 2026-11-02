@@ -31,7 +31,7 @@ import { DEFAULT_VENDOR_BANNER } from "@/lib/vendor-banner";
 const VENDOR_URL = process.env.NEXT_PUBLIC_VENDOR_URL ?? "https://vendor.karachimartonline.com";
 
 export function HomeContent() {
-  const { t, locale } = useLanguage();
+  const { t } = useLanguage();
   const { data: categories } = useQuery({
     queryKey: ["shop-categories"],
     queryFn: () => listShopCategories(supabase),
@@ -95,14 +95,7 @@ export function HomeContent() {
       <VerifyEmailBanner />
       <HomeBanner banners={banners} />
 
-      {/* 11.11 campaign video takes the place of the hero boxes; set
-          HERO_VIDEO.en.src to "" to bring the boxes back. */}
-      {HERO_VIDEO.en.src ? (
-      <section>
-        <h1 className="sr-only">{t.home.heroLiveTitle}</h1>
-        <HeroVideo key={locale} {...(locale === "ur" ? HERO_VIDEO.ur : HERO_VIDEO.en)} />
-      </section>
-      ) : platformSettings?.show_hero_boxes !== false ? (
+      {platformSettings?.show_hero_boxes !== false ? (
       <section className="grid gap-4 px-4 pt-7 sm:px-10 lg:grid-cols-[2.2fr_1fr_1fr]">
         <div
           className="relative flex flex-col justify-center gap-4 overflow-hidden rounded-xl p-7 text-white transition-all duration-300 [transform-style:preserve-3d] hover:[transform:perspective(900px)_rotateX(4deg)_rotateY(-4deg)_translateY(-6px)] hover:shadow-[0_24px_40px_-18px_rgba(74,34,102,0.6)] sm:p-[34px_30px]"
@@ -193,7 +186,10 @@ export function HomeContent() {
           </a>
         </div>
 </section>
-      ) : null}
+      ) : (
+        /* the boxes hold the page heading; search engines still need one */
+        <h1 className="sr-only">{t.home.heroLiveTitle}</h1>
+      )}
 
       {/* browse categories */}
       {categories && categories.length > 0 ? (
@@ -411,16 +407,10 @@ export function HomeContent() {
   );
 }
 
-const HERO_VIDEO = {
-  // button: where the video's "wishlist" button sits, in % of the video.
-  en: { src: "/banners/kmo-11-11-coming-soon.mp4", button: { left: "6%", top: "75%", width: "21%", height: "17%" } },
-  ur: { src: "/banners/kmo-11-11-coming-soon-ur.mp4", button: { left: "29%", top: "77%", width: "17%", height: "16%" } },
-};
-
-/** Plays by itself on a loop with nothing to click. React leaves `muted` out of
+/** Plays by itself with nothing to click: on a loop, or once if `onEnded` moves the slider on. React leaves `muted` out of
  *  server-rendered HTML, which makes browsers block autoplay, so it is set here
  *  and playback resumes whenever the browser pauses it. */
-function HeroVideo({ src, button }: { src: string; button: CSSProperties }) {
+function HeroVideo({ src, onEnded }: { src: string; onEnded?: () => void }) {
   const ref = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -428,7 +418,7 @@ function HeroVideo({ src, button }: { src: string; button: CSSProperties }) {
     if (!video) return;
     video.muted = true;
     const resume = () => {
-      if (video.paused && !document.hidden) void video.play().catch(() => {});
+      if (video.paused && !video.ended && !document.hidden) void video.play().catch(() => {});
     };
     resume();
     video.addEventListener("pause", resume);
@@ -442,70 +432,80 @@ function HeroVideo({ src, button }: { src: string; button: CSSProperties }) {
   }, []);
 
   return (
-    <div style={{ backgroundColor: "#3a1d5a" }}>
-      {/* sized to the video so the link stays on top of the button at any width */}
-      <div className="relative mx-auto aspect-[8/3] w-full max-w-[calc((100svh-220px)*8/3)]">
-        <video
-          ref={ref}
-          src={src}
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="auto"
-          disablePictureInPicture
-          aria-label="Karachi Mart Online 11.11 sale coming soon"
-          className="pointer-events-none block h-full w-full"
-        />
-        <Link href="/search" aria-label="Start your wishlist" className="absolute rounded-full" style={button} />
-      </div>
-    </div>
+    <video
+      ref={ref}
+      src={src}
+      autoPlay
+      loop={!onEnded}
+      onEnded={onEnded}
+      muted
+      playsInline
+      preload="auto"
+      disablePictureInPicture
+      className="pointer-events-none block h-full w-full"
+    />
   );
 }
 
+const BANNER_BG = "#3a1d5a";
+const isVideo = (url: string) => /\.(mp4|webm)(\?|$)/i.test(url);
+
 function HomeBanner({ banners }: { banners: BannerRow[] | undefined }) {
+  const { locale } = useLanguage();
   const slides = banners ?? [];
   const count = slides.length;
   const [index, setIndex] = useState(0);
+  const current = count ? slides[index % count] : undefined;
+  const urdu = locale === "ur";
+  const media = current ? (urdu && current.image_url_ur) || current.image_url : "";
+  const video = isVideo(media);
 
   useEffect(() => {
-    if (count < 2) return;
+    // A video moves the slider on when it finishes.
+    if (count < 2 || video) return;
     const id = setInterval(() => setIndex((i) => (i + 1) % count), 5000);
     return () => clearInterval(id);
-  }, [count]);
+  }, [count, video]);
 
-  if (count === 0) return null;
+  // Holds the banner's space while it loads, so the page doesn't jump.
+  if (!banners) {
+    return <div className="aspect-[8/3] max-h-[calc(100svh-220px)] w-full" style={{ backgroundColor: BANNER_BG }} />;
+  }
+  if (!current) return null;
 
-  const current = slides[index % count];
-  const slideImage = (
-    <div
-      className="absolute inset-0 bg-cover bg-center"
-      style={{ backgroundImage: `url(${cdnImage(current.image_url, 1600)})` }}
-    >
-      {current.title ? (
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-5 sm:p-8">
-          <p className="text-[19.5px] font-extrabold text-white sm:text-[26px]">{current.title}</p>
-        </div>
-      ) : null}
-    </div>
-  );
+  const linkArea = ((urdu && current.link_area_ur) || current.link_area) as CSSProperties | null;
+  const linkClass = linkArea ? "absolute rounded-full" : "absolute inset-0 block";
+  const label = current.title ?? "Banner";
 
   return (
-    <section>
-      <div className="relative aspect-[16/9] overflow-hidden bg-primary sm:aspect-[8/3]">
+    <section style={{ backgroundColor: BANNER_BG }}>
+      {/* sized to the artwork so a link stays on top of its button at any width */}
+      <div className="relative mx-auto aspect-[8/3] w-full max-w-[calc((100svh-220px)*8/3)] overflow-hidden">
+        {video ? (
+          <HeroVideo
+            key={media}
+            src={cdnImage(media)}
+            onEnded={count > 1 ? () => setIndex((i) => (i + 1) % count) : undefined}
+          />
+        ) : (
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url(${cdnImage(media, 1600)})` }}
+          >
+            {current.title ? (
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-5 sm:p-8">
+                <p className="text-[19.5px] font-extrabold text-white sm:text-[26px]">{current.title}</p>
+              </div>
+            ) : null}
+          </div>
+        )}
         {current.link_url ? (
           current.link_url.startsWith("/") ? (
-            <Link href={current.link_url} className="block h-full w-full">
-              {slideImage}
-            </Link>
+            <Link href={current.link_url} aria-label={label} className={linkClass} style={linkArea ?? undefined} />
           ) : (
-            <a href={current.link_url} className="block h-full w-full">
-              {slideImage}
-            </a>
+            <a href={current.link_url} aria-label={label} className={linkClass} style={linkArea ?? undefined} />
           )
-        ) : (
-          slideImage
-        )}
+        ) : null}
 
         {count > 1 ? (
           <>

@@ -980,6 +980,9 @@ export interface Database {
         Row: {
           id: string;
           image_url: string;
+          image_url_ur: string | null;
+          link_area: Json | null;
+          link_area_ur: Json | null;
           title: string | null;
           link_url: string | null;
           sort_order: number;
@@ -988,6 +991,9 @@ export interface Database {
         };
         Insert: {
           id?: string;
+          link_area?: Json | null;
+          link_area_ur?: Json | null;
+          image_url_ur?: string | null;
           image_url: string;
           title?: string | null;
           link_url?: string | null;
@@ -997,6 +1003,9 @@ export interface Database {
         };
         Update: {
           id?: string;
+          link_area?: Json | null;
+          link_area_ur?: Json | null;
+          image_url_ur?: string | null;
           image_url?: string;
           title?: string | null;
           link_url?: string | null;
