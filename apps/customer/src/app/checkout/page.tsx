@@ -8,6 +8,7 @@ import {
   createAddress,
   getDefaultDeliveryRateForCity,
   getMyLoyalty,
+  getPlatformSettings,
   getVendorDeliveryRatesForCity,
   listActivePromotions,
   listAddresses,
@@ -105,6 +106,10 @@ function CheckoutContent() {
   const selectedAddress = addresses?.find((a) => a.id === effectiveAddressId) ?? null;
   const vendorIds = Array.from(new Set(items?.map((i) => i.products.vendor_id) ?? []));
 
+  const { data: platformSettings } = useQuery({
+    queryKey: ["platform-settings"],
+    queryFn: () => getPlatformSettings(supabase),
+  });
   const { data: vendorDeliveryRates } = useQuery({
     queryKey: ["vendor-delivery-rates-checkout", vendorIds.join(","), selectedAddress?.city],
     queryFn: () => getVendorDeliveryRatesForCity(supabase, vendorIds, selectedAddress!.city),
@@ -180,7 +185,8 @@ function CheckoutContent() {
       (s, i) => s + (i.product_variants?.price_override ?? i.products.price) * i.quantity,
       0,
     );
-    const customRate = vendorDeliveryRates?.get(vendorId);
+    // Same as place_order: saved vendor charges apply only while admin allows them.
+    const customRate = platformSettings?.dc_reminder_enabled === true ? vendorDeliveryRates?.get(vendorId) : undefined;
     const fee = customRate
       ? customRate.free_delivery_threshold != null && vendorSubtotal >= customRate.free_delivery_threshold
         ? 0

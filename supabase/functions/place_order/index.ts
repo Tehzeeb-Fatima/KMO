@@ -157,7 +157,7 @@ Deno.serve(async (req: Request) => {
   const { data: settings } = await admin
     .from("platform_settings")
     .select(
-      "default_commission_rate, commission_free_months, loyalty_enabled, loyalty_point_value, loyalty_min_redeem_points, loyalty_max_redeem_percent",
+      "default_commission_rate, commission_free_months, loyalty_enabled, loyalty_point_value, loyalty_min_redeem_points, loyalty_max_redeem_percent, dc_reminder_enabled",
     )
     .single();
   const defaultCommissionRate = settings?.default_commission_rate ?? 0;
@@ -250,7 +250,8 @@ Deno.serve(async (req: Request) => {
       const unitPrice = variant?.price_override ?? product.price;
       return sum + unitPrice * item.quantity;
     }, 0);
-    const vendorRate = deliveryRateByVendor.get(vendorId);
+    // Saved vendor charges apply only while admin allows vendor-set charges.
+    const vendorRate = settings?.dc_reminder_enabled === true ? deliveryRateByVendor.get(vendorId) : undefined;
     const deliveryFee = vendorRate
       ? deliveryFeeFor(subtotal, vendorRate.fee, vendorRate.free_delivery_threshold)
       : deliveryFeeFor(subtotal, platformDefault?.fee ?? null, platformDefault?.free_delivery_threshold ?? null);

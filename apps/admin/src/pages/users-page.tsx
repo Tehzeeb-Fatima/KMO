@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { listAdminUsers, setUserRole } from "@kmo/shared/api";
+import { createStaffUser, listAdminUsers, setUserRole } from "@kmo/shared/api";
 import { ConfirmDialog } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "../lib/supabase";
@@ -47,6 +47,7 @@ export function UsersPage() {
   const queryClient = useQueryClient();
   const [pending, setPending] = useState<Pending | null>(null);
   const [staffEdit, setStaffEdit] = useState<{ target: Target; modules: string[] } | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
 
   const { data: users, isLoading } = useQuery({
     queryKey: ["admin-users"],
@@ -86,10 +87,21 @@ export function UsersPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-sm text-muted">
-        Customer uses the store, Vendor uses the vendor dashboard, Admin has full access to this dashboard, and Staff
-        only sees the sections you choose.
-      </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <p className="min-w-[240px] flex-1 text-sm text-muted">
+          Customer uses the store, Vendor uses the vendor dashboard, Admin has full access to this dashboard, and Staff
+          only sees the sections you choose.
+        </p>
+        <button
+          type="button"
+          onClick={() => setAddOpen(true)}
+          className="rounded-md bg-accent px-4 py-2 text-[13px] font-semibold text-white"
+        >
+          + Add staff
+        </button>
+      </div>
+
+      {addOpen ? <AddStaffDialog onClose={() => setAddOpen(false)} /> : null}
 
       <div className="overflow-x-auto rounded-xl border border-border bg-surface">
         <div className="grid min-w-[620px] grid-cols-[1.3fr_1.4fr_1.2fr_1fr] bg-surface-alt px-5 py-3.5 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-table">
@@ -219,6 +231,79 @@ export function UsersPage() {
         }}
         onCancel={() => setPending(null)}
       />
+    </div>
+  );
+}
+
+function AddStaffDialog({ onClose }: { onClose: () => void }) {
+  const queryClient = useQueryClient();
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [modules, setModules] = useState<string[]>([]);
+
+  const create = useMutation({
+    mutationFn: () => createStaffUser(supabase, { fullName, email, password, modules }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      onClose();
+    },
+  });
+
+  const canSubmit = fullName.trim() && email.trim() && password.length >= 8 && modules.length > 0 && !create.isPending;
+  const inputClass = "w-full rounded-md border border-border bg-surface px-3 py-2 text-[13px] text-ink-dark outline-none focus:border-primary-light";
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true">
+      <form
+        className="max-h-full w-full max-w-[480px] overflow-y-auto rounded-xl bg-surface p-6"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (canSubmit) create.mutate();
+        }}
+      >
+        <p className="text-[17px] font-bold text-ink-dark">Add staff</p>
+        <p className="mt-1 text-xs text-muted">They sign in with this email and password. Share the password with them privately.</p>
+        <div className="mt-4 flex flex-col gap-3">
+          <label className="flex flex-col gap-1 text-xs font-bold text-ink-dark">
+            Name
+            <input value={fullName} onChange={(e) => setFullName(e.target.value)} className={inputClass} />
+          </label>
+          <label className="flex flex-col gap-1 text-xs font-bold text-ink-dark">
+            Email
+            <input type="email" autoComplete="off" value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} />
+          </label>
+          <label className="flex flex-col gap-1 text-xs font-bold text-ink-dark">
+            Password (at least 8 characters)
+            <input type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} className={inputClass} />
+          </label>
+        </div>
+        <p className="mt-4 text-xs font-bold text-ink-dark">Sections they can open</p>
+        <div className="mt-2 grid grid-cols-2 gap-2.5">
+          {STAFF_MODULES.map((m) => {
+            const checked = modules.includes(m.key);
+            return (
+              <label key={m.key} className="flex items-center gap-2 text-[13px] text-ink-dark">
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={() => setModules(checked ? modules.filter((k) => k !== m.key) : [...modules, m.key])}
+                />
+                {m.label}
+              </label>
+            );
+          })}
+        </div>
+        {create.isError ? <p className="mt-3 text-[12.5px] text-danger">{(create.error as Error).message}</p> : null}
+        <div className="mt-6 flex justify-end gap-2">
+          <button type="button" onClick={onClose} className="rounded-md border border-border px-4 py-2 text-[13px] font-semibold text-ink-dark">
+            Cancel
+          </button>
+          <button type="submit" disabled={!canSubmit} className="rounded-md bg-accent px-4 py-2 text-[13px] font-semibold text-white disabled:opacity-50">
+            {create.isPending ? "Creating…" : "Create staff"}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

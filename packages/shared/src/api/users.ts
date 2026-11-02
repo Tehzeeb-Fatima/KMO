@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../types";
+import { functionError } from "./function-error";
 
 type Client = SupabaseClient<Database>;
 type UserRole = Database["public"]["Enums"]["user_role"];
@@ -19,6 +20,14 @@ export async function listAdminUsers(supabase: Client): Promise<AdminUserRow[]> 
   const { data, error } = await supabase.rpc("admin_list_users");
   if (error) throw error;
   return data;
+}
+
+export async function createStaffUser(
+  supabase: Client,
+  input: { fullName: string; email: string; password: string; modules: string[] },
+): Promise<void> {
+  const { error } = await supabase.functions.invoke("admin_create_staff", { body: input });
+  if (error) throw await functionError(error);
 }
 
 export async function setUserRole(

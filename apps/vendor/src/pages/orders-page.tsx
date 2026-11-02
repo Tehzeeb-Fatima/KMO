@@ -309,10 +309,26 @@ function OrderDetail({
             <p className="mb-2 font-mono text-xs font-bold uppercase tracking-[0.06em] text-muted-table">
               Fulfilment
             </p>
-            <p className="text-[13px] text-ink-dark">
-              {order.payment_method === "cod" ? "Cash on delivery" : order.payment_method} · Rs.{" "}
-              {order.total.toLocaleString()}
-            </p>
+            <div className="flex flex-col gap-1.5 text-[13px] text-ink-dark">
+              <div className="flex justify-between gap-3">
+                <span className="text-muted">Products</span>
+                <span>Rs. {order.subtotal.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between gap-3">
+                <span className="text-muted">Delivery charge</span>
+                <span>{order.delivery_fee > 0 ? `Rs. ${order.delivery_fee.toLocaleString()}` : "Free"}</span>
+              </div>
+              {order.subtotal + order.delivery_fee - order.total > 0 ? (
+                <div className="flex justify-between gap-3">
+                  <span className="text-muted">Discounts and wallet</span>
+                  <span>− Rs. {(order.subtotal + order.delivery_fee - order.total).toLocaleString()}</span>
+                </div>
+              ) : null}
+              <div className="flex justify-between gap-3 border-t border-border pt-1.5 font-bold">
+                <span>{order.payment_method === "cod" ? "Collect from customer (COD)" : `Total (${order.payment_method})`}</span>
+                <span>Rs. {order.total.toLocaleString()}</span>
+              </div>
+            </div>
           </div>
 
           {order.promotion_discount_amount > 0 ? (
