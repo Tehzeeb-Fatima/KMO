@@ -202,7 +202,7 @@ export function HomeContent() {
               {t.home.allCategories}
             </Link>
           </div>
-          <HorizontalSlider spread itemClassName="w-[84px] sm:w-[96px] lg:w-auto lg:min-w-[96px] lg:max-w-[176px] lg:flex-1 xl:min-w-[118px]">
+          <HorizontalSlider spread itemClassName="w-[76px] sm:w-[88px] lg:w-auto lg:min-w-[88px] lg:max-w-[176px] lg:flex-1">
             {mainCategories(categories).map((c) => (
               <Link key={c.id} href={`/category/${c.slug}`} className="group flex flex-col items-center gap-2 text-center">
                 <div
@@ -236,7 +236,7 @@ export function HomeContent() {
                     </span>
                   ) : null}
                 </div>
-                <span className="line-clamp-2 text-[12.5px] font-bold leading-[1.3] text-ink-dark sm:text-[13px] lg:text-[14px]">{c.name}</span>
+                <span className="line-clamp-2 text-[12px] font-bold leading-[1.3] text-ink-dark sm:text-[13px] lg:text-[14px]">{c.name}</span>
               </Link>
             ))}
           </HorizontalSlider>
