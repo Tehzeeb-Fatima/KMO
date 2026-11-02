@@ -441,7 +441,7 @@ function HeroVideo({ src }: { src: string }) {
   }, []);
 
   return (
-    <div className="pointer-events-none bg-white">
+    <div className="pointer-events-none" style={{ backgroundColor: "#3a1d5a" }}>
       <video
         ref={ref}
         src={src}
@@ -452,7 +452,7 @@ function HeroVideo({ src }: { src: string }) {
         preload="auto"
         disablePictureInPicture
         aria-label="Karachi Mart Online 11.11 sale coming soon"
-        className="block aspect-[8/3] w-full object-cover"
+        className="block aspect-[8/3] max-h-[calc(100svh-220px)] w-full object-contain"
       />
     </div>
   );
