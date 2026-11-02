@@ -3,7 +3,7 @@
 import { Children, useEffect, useRef, useState, type ReactNode } from "react";
 
 const DEFAULT_ITEM =
-  "w-[46%] sm:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-3rem)/4)]";
+  "w-[46%] sm:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-3rem)/4)] xl:w-[calc((100%-4rem)/5)] 2xl:w-[calc((100%-5rem)/6)]";
 
 export function HorizontalSlider({
   children,
