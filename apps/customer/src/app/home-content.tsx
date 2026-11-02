@@ -884,7 +884,7 @@ function ContactSection() {
                 href="tel:+923712104790"
                 className="text-[15.5px] text-ink-dark hover:text-primary hover:underline"
               >
-                +92 371 2104790
+                <span dir="ltr">+92 371 2104790</span>
               </a>
             </div>
           </div>
