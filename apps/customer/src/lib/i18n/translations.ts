@@ -106,8 +106,7 @@ export const translations = {
       description:
         "For order help, vendor onboarding, or anything else — send a message and our Karachi-based support team will get back to you.",
       hours: "Mon–Sat, 9:00 AM – 9:00 PM",
-      firstName: "First name",
-      lastName: "Last name",
+      fullName: "Full Name",
       phoneNumber: "Phone number",
       businessName: "Business name",
       optional: "(optional)",
@@ -544,8 +543,7 @@ export const translations = {
       description:
         "آرڈر میں مدد، وینڈر بننے، یا کسی بھی چیز کے لیے — پیغام بھیجیں اور ہماری کراچی میں موجود سپورٹ ٹیم آپ سے رابطہ کرے گی۔",
       hours: "پیر تا ہفتہ، 9:00 صبح – 9:00 رات",
-      firstName: "نام",
-      lastName: "خاندانی نام",
+      fullName: "مکمل نام",
       phoneNumber: "فون نمبر",
       businessName: "کاروبار کا نام",
       optional: "(اختیاری)",

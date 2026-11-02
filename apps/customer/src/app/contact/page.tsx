@@ -8,13 +8,12 @@ import { useLanguage } from "@/lib/i18n/language-context";
 
 export default function ContactPage() {
   const { t } = useLanguage();
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
+  const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [message, setMessage] = useState("");
 
   const mutation = useMutation({
-    mutationFn: () => submitContactMessage(supabase, { firstName, lastName, phone, message }),
+    mutationFn: () => submitContactMessage(supabase, { fullName, phone, message }),
   });
 
   return (
@@ -37,22 +36,13 @@ export default function ContactPage() {
           }}
           className="mt-6 flex flex-col gap-3.5"
         >
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <input
-              required
-              placeholder={`${t.contact.firstName} *`}
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              className="rounded-lg border border-border px-[13px] py-[11px] text-[15.5px] outline-none focus:border-primary-light"
-            />
-            <input
-              required
-              placeholder={`${t.contact.lastName} *`}
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              className="rounded-lg border border-border px-[13px] py-[11px] text-[15.5px] outline-none focus:border-primary-light"
-            />
-          </div>
+          <input
+            required
+            placeholder={`${t.contact.fullName} *`}
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            className="rounded-lg border border-border px-[13px] py-[11px] text-[15.5px] outline-none focus:border-primary-light"
+          />
           <input
             required
             type="tel"

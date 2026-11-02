@@ -843,8 +843,7 @@ function Testimonials({ enabled }: { enabled: boolean }) {
 
 function ContactSection() {
   const { t } = useLanguage();
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
+  const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [businessName, setBusinessName] = useState("");
   const [message, setMessage] = useState("");
@@ -852,8 +851,7 @@ function ContactSection() {
   const mutation = useMutation({
     mutationFn: () =>
       submitContactMessage(supabase, {
-        firstName,
-        lastName,
+        fullName,
         phone,
         message: businessName ? `[Business: ${businessName}] ${message}` : message,
       }),
@@ -903,26 +901,15 @@ function ContactSection() {
             <p className="text-[14px] font-bold text-success">{t.contact.thanksMessage}</p>
           ) : (
             <>
-              <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
-                <Field label={t.contact.firstName}>
-                  <input
-                    required
-                    placeholder={t.contact.firstName}
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    className="rounded-lg border border-border px-[13px] py-[11px] text-[15.5px] outline-none focus:border-primary-light"
-                  />
-                </Field>
-                <Field label={t.contact.lastName}>
-                  <input
-                    required
-                    placeholder={t.contact.lastName}
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    className="rounded-lg border border-border px-[13px] py-[11px] text-[15.5px] outline-none focus:border-primary-light"
-                  />
-                </Field>
-              </div>
+              <Field label={t.contact.fullName}>
+                <input
+                  required
+                  placeholder={t.contact.fullName}
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className="rounded-lg border border-border px-[13px] py-[11px] text-[15.5px] outline-none focus:border-primary-light"
+                />
+              </Field>
               <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
                 <Field label={t.contact.phoneNumber}>
                   <input

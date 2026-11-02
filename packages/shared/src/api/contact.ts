@@ -6,11 +6,12 @@ type ContactMessageRow = Database["public"]["Tables"]["contact_messages"]["Row"]
 
 export async function submitContactMessage(
   supabase: Client,
-  input: { firstName: string; lastName: string; phone: string; message: string },
+  input: { fullName: string; phone: string; message: string },
 ): Promise<void> {
   const { error } = await supabase.from("contact_messages").insert({
-    first_name: input.firstName,
-    last_name: input.lastName,
+    // The form now asks for one name; both columns stay for older messages.
+    first_name: input.fullName,
+    last_name: "",
     phone: input.phone,
     message: input.message,
   });
