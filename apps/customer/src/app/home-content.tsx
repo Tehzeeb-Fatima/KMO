@@ -95,7 +95,24 @@ export function HomeContent() {
       <VerifyEmailBanner />
       <HomeBanner banners={banners} />
 
-      {platformSettings?.show_hero_boxes !== false ? (
+      {/* 11.11 campaign video takes the place of the hero boxes; set
+          HERO_VIDEO to "" to bring the boxes back. */}
+      {HERO_VIDEO ? (
+      <section className="px-4 pt-7 sm:px-10">
+        <h1 className="sr-only">{t.home.heroLiveTitle}</h1>
+        <Link href="/search" aria-label="Karachi Mart Online 11.11 sale" className="block overflow-hidden rounded-xl bg-white">
+          <video
+            src={HERO_VIDEO}
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="auto"
+            className="aspect-[8/3] w-full object-cover"
+          />
+        </Link>
+      </section>
+      ) : platformSettings?.show_hero_boxes !== false ? (
       <section className="grid gap-4 px-4 pt-7 sm:px-10 lg:grid-cols-[2.2fr_1fr_1fr]">
         <div
           className="relative flex flex-col justify-center gap-4 overflow-hidden rounded-xl p-7 text-white transition-all duration-300 [transform-style:preserve-3d] hover:[transform:perspective(900px)_rotateX(4deg)_rotateY(-4deg)_translateY(-6px)] hover:shadow-[0_24px_40px_-18px_rgba(74,34,102,0.6)] sm:p-[34px_30px]"
@@ -403,6 +420,8 @@ export function HomeContent() {
     </main>
   );
 }
+
+const HERO_VIDEO = "/banners/kmo-11-11-coming-soon.mp4";
 
 function HomeBanner({ banners }: { banners: BannerRow[] | undefined }) {
   const slides = banners ?? [];
