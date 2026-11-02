@@ -31,7 +31,7 @@ import { DEFAULT_VENDOR_BANNER } from "@/lib/vendor-banner";
 const VENDOR_URL = process.env.NEXT_PUBLIC_VENDOR_URL ?? "https://vendor.karachimartonline.com";
 
 export function HomeContent() {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const { data: categories } = useQuery({
     queryKey: ["shop-categories"],
     queryFn: () => listShopCategories(supabase),
@@ -96,11 +96,11 @@ export function HomeContent() {
       <HomeBanner banners={banners} />
 
       {/* 11.11 campaign video takes the place of the hero boxes; set
-          HERO_VIDEO to "" to bring the boxes back. */}
-      {HERO_VIDEO ? (
+          HERO_VIDEO.en to "" to bring the boxes back. */}
+      {HERO_VIDEO.en ? (
       <section className="px-4 pt-7 sm:px-10">
         <h1 className="sr-only">{t.home.heroLiveTitle}</h1>
-        <HeroVideo src={HERO_VIDEO} />
+        <HeroVideo key={locale} src={locale === "ur" ? HERO_VIDEO.ur : HERO_VIDEO.en} />
       </section>
       ) : platformSettings?.show_hero_boxes !== false ? (
       <section className="grid gap-4 px-4 pt-7 sm:px-10 lg:grid-cols-[2.2fr_1fr_1fr]">
@@ -411,7 +411,10 @@ export function HomeContent() {
   );
 }
 
-const HERO_VIDEO = "/banners/kmo-11-11-coming-soon.mp4";
+const HERO_VIDEO = {
+  en: "/banners/kmo-11-11-coming-soon.mp4",
+  ur: "/banners/kmo-11-11-coming-soon-ur.mp4",
+};
 
 /** Plays by itself on a loop with nothing to click. React leaves `muted` out of
  *  server-rendered HTML, which makes browsers block autoplay, so it is set here
