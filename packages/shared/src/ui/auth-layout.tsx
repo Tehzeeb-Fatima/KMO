@@ -32,7 +32,7 @@ export function AuthLayout({
   children,
   footer,
   className,
-  panelHeadline = "Pakistan's local marketplace, online.",
+  panelHeadline = "Karachi's marketplace, online.",
   panelBody = "Thousands of vendors across Karachi, one storefront to manage them all.",
   logoSrc,
 }: AuthLayoutProps) {

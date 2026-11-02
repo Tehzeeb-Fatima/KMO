@@ -28,7 +28,7 @@ export const CATEGORY_COPY: Record<string, CategoryCopy> = {
   "mens-fashion": {
     title: "Men's Clothing Online in Karachi – Shalwar Kameez, Tracksuits & More",
     description:
-      "Shop men's clothing in Karachi: shalwar kameez, kurtas, shirts, tracksuits, footwear and accessories from local stores. Cash on delivery.",
+      "Shop men's clothing in Karachi: shalwar kameez, kurtas, shirts, tracksuits, footwear and accessories from Karachi stores. Cash on delivery.",
     intro:
       "Shalwar kameez, kurtas, shirts, tracksuits, footwear and accessories from verified Karachi sellers, delivered to your door.",
   },
@@ -57,7 +57,7 @@ export const CATEGORY_COPY: Record<string, CategoryCopy> = {
     description:
       "Shop artificial jewellery in Karachi: bangles, churiyan, earrings, necklace sets, bridal jewellery and watches. Cash on delivery.",
     intro:
-      "Bangles, churiyan, earrings, necklace sets, bridal jewellery and watches from local Karachi sellers.",
+      "Bangles, churiyan, earrings, necklace sets, bridal jewellery and watches from Karachi sellers.",
   },
   "toys-baby": {
     title: "Toys & Baby Products Online in Karachi",
@@ -77,7 +77,7 @@ export const CATEGORY_COPY: Record<string, CategoryCopy> = {
   },
   "food-items": {
     title: "Food Items Online in Karachi – Dry Fruits, Nuts, Dates & Gift Boxes",
-    description: "Buy food items online in Karachi: dry fruits, nuts, dates and gift boxes from local sellers. Cash on delivery.",
+    description: "Buy food items online in Karachi: dry fruits, nuts, dates and gift boxes from Karachi sellers. Cash on delivery.",
     intro: "Dry fruits, nuts, dates, gift boxes and other food items from Karachi sellers, delivered to your door.",
   },
 };
@@ -85,7 +85,7 @@ export const CATEGORY_COPY: Record<string, CategoryCopy> = {
 export function subCategoryCopy(name: string, parentName?: string): CategoryCopy {
   return {
     title: `${name} Online in Karachi${parentName ? ` – ${parentName}` : ""} | Karachi Mart Online`,
-    description: `Shop ${name.toLowerCase()} online in Karachi from verified local sellers on Karachi Mart Online. Cash on delivery across Karachi.`,
+    description: `Shop ${name.toLowerCase()} online in Karachi from verified Karachi sellers on Karachi Mart Online. Cash on delivery across Karachi.`,
     intro: `Shop ${name.toLowerCase()} from verified Karachi sellers. Pay cash when your order arrives.`,
   };
 }

@@ -25,7 +25,7 @@ const notoNastaliqUrdu = Noto_Nastaliq_Urdu({
 
 const SITE_URL = "https://karachimartonline.com";
 const SITE_DESCRIPTION =
-  "Shop online in Karachi from verified local stores: women's and kids' fashion, home and kitchen, clay cookware, jewellery, electronics and more. Cash on delivery across Karachi.";
+  "Shop online in Karachi from verified Karachi stores: women's and kids' fashion, home and kitchen, clay cookware, jewellery, electronics and more. Cash on delivery across Karachi.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
