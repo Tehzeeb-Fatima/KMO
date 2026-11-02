@@ -457,7 +457,7 @@ function HeroVideo({ src, button }: { src: string; button: CSSProperties }) {
           aria-label="Karachi Mart Online 11.11 sale coming soon"
           className="pointer-events-none block h-full w-full"
         />
-        <Link href="/account/wishlist" aria-label="Start your wishlist" className="absolute rounded-full" style={button} />
+        <Link href="/search" aria-label="Start your wishlist" className="absolute rounded-full" style={button} />
       </div>
     </div>
   );
