@@ -16,7 +16,8 @@ export interface PlaceOrderInput {
   paymentMethod: PaymentMethod;
   couponCode?: string;
   /** Loyalty points to spend; place_order caps it to the allowed share. */
-  redeemPoints?: number;
+  /** Rupees to pay from the KMO wallet (server caps it at balance and order total). */
+  walletAmount?: number;
 }
 
 export interface PlaceOrderResult {
@@ -34,7 +35,7 @@ export async function placeOrder(
       address_id: input.addressId,
       payment_method: input.paymentMethod,
       coupon_code: input.couponCode || undefined,
-      redeem_points: input.redeemPoints || undefined,
+      wallet_amount: input.walletAmount || undefined,
     },
   });
   if (error) throw await functionError(error);

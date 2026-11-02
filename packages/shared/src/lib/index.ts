@@ -11,3 +11,4 @@ export * from "./product-dedupe";
 export * from "./courier-pricing";
 export * from "./product-title";
 export * from "./category-suggest";
+export * from "./loyalty-tiers";

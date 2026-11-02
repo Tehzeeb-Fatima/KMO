@@ -28,6 +28,12 @@ export interface MyLoyalty {
   referee_points: number;
   /** New customer with no orders who hasn't used a referral code yet. */
   can_claim_referral: boolean;
+  /** Lifetime delivered shopping that counts towards milestones. */
+  lifetime_spend: number;
+  /** spend_pkr of each milestone already credited. */
+  milestones_reached: number[];
+  wallet_balance: number;
+  pending_conversion: { id: string; points: number; amount_pkr: number; created_at: string } | null;
   rule: { name: string; spend_pkr: number; points: number; ends_at: string | null } | null;
 }
 
@@ -45,8 +51,97 @@ export async function getMyLoyalty(supabase: Client): Promise<MyLoyalty> {
     ...data,
     point_value: Number(data.point_value),
     max_redeem_percent: Number(data.max_redeem_percent),
+    lifetime_spend: Number(data.lifetime_spend ?? 0),
+    milestones_reached: (data.milestones_reached ?? []).map(Number),
+    wallet_balance: Number(data.wallet_balance ?? 0),
+    pending_conversion: data.pending_conversion
+      ? { ...data.pending_conversion, amount_pkr: Number(data.pending_conversion.amount_pkr) }
+      : null,
     rule: data.rule ? { ...data.rule, spend_pkr: Number(data.rule.spend_pkr) } : null,
   };
+}
+
+// ---------------------------------------------------------------- points to cash + wallet
+
+type ConversionRow = Database["public"]["Tables"]["loyalty_conversion_requests"]["Row"];
+type WalletRow = Database["public"]["Tables"]["wallet_ledger"]["Row"];
+export type PointsConversion = ConversionRow;
+export type WalletEntry = WalletRow;
+
+/** Ask to turn points into wallet rupees. Points are held until an admin decides. */
+export async function requestPointsConversion(supabase: Client, points: number): Promise<string> {
+  const { data, error } = await rpc<string>(supabase, "request_points_conversion", { p_points: Math.floor(points) });
+  if (error) throw error;
+  return data;
+}
+
+export async function listMyPointsConversions(supabase: Client): Promise<ConversionRow[]> {
+  const { data, error } = await supabase
+    .from("loyalty_conversion_requests")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(20);
+  if (error) throw error;
+  return data;
+}
+
+export async function listMyWalletLedger(supabase: Client): Promise<WalletRow[]> {
+  const { data, error } = await supabase
+    .from("wallet_ledger")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(50);
+  if (error) throw error;
+  return data;
+}
+
+export interface AdminPointsConversionRow {
+  id: string;
+  customer_id: string;
+  full_name: string | null;
+  phone: string | null;
+  points: number;
+  amount_pkr: number;
+  status: "pending" | "approved" | "rejected";
+  review_note: string | null;
+  reviewer_name: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+  points_balance: number;
+  wallet_balance: number;
+  lifetime_spend: number;
+  delivered_orders: number;
+}
+
+export async function listPointsConversions(
+  supabase: Client,
+  status: "pending" | "all" = "pending",
+): Promise<AdminPointsConversionRow[]> {
+  const { data, error } = await rpc<AdminPointsConversionRow[]>(supabase, "admin_points_conversions", {
+    p_status: status,
+  });
+  if (error) throw error;
+  return (data ?? []).map((r) => ({
+    ...r,
+    amount_pkr: Number(r.amount_pkr),
+    wallet_balance: Number(r.wallet_balance),
+    lifetime_spend: Number(r.lifetime_spend),
+    delivered_orders: Number(r.delivered_orders),
+  }));
+}
+
+export async function reviewPointsConversion(
+  supabase: Client,
+  id: string,
+  approve: boolean,
+  note?: string,
+): Promise<void> {
+  const { error } = await rpc<null>(supabase, "admin_review_points_conversion", {
+    p_id: id,
+    p_approve: approve,
+    p_note: note ?? null,
+  });
+  if (error) throw error;
 }
 
 export async function listMyLoyaltyLedger(supabase: Client): Promise<LedgerRow[]> {

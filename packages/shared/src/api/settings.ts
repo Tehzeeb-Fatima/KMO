@@ -20,6 +20,7 @@ export async function updatePlatformSettings(
     Pick<
       SettingsRow,
       | "default_commission_rate"
+      | "loyalty_spend_tiers"
       | "delivery_zones"
       | "maintenance_mode"
       | "vendor_membership_fee"

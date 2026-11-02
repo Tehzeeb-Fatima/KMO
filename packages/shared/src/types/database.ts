@@ -17,6 +17,10 @@ export type LoyaltyLedgerKind =
   | "expire"
   | "bonus"
   | "reverse_bonus"
+  | "milestone"
+  | "reverse_milestone"
+  | "convert"
+  | "refund_convert"
   | "referral";
 
 export type WeekDay = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
@@ -59,7 +63,13 @@ export type PayoutStatus = "pending" | "paid";
 export type ReturnStatus = "requested" | "approved" | "rejected" | "processing" | "resolved";
 export type DiscountType = "percentage" | "fixed";
 export type CouponStatus = "active" | "disabled";
-export type CourierBookingStatus = "not_requested" | "pending_review" | "rejected" | "booked";
+/** "Shop Rs. spend_pkr in one checkout, get `points`" — admin sets up to 3. */
+export interface LoyaltySpendTier {
+  spend_pkr: number;
+  points: number;
+}
+
+export type CourierBookingStatus ="not_requested" | "pending_review" | "rejected" | "booked";
 
 export interface Database {
   public: {
@@ -471,6 +481,52 @@ export interface Database {
         };
         Relationships: [];
       };
+      loyalty_conversion_requests: {
+        Row: {
+          id: string;
+          customer_id: string;
+          points: number;
+          point_value: number;
+          amount_pkr: number;
+          status: "pending" | "approved" | "rejected";
+          review_note: string | null;
+          reviewed_by: string | null;
+          reviewed_at: string | null;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      wallet_ledger: {
+        Row: {
+          id: string;
+          customer_id: string;
+          amount: number;
+          kind: "conversion" | "spend" | "refund_spend";
+          conversion_id: string | null;
+          order_id: string | null;
+          checkout_group: string | null;
+          note: string | null;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      loyalty_milestone_awards: {
+        Row: {
+          id: string;
+          customer_id: string;
+          spend_pkr: number;
+          points: number;
+          order_id: string | null;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       push_subscriptions: {
         Row: {
           id: string;
@@ -765,6 +821,8 @@ export interface Database {
           loyalty_rule_id: string | null;
           loyalty_points_awarded: boolean;
           loyalty_redeem_refunded: boolean;
+          wallet_amount_used: number;
+          wallet_refunded: boolean;
           payment_method: PaymentMethod;
           status: OrderStatus;
           subtotal: number;
@@ -808,6 +866,8 @@ export interface Database {
           loyalty_rule_id?: string | null;
           loyalty_points_awarded?: boolean;
           loyalty_redeem_refunded?: boolean;
+          wallet_amount_used?: number;
+          wallet_refunded?: boolean;
           payment_method?: PaymentMethod;
           status?: OrderStatus;
           subtotal: number;
@@ -851,6 +911,8 @@ export interface Database {
           loyalty_rule_id?: string | null;
           loyalty_points_awarded?: boolean;
           loyalty_redeem_refunded?: boolean;
+          wallet_amount_used?: number;
+          wallet_refunded?: boolean;
           payment_method?: PaymentMethod;
           status?: OrderStatus;
           subtotal?: number;
@@ -992,6 +1054,7 @@ export interface Database {
           loyalty_repeat_bonus_points: number;
           loyalty_referrer_points: number;
           loyalty_referee_points: number;
+          loyalty_spend_tiers: LoyaltySpendTier[];
           vendor_tier_benefits: { bronze: string; silver: string; gold: string };
           vendor_agreement_title: string;
           vendor_agreement_body: string;
@@ -1024,6 +1087,7 @@ export interface Database {
           loyalty_repeat_bonus_points?: number;
           loyalty_referrer_points?: number;
           loyalty_referee_points?: number;
+          loyalty_spend_tiers?: LoyaltySpendTier[];
           vendor_tier_benefits?: { bronze: string; silver: string; gold: string };
           vendor_agreement_title?: string;
           vendor_agreement_body?: string;
@@ -1056,6 +1120,7 @@ export interface Database {
           loyalty_repeat_bonus_points?: number;
           loyalty_referrer_points?: number;
           loyalty_referee_points?: number;
+          loyalty_spend_tiers?: LoyaltySpendTier[];
           vendor_tier_benefits?: { bronze: string; silver: string; gold: string };
           vendor_agreement_title?: string;
           vendor_agreement_body?: string;

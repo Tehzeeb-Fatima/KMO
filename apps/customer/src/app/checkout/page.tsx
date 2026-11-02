@@ -70,7 +70,7 @@ function CheckoutContent() {
   const [addressCity, setAddressCity] = useState("");
 
   const isGuest = !!user?.is_anonymous;
-  const [usePoints, setUsePoints] = useState(false);
+  const [useWallet, setUseWallet] = useState(false);
   const { data: loyalty } = useQuery({
     queryKey: ["my-loyalty"],
     queryFn: () => getMyLoyalty(supabase),
@@ -150,7 +150,7 @@ function CheckoutContent() {
         addressId: effectiveAddressId,
         paymentMethod,
         couponCode: coupon?.code,
-        redeemPoints: pointsToUse || undefined,
+        walletAmount: walletToUse || undefined,
       });
     },
     onSuccess: (result) => {
@@ -247,21 +247,18 @@ function CheckoutContent() {
       )
     : 0;
 
-  // Reward points: a KMO-funded discount, capped like place_order caps it.
+  // Wallet (points converted to rupees after admin approval) pays first; the
+  // server re-checks the balance and caps it at the order total.
   const pointsEligible = Math.max(0, subtotal - discount - promotionDiscount);
-  const loyaltyOn = !!loyalty?.enabled && loyalty.point_value > 0;
-  const usablePoints = loyaltyOn
-    ? Math.min(
-        loyalty!.balance,
-        Math.floor((pointsEligible * (loyalty!.max_redeem_percent / 100)) / loyalty!.point_value),
-      )
+  const loyaltyOn = !!loyalty?.enabled;
+  const walletBalance = loyalty?.wallet_balance ?? 0;
+  const beforeWallet = Math.max(0, subtotal + deliveryFee - discount - promotionDiscount);
+  const walletToUse = useWallet ? Math.min(walletBalance, beforeWallet) : 0;
+  const pointsToEarn = loyaltyOn
+    ? pointsForAmount(Math.max(0, pointsEligible - walletToUse), loyalty!.rule)
     : 0;
-  const canUsePoints = loyaltyOn && usablePoints >= loyalty!.min_redeem_points;
-  const pointsToUse = canUsePoints && usePoints ? usablePoints : 0;
-  const loyaltyDiscount = Math.round(pointsToUse * (loyalty?.point_value ?? 0) * 100) / 100;
-  const pointsToEarn = loyaltyOn ? pointsForAmount(pointsEligible - loyaltyDiscount, loyalty!.rule) : 0;
 
-  const total = subtotal + deliveryFee - discount - promotionDiscount - loyaltyDiscount;
+  const total = Math.round((beforeWallet - walletToUse) * 100) / 100;
 
   return (
     <div className="mx-auto w-full max-w-[1100px] px-4 py-6 sm:px-6 lg:px-10">
@@ -517,32 +514,29 @@ function CheckoutContent() {
           )}
           {couponError ? <p className="text-[13.5px] text-danger">{couponError}</p> : null}
 
-          {loyaltyOn && loyalty!.balance > 0 ? (
+          {walletBalance > 0 ? (
             <div className="flex flex-col gap-1.5 rounded-lg bg-primary-tint px-3.5 py-3">
               <p className="text-[14px] font-bold text-primary">
-                {fill(t.loyalty.youHave, {
-                  points: loyalty!.balance.toLocaleString(),
-                  value: Math.floor(loyalty!.balance * loyalty!.point_value).toLocaleString(),
-                })}
+                {fill(t.loyalty.walletHave, { value: walletBalance.toLocaleString() })}
               </p>
-              {canUsePoints ? (
-                <label className="flex cursor-pointer items-center gap-2 text-[15px] text-ink-dark">
-                  <input type="checkbox" checked={usePoints} onChange={(e) => setUsePoints(e.target.checked)} />
-                  {fill(t.loyalty.usePoints, {
-                    points: usablePoints.toLocaleString(),
-                    value: Math.round(usablePoints * loyalty!.point_value).toLocaleString(),
-                  })}
-                </label>
-              ) : (
-                <p className="text-[13.5px] text-muted">{fill(t.loyalty.needMore, { min: loyalty!.min_redeem_points })}</p>
-              )}
+              <label className="flex cursor-pointer items-center gap-2 text-[15px] text-ink-dark">
+                <input type="checkbox" checked={useWallet} onChange={(e) => setUseWallet(e.target.checked)} />
+                {fill(t.loyalty.useWallet, { value: Math.min(walletBalance, beforeWallet).toLocaleString() })}
+              </label>
             </div>
+          ) : loyaltyOn && (loyalty?.balance ?? 0) > 0 ? (
+            <p className="rounded-lg bg-primary-tint px-3.5 py-3 text-[13.5px] text-primary">
+              {fill(t.loyalty.convertHint, { points: loyalty!.balance.toLocaleString() })}{" "}
+              <a href="/account/points" className="font-bold underline">
+                {t.loyalty.convertNow}
+              </a>
+            </p>
           ) : null}
 
-          {loyaltyDiscount > 0 ? (
+          {walletToUse > 0 ? (
             <div className="flex justify-between text-[15.5px]">
-              <span className="text-muted">{t.loyalty.pointsDiscount}</span>
-              <span className="font-semibold text-accent">− Rs. {loyaltyDiscount.toLocaleString()}</span>
+              <span className="text-muted">{t.loyalty.walletPaid}</span>
+              <span className="font-semibold text-accent">− Rs. {walletToUse.toLocaleString()}</span>
             </div>
           ) : null}
 

@@ -7,7 +7,10 @@ import {
   listCustomerLedger,
   listLoyaltyBalances,
   listLoyaltyRules,
+  listPointsConversions,
   listReferrals,
+  reviewPointsConversion,
+  type AdminPointsConversionRow,
   saveLoyaltyRule,
   logAdminAction,
   updatePlatformSettings,
@@ -15,6 +18,7 @@ import {
 } from "@kmo/shared/api";
 import { ConfirmDialog, StatusBadge } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
+import { MAX_LOYALTY_SPEND_TIERS, normalizeSpendTiers } from "@kmo/shared/lib";
 import { supabase } from "../lib/supabase";
 
 const inputClass =
@@ -26,7 +30,9 @@ const btnGhost = "rounded-lg border border-border px-4 py-2.5 text-[13px] font-b
 export function LoyaltyPage() {
   return (
     <div className="flex max-w-[1000px] flex-col gap-5">
+      <ConversionRequests />
       <ProgrammeSettings />
+      <SpendTiers />
       <EarnRules />
       <Balances />
       <Referrals />
@@ -105,11 +111,8 @@ function ProgrammeSettings() {
         <Field label="Value of 1 point (Rs.)" hint={per100 ? `100 points = Rs. ${per100.toLocaleString()}` : undefined}>
           <input inputMode="decimal" value={pointValue} onChange={(e) => setPointValue(e.target.value)} className={inputClass} />
         </Field>
-        <Field label="Minimum points to use">
+        <Field label="Minimum points to convert to cash">
           <input inputMode="numeric" value={minPoints} onChange={(e) => setMinPoints(e.target.value)} className={inputClass} />
-        </Field>
-        <Field label="Max discount per order (%)">
-          <input inputMode="decimal" value={maxPercent} onChange={(e) => setMaxPercent(e.target.value)} className={inputClass} />
         </Field>
       </div>
       <div className="mt-3 grid gap-3 sm:grid-cols-3">
@@ -134,8 +137,9 @@ function ProgrammeSettings() {
         (account under 30 days old, no orders yet), once, and never their own.
       </p>
       <p className="mt-1 text-[12px] text-muted">
-        Points are credited when an order is delivered and taken back if it is cancelled or returned. The points discount is
-        paid by KMO — the vendor still gets their full price.
+        Points are credited when an order is delivered and taken back if it is cancelled or returned. Customers turn points
+        into wallet cash only through a request you approve (top of this page); the wallet is then spent at checkout. Wallet
+        payments are funded by KMO — the vendor still gets their full price.
       </p>
       <div className="mt-4 flex items-center gap-3">
         <button type="button" disabled={save.isPending} onClick={() => save.mutate()} className={btnPrimary}>
@@ -148,6 +152,312 @@ function ProgrammeSettings() {
 }
 
 const whole = (v: string) => Math.max(0, Math.floor(Number(v) || 0));
+
+// ================================================================ points to cash
+
+function ConversionRequests() {
+  const queryClient = useQueryClient();
+  const { user, profile } = useAuth();
+  const [tab, setTab] = useState<"pending" | "all">("pending");
+  const [rejecting, setRejecting] = useState<AdminPointsConversionRow | null>(null);
+  const [approving, setApproving] = useState<AdminPointsConversionRow | null>(null);
+  const [note, setNote] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const canDecide = profile?.role === "admin";
+
+  const { data: rows, isLoading } = useQuery({
+    queryKey: ["points-conversions", tab],
+    queryFn: () => listPointsConversions(supabase, tab),
+    refetchInterval: 30000,
+  });
+
+  const decide = useMutation({
+    mutationFn: ({ row, approve }: { row: AdminPointsConversionRow; approve: boolean }) =>
+      reviewPointsConversion(supabase, row.id, approve, approve ? undefined : note),
+    onSuccess: (_d, { row, approve }) => {
+      queryClient.invalidateQueries({ queryKey: ["points-conversions"] });
+      queryClient.invalidateQueries({ queryKey: ["loyalty-balances"] });
+      setApproving(null);
+      setRejecting(null);
+      setNote("");
+      setError(null);
+      if (user) {
+        void logAdminAction(
+          supabase,
+          user.id,
+          approve ? "loyalty.conversion_approved" : "loyalty.conversion_rejected",
+          "loyalty_conversion_requests",
+          row.id,
+          { customer_id: row.customer_id, points: row.points, amount_pkr: row.amount_pkr },
+        );
+      }
+    },
+    onError: (e: Error) => setError(e.message),
+  });
+
+  const pendingCount = tab === "pending" ? (rows?.length ?? 0) : undefined;
+
+  return (
+    <Card
+      title="Points to cash requests"
+      right={
+        <div className="flex gap-1 rounded-lg bg-surface-alt p-1">
+          {(["pending", "all"] as const).map((k) => (
+            <button
+              key={k}
+              type="button"
+              onClick={() => setTab(k)}
+              className={`rounded-md px-3 py-1.5 text-[12.5px] font-bold ${
+                tab === k ? "bg-white text-primary shadow-sm" : "text-muted"
+              }`}
+            >
+              {k === "pending" ? `Waiting${pendingCount ? ` (${pendingCount})` : ""}` : "All"}
+            </button>
+          ))}
+        </div>
+      }
+    >
+      <p className="-mt-1 mb-3 text-[12.5px] text-muted">
+        A customer&rsquo;s points are held as soon as they ask. Approve to add the cash to their KMO wallet, or reject
+        (with a reason) to give the points back. Check their delivered orders before approving.
+        {!canDecide ? " Only a full admin can approve or reject." : ""}
+      </p>
+      {error ? <p className="mb-3 text-[12.5px] text-danger">{error}</p> : null}
+
+      {isLoading ? (
+        <p className="text-[13px] text-muted">Loading…</p>
+      ) : !rows?.length ? (
+        <p className="text-[13px] text-muted">{tab === "pending" ? "No requests waiting." : "No requests yet."}</p>
+      ) : (
+        <div className="flex flex-col divide-y divide-[#F1EAE6]">
+          {rows.map((r) => (
+            <div key={r.id} className="flex flex-wrap items-center gap-3 py-3 text-[12.5px]">
+              <div className="min-w-[220px] flex-1">
+                <p className="font-bold text-ink-dark">
+                  {r.full_name ?? "Customer"}
+                  {r.phone ? <span className="ml-1.5 font-normal text-muted">{r.phone}</span> : null}
+                </p>
+                <p className="mt-0.5 text-[13.5px] font-extrabold text-primary">
+                  {r.points.toLocaleString()} pts → Rs. {r.amount_pkr.toLocaleString()}
+                </p>
+                <p className="text-muted">
+                  Delivered orders: {r.delivered_orders} · Total shopping: Rs.{" "}
+                  {Math.floor(r.lifetime_spend).toLocaleString()} · Points left: {r.points_balance.toLocaleString()} ·
+                  Wallet: Rs. {r.wallet_balance.toLocaleString()}
+                </p>
+                <p className="text-muted">
+                  Asked {new Date(r.created_at).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}
+                  {r.reviewed_at
+                    ? ` · ${r.status} by ${r.reviewer_name ?? "admin"} ${new Date(r.reviewed_at).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}`
+                    : ""}
+                  {r.review_note ? ` · “${r.review_note}”` : ""}
+                </p>
+              </div>
+              {r.status === "pending" ? (
+                canDecide ? (
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => setApproving(r)} className={btnPrimary}>
+                      Approve
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNote("");
+                        setRejecting(r);
+                      }}
+                      className={btnGhost}
+                    >
+                      Reject
+                    </button>
+                  </div>
+                ) : (
+                  <StatusBadge variant="warning">Waiting</StatusBadge>
+                )
+              ) : (
+                <StatusBadge variant={r.status === "approved" ? "success" : "danger"}>
+                  {r.status === "approved" ? "Approved" : "Rejected"}
+                </StatusBadge>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <ConfirmDialog
+        open={!!approving}
+        title="Approve this conversion?"
+        message={
+          approving
+            ? `Rs. ${approving.amount_pkr.toLocaleString()} will be added to ${approving.full_name ?? "the customer"}'s wallet for ${approving.points.toLocaleString()} points. This can't be undone.`
+            : ""
+        }
+        loading={decide.isPending}
+        onConfirm={() => approving && decide.mutate({ row: approving, approve: true })}
+        onCancel={() => setApproving(null)}
+      />
+
+      {rejecting ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-[420px] rounded-xl bg-surface p-5">
+            <p className="text-[15px] font-bold text-ink">Reject this conversion?</p>
+            <p className="mt-1 text-[12.5px] text-muted">
+              {rejecting.points.toLocaleString()} points go back to {rejecting.full_name ?? "the customer"}. They&rsquo;ll
+              see your reason.
+            </p>
+            <textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Reason (required)"
+              rows={3}
+              className={`${inputClass} mt-3`}
+            />
+            <div className="mt-3 flex justify-end gap-2">
+              <button type="button" onClick={() => setRejecting(null)} className={btnGhost}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={!note.trim() || decide.isPending}
+                onClick={() => decide.mutate({ row: rejecting, approve: false })}
+                className="rounded-lg bg-danger px-4 py-2.5 text-[13px] font-bold text-white disabled:opacity-60"
+              >
+                {decide.isPending ? "Rejecting…" : "Reject"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </Card>
+  );
+}
+
+// ================================================================ spend tiers
+
+type TierRow = { spend_pkr: string; points: string };
+const blankTiers = (): TierRow[] =>
+  Array.from({ length: MAX_LOYALTY_SPEND_TIERS }, () => ({ spend_pkr: "", points: "" }));
+
+function SpendTiers() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const { data: settings } = useQuery({ queryKey: ["platform-settings"], queryFn: () => getPlatformSettings(supabase) });
+  const [rows, setRows] = useState<TierRow[]>(blankTiers());
+  const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    if (!settings) return;
+    const next = blankTiers();
+    normalizeSpendTiers(settings.loyalty_spend_tiers).forEach((t, i) => {
+      next[i] = { spend_pkr: String(t.spend_pkr), points: String(t.points) };
+    });
+    setRows(next);
+  }, [settings]);
+
+  const setRow = (i: number, patch: Partial<TierRow>) =>
+    setRows((prev) => prev.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
+
+  const save = useMutation({
+    mutationFn: async () => {
+      const filled = rows.filter((r) => r.spend_pkr.trim() || r.points.trim());
+      for (const r of filled) {
+        if (!(Number(r.spend_pkr) > 0) || !(Math.floor(Number(r.points)) > 0)) {
+          throw new Error("Each milestone needs both a shopping amount and points (or leave the whole row empty).");
+        }
+      }
+      const tiers = normalizeSpendTiers(filled.map((r) => ({ spend_pkr: Number(r.spend_pkr), points: Number(r.points) })));
+      if (new Set(tiers.map((t) => t.spend_pkr)).size !== tiers.length) {
+        throw new Error("Two milestones have the same shopping amount.");
+      }
+      for (let i = 1; i < tiers.length; i++) {
+        if (tiers[i].points <= tiers[i - 1].points) {
+          throw new Error("A bigger shopping amount should give more points than a smaller one.");
+        }
+      }
+      return updatePlatformSettings(supabase, { loyalty_spend_tiers: tiers });
+    },
+    onSuccess: (updated) => {
+      queryClient.setQueryData(["platform-settings"], updated);
+      setError(null);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+      if (user) void logAdminAction(supabase, user.id, "settings.loyalty_tiers", "platform_settings");
+    },
+    onError: (e: Error) => setError(e.message),
+  });
+
+  const preview = normalizeSpendTiers(
+    rows
+      .filter((r) => Number(r.spend_pkr) > 0 && Number(r.points) > 0)
+      .map((r) => ({ spend_pkr: Number(r.spend_pkr), points: Number(r.points) })),
+  );
+
+  return (
+    <Card title="Shopping milestones">
+      <p className="-mt-1 mb-3 text-[12.5px] text-muted">
+        &ldquo;When a customer&rsquo;s total shopping reaches this much, they get these points.&rdquo; Up to{" "}
+        {MAX_LOYALTY_SPEND_TIERS} milestones. Total shopping counts delivered orders only (goods, not delivery, and not
+        what was paid by coupon, promotion or wallet). Each milestone is given once, when the delivery that crosses it
+        happens, and taken back if a cancellation or return drops the customer below it. Logged-in customers see these in
+        a strip at the top of the site. Leave a row empty to not use it.
+      </p>
+      <div className="flex flex-col gap-2.5">
+        {rows.map((r, i) => (
+          <div key={i} className="grid grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)] items-end gap-3">
+            <span className="pb-2.5 text-[12px] font-bold text-muted">#{i + 1}</span>
+            <Field label="Total shopping reaches (Rs.)">
+              <input
+                inputMode="decimal"
+                placeholder="e.g. 20000"
+                value={r.spend_pkr}
+                onChange={(e) => setRow(i, { spend_pkr: e.target.value })}
+                className={inputClass}
+              />
+            </Field>
+            <Field label="Customer gets (points)">
+              <input
+                inputMode="numeric"
+                placeholder="e.g. 200"
+                value={r.points}
+                onChange={(e) => setRow(i, { points: e.target.value })}
+                className={inputClass}
+              />
+            </Field>
+          </div>
+        ))}
+      </div>
+
+      {preview.length ? (
+        <div className="mt-4 rounded-lg border border-border bg-surface-alt p-3">
+          <p className="mb-2 text-[11.5px] font-bold uppercase tracking-wide text-muted">Customers will see</p>
+          <div className="flex flex-wrap gap-2">
+            {preview.map((t) => (
+              <span
+                key={t.spend_pkr}
+                className="rounded-full bg-primary/10 px-3 py-1 text-[12.5px] font-bold text-primary"
+              >
+                Rs. {t.spend_pkr.toLocaleString()} → {t.points.toLocaleString()} pts
+              </span>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {!settings?.loyalty_enabled ? (
+        <p className="mt-3 text-[12px] font-semibold text-warning">
+          The points programme is off, so customers won&rsquo;t see these until you turn it on above.
+        </p>
+      ) : null}
+      {error ? <p className="mt-3 text-[12.5px] text-danger">{error}</p> : null}
+      <div className="mt-4 flex items-center gap-3">
+        <button type="button" disabled={save.isPending} onClick={() => save.mutate()} className={btnPrimary}>
+          {save.isPending ? "Saving…" : "Save milestones"}
+        </button>
+        {saved ? <span className="text-[12.5px] font-bold text-success">Saved</span> : null}
+      </div>
+    </Card>
+  );
+}
 
 // ================================================================ earning rules
 
@@ -420,7 +730,7 @@ export function CustomerPoints({ customerId }: { customerId: string }) {
             <div key={l.id} className="flex justify-between gap-3">
               <span className="text-muted">
                 {new Date(l.created_at).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })} ·{" "}
-                {l.kind.replace("_", " ")}
+                {l.kind.replaceAll("_", " ")}
                 {l.note ? ` · ${l.note}` : ""}
               </span>
               <span className={`shrink-0 font-bold ${l.points > 0 ? "text-success" : "text-danger"}`}>

@@ -6,6 +6,7 @@ import { SiteHeader } from "./site-header";
 import { SiteFooter } from "./site-footer";
 import { WhatsAppButton } from "./whatsapp-button";
 import { ReferralCapture } from "./referral-capture";
+import { LoyaltyStrip } from "./loyalty-strip";
 
 const NO_CHROME_PREFIXES = ["/login", "/signup"];
 
@@ -59,6 +60,7 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
   return (
     <>
       <SiteHeader />
+      <LoyaltyStrip />
       <div className="flex min-h-[70vh] flex-1 flex-col">{children}</div>
       <SiteFooter />
       <WhatsAppButton />

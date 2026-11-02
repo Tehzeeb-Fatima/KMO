@@ -51,7 +51,13 @@ Deno.serve(async (req: Request) => {
   } = await userClient.auth.getUser();
   if (!user) return json({ error: "Not authenticated" }, 401);
 
-  let body: { address_id?: string; payment_method?: string; coupon_code?: string; redeem_points?: number };
+  let body: {
+    address_id?: string;
+    payment_method?: string;
+    coupon_code?: string;
+    redeem_points?: number;
+    wallet_amount?: number;
+  };
   try {
     body = await req.json();
   } catch {
@@ -232,8 +238,6 @@ Deno.serve(async (req: Request) => {
     promotionDiscountAmount: number;
     promotionKmoFundedAmount: number;
     promotionVendorFundedAmount: number;
-    loyaltyPoints: number;
-    loyaltyDiscount: number;
   };
   const groups: Group[] = [];
 
@@ -328,43 +332,51 @@ Deno.serve(async (req: Request) => {
       promotionDiscountAmount,
       promotionKmoFundedAmount,
       promotionVendorFundedAmount,
-      loyaltyPoints: 0,
-      loyaltyDiscount: 0,
     });
   }
 
   // ---- Loyalty points (KMO-funded, so vendor payouts are untouched).
   const loyaltyOn = settings?.loyalty_enabled === true;
-  const pointValue = Number(settings?.loyalty_point_value ?? 0);
   const eligibleOf = (g: Group) => Math.max(0, g.subtotal - g.discountAmount - g.promotionDiscountAmount);
-  const eligibleTotal = groups.reduce((s, g) => s + eligibleOf(g), 0);
-  let redeemPoints = Math.floor(Number(body.redeem_points ?? 0));
-  if (redeemPoints > 0) {
-    if (!loyaltyOn || pointValue <= 0) return json({ error: "Loyalty points can't be used right now." }, 400);
-    if (redeemPoints < (settings?.loyalty_min_redeem_points ?? 0)) {
-      return json({ error: `You need at least ${settings?.loyalty_min_redeem_points} points to use them.` }, 400);
-    }
-    // Never more than the allowed share of the order.
-    const maxDiscount = eligibleTotal * (Number(settings?.loyalty_max_redeem_percent ?? 0) / 100);
-    redeemPoints = Math.min(redeemPoints, Math.floor(maxDiscount / pointValue));
-    if (redeemPoints > 0) {
-      const { error: spendError } = await admin.rpc("loyalty_spend", {
+  // Points are no longer spent here: they're converted to wallet rupees, with
+  // an admin's approval, and the wallet is what pays at checkout.
+  if (Number(body.redeem_points ?? 0) > 0) {
+    return json({ error: "Points can't be used directly. Convert them to your wallet first." }, 400);
+  }
+
+  // ---- Wallet (approved points-to-cash), KMO-funded like a discount.
+  const walletRequested = Number(body.wallet_amount ?? 0);
+  if (!Number.isFinite(walletRequested) || walletRequested < 0) {
+    return json({ error: "Invalid wallet amount." }, 400);
+  }
+  const prePaisa = groups.map((g) =>
+    Math.max(0, Math.round((g.subtotal + g.deliveryFee - g.discountAmount - g.promotionDiscountAmount) * 100)),
+  );
+  const prePaisaTotal = prePaisa.reduce((s, p) => s + p, 0);
+  const walletPaisa = Math.min(Math.round(walletRequested * 100), prePaisaTotal);
+  const walletOf = new Map<Group, number>(groups.map((g) => [g, 0]));
+  let walletUsed = 0;
+  if (walletPaisa > 0) {
+    // Split by each vendor order's share of the bill, never more than an order's own total.
+    let left = walletPaisa;
+    groups.forEach((g, i) => {
+      const proportional =
+        i === groups.length - 1 ? left : Math.floor((walletPaisa * prePaisa[i]) / (prePaisaTotal || 1));
+      const share = Math.min(proportional, left, prePaisa[i]);
+      walletOf.set(g, share / 100);
+      left -= share;
+    });
+    walletUsed = (walletPaisa - left) / 100;
+    if (walletUsed > 0) {
+      const { error: walletError } = await admin.rpc("wallet_spend", {
         p_customer: user.id,
-        p_points: redeemPoints,
+        p_amount: walletUsed,
         p_group: checkoutGroup,
       });
-      if (spendError) return json({ error: "You don't have enough points." }, 409);
-      // Split points across vendor orders by their share of the bill.
-      let left = redeemPoints;
-      groups.forEach((g, i) => {
-        const share =
-          i === groups.length - 1 ? left : Math.floor(redeemPoints * (eligibleTotal ? eligibleOf(g) / eligibleTotal : 0));
-        g.loyaltyPoints = Math.min(share, left);
-        g.loyaltyDiscount = Math.round(g.loyaltyPoints * pointValue * 100) / 100;
-        left -= g.loyaltyPoints;
-      });
+      if (walletError) return json({ error: "You don't have enough in your wallet." }, 409);
     }
   }
+  let walletAttached = 0;
 
   // Points to earn, from the rule live right now; credited when delivered.
   let earnRule: { id: string; spend_pkr: number; points: number } | null = null;
@@ -373,8 +385,16 @@ Deno.serve(async (req: Request) => {
     const r = rule as { id: string | null; spend_pkr: number; points: number } | null;
     if (r?.id) earnRule = { id: r.id, spend_pkr: Number(r.spend_pkr), points: Number(r.points) };
   }
+  // Wallet-paid rupees don't earn points (they came from points).
+  const earnOf = new Map<Group, number>(
+    groups.map((g) => [
+      g,
+      earnRule
+        ? Math.floor((Math.max(0, eligibleOf(g) - (walletOf.get(g) ?? 0)) * earnRule.points) / earnRule.spend_pkr)
+        : 0,
+    ]),
+  );
 
-  let pointsAttached = 0;
   // Vendor prices for products KMO lists on a vendor's behalf (super-admin
   // only data). The vendor is paid on the vendor price; the difference is KMO's.
   const cartProductIds = [...new Set(cartItems.map((i) => i.product_id as string))];
@@ -396,10 +416,10 @@ Deno.serve(async (req: Request) => {
       promotionKmoFundedAmount,
       promotionVendorFundedAmount,
     } = g;
-    const total = subtotal + deliveryFee - discountAmount - promotionDiscountAmount - g.loyaltyDiscount;
-    const pointsToEarn = earnRule
-      ? Math.floor(((eligibleOf(g) - g.loyaltyDiscount) * earnRule.points) / earnRule.spend_pkr)
-      : 0;
+    const walletShare = walletOf.get(g) ?? 0;
+    const total =
+      Math.round((subtotal + deliveryFee - discountAmount - promotionDiscountAmount - walletShare) * 100) / 100;
+    const pointsToEarn = earnOf.get(g) ?? 0;
     const orderNumber = await generateOrderNumber(admin);
 
     const { data: vendorRow } = await admin
@@ -454,28 +474,27 @@ Deno.serve(async (req: Request) => {
         promotion_discount_amount: promotionDiscountAmount,
         promotion_kmo_funded_amount: promotionKmoFundedAmount,
         promotion_vendor_funded_amount: promotionVendorFundedAmount,
-        loyalty_points_redeemed: g.loyaltyPoints,
-        loyalty_discount_amount: g.loyaltyDiscount,
+        wallet_amount_used: walletShare,
         loyalty_points_to_earn: Math.max(0, pointsToEarn),
         loyalty_rule_id: earnRule?.id ?? null,
       })
       .select("id, order_number, vendor_id, total")
       .single();
     if (orderError || !order) {
-      // Give back points that didn't end up on an order.
-      const unattached = redeemPoints - pointsAttached;
+      // Give back wallet money that didn't end up on an order.
+      const unattached = Math.round((walletUsed - walletAttached) * 100) / 100;
       if (unattached > 0) {
-        await admin.from("loyalty_ledger").insert({
+        await admin.from("wallet_ledger").insert({
           customer_id: user.id,
-          points: unattached,
-          kind: "refund_redeem",
+          amount: unattached,
+          kind: "refund_spend",
           checkout_group: checkoutGroup,
           note: "Checkout failed",
         });
       }
       return json({ error: orderError?.message ?? "Failed to create order" }, 500);
     }
-    pointsAttached += g.loyaltyPoints;
+    walletAttached += walletShare;
 
     const orderItemsPayload = items.map((item) => {
       const product = item.products as unknown as { id: string; name: string; price: number };
