@@ -202,11 +202,11 @@ export function HomeContent() {
               {t.home.allCategories}
             </Link>
           </div>
-          <HorizontalSlider spread itemClassName="w-[104px] sm:w-[118px] lg:w-auto lg:min-w-[118px] lg:max-w-[176px] lg:flex-1">
+          <HorizontalSlider spread itemClassName="w-[84px] sm:w-[96px] lg:w-auto lg:min-w-[96px] lg:max-w-[176px] lg:flex-1 xl:min-w-[118px]">
             {mainCategories(categories).map((c) => (
               <Link key={c.id} href={`/category/${c.slug}`} className="group flex flex-col items-center gap-2 text-center">
                 <div
-                  className={`flex aspect-square w-full items-center justify-center rounded-[22px] border border-border-primary bg-white bg-cover bg-center shadow-[0_10px_22px_-12px_rgba(74,34,102,0.45)] transition-all duration-500 [transform-style:preserve-3d] group-hover:[transform:perspective(700px)_rotateX(10deg)_rotateY(-8deg)_translateY(-8px)] group-hover:shadow-[0_26px_34px_-16px_rgba(74,34,102,0.55)]`}
+                  className={`flex aspect-square w-full items-center justify-center rounded-[16px] border border-border-primary bg-white bg-cover bg-center lg:rounded-[22px] shadow-[0_10px_22px_-12px_rgba(74,34,102,0.45)] transition-all duration-500 [transform-style:preserve-3d] group-hover:[transform:perspective(700px)_rotateX(10deg)_rotateY(-8deg)_translateY(-8px)] group-hover:shadow-[0_26px_34px_-16px_rgba(74,34,102,0.55)]`}
                   // 3D illustrations: centred with room around them, on the brand purple.
                   style={
                     c.image_url
@@ -236,7 +236,7 @@ export function HomeContent() {
                     </span>
                   ) : null}
                 </div>
-                <span className="line-clamp-2 text-[14px] font-bold text-ink-dark">{c.name}</span>
+                <span className="line-clamp-2 text-[12.5px] font-bold leading-[1.3] text-ink-dark sm:text-[13px] lg:text-[14px]">{c.name}</span>
               </Link>
             ))}
           </HorizontalSlider>
@@ -291,7 +291,7 @@ export function HomeContent() {
                   >
                     {!v.logo_url && v.store_name.charAt(0)}
                   </span>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                     <span className="text-[17px] font-bold tracking-[-0.015em] text-ink-dark">
                       {v.store_name}
                     </span>
@@ -300,13 +300,13 @@ export function HomeContent() {
                     </span>
                   </div>
                   {v.description ? (
-                    <p className="line-clamp-2 text-[15px] leading-[1.55] text-muted">
+                    <p className="line-clamp-2 text-[15px] leading-[1.55] text-muted [unicode-bidi:plaintext]">
                       {v.description}
                     </p>
                   ) : null}
-                  <div className="flex items-center justify-between border-t border-[#F1EAE6] pt-[11px] text-[14px]">
+                  <div className="flex items-center justify-between gap-2 border-t border-[#F1EAE6] pt-[11px] text-[14px]">
                     <span className="text-muted">{v.area || t.header.city}</span>
-                    <span className="font-bold text-primary">{t.home.visit}</span>
+                    <span className="shrink-0 whitespace-nowrap font-bold text-primary">{t.home.visit}</span>
                   </div>
                 </div>
               </Link>
@@ -469,7 +469,7 @@ function HomeBanner({ banners }: { banners: BannerRow[] | undefined }) {
 
   // Holds the banner's space while it loads, so the page doesn't jump.
   if (!banners) {
-    return <div className="aspect-[8/3] max-h-[calc(100svh-220px)] w-full" style={{ backgroundColor: BANNER_BG }} />;
+    return <div className="aspect-[20/9] max-h-[calc(100svh-220px)] w-full sm:aspect-[8/3]" style={{ backgroundColor: BANNER_BG }} />;
   }
   if (!current) return null;
 
@@ -480,7 +480,9 @@ function HomeBanner({ banners }: { banners: BannerRow[] | undefined }) {
   return (
     <section style={{ backgroundColor: BANNER_BG }}>
       {/* sized to the artwork so a link stays on top of its button at any width */}
-      <div className="relative mx-auto aspect-[8/3] w-full max-w-[calc((100svh-220px)*8/3)] overflow-hidden">
+      <div className="relative mx-auto aspect-[20/9] w-full overflow-hidden sm:aspect-[8/3] sm:max-w-[calc((100svh-220px)*8/3)]">
+        {/* on phones a video is zoomed to fill the height, cropping its right-hand decoration */}
+        <div className={video ? "absolute inset-y-0 left-[-2.4%] w-[120%] sm:left-0 sm:w-full" : "absolute inset-0"}>
         {video ? (
           <HeroVideo
             key={media}
@@ -506,6 +508,7 @@ function HomeBanner({ banners }: { banners: BannerRow[] | undefined }) {
             <a href={current.link_url} aria-label={label} className={linkClass} style={linkArea ?? undefined} />
           )
         ) : null}
+        </div>
 
         {count > 1 ? (
           <>
@@ -755,10 +758,10 @@ function TopCategorySection({
 
   return (
     <section className="px-4 pt-8 sm:px-10">
-      <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-        <div>
+      <div className="mb-4 flex items-baseline justify-between gap-3">
+        <div className="min-w-0">
           <h2 className="text-xl font-bold tracking-[-0.025em] text-ink sm:text-[21px]">
-            {t.home.topIn} {category.name}
+            {t.home.topIn} <bdi>{category.name}</bdi>
           </h2>
           <p className="text-[15.5px] text-muted">
             {category.sold_count > 0

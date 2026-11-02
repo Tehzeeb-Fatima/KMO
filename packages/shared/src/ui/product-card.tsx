@@ -108,7 +108,7 @@ export function ProductCard({
       {/* every card the same height: the name always reserves two lines and
           the footer sits at the bottom */}
       <div className="flex flex-1 flex-col gap-2 p-3.5">
-        <p className="line-clamp-2 min-h-[2.9em] text-[15.5px] font-medium leading-[1.45] text-ink-dark">
+        <p className="line-clamp-2 min-h-[2.9em] text-[15.5px] font-medium leading-[1.45] text-ink-dark [unicode-bidi:plaintext]">
           {name}
         </p>
         <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
