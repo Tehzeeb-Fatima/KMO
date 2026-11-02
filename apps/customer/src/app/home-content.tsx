@@ -100,17 +100,7 @@ export function HomeContent() {
       {HERO_VIDEO ? (
       <section className="px-4 pt-7 sm:px-10">
         <h1 className="sr-only">{t.home.heroLiveTitle}</h1>
-        <Link href="/search" aria-label="Karachi Mart Online 11.11 sale" className="block overflow-hidden rounded-xl bg-white">
-          <video
-            src={HERO_VIDEO}
-            autoPlay
-            loop
-            muted
-            playsInline
-            preload="auto"
-            className="aspect-[8/3] w-full object-cover"
-          />
-        </Link>
+        <HeroVideo src={HERO_VIDEO} />
       </section>
       ) : platformSettings?.show_hero_boxes !== false ? (
       <section className="grid gap-4 px-4 pt-7 sm:px-10 lg:grid-cols-[2.2fr_1fr_1fr]">
@@ -422,6 +412,48 @@ export function HomeContent() {
 }
 
 const HERO_VIDEO = "/banners/kmo-11-11-coming-soon.mp4";
+
+/** Plays by itself on a loop with nothing to click. React leaves `muted` out of
+ *  server-rendered HTML, which makes browsers block autoplay, so it is set here
+ *  and playback resumes whenever the browser pauses it. */
+function HeroVideo({ src }: { src: string }) {
+  const ref = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = ref.current;
+    if (!video) return;
+    video.muted = true;
+    const resume = () => {
+      if (video.paused && !document.hidden) void video.play().catch(() => {});
+    };
+    resume();
+    video.addEventListener("pause", resume);
+    video.addEventListener("canplay", resume);
+    document.addEventListener("visibilitychange", resume);
+    return () => {
+      video.removeEventListener("pause", resume);
+      video.removeEventListener("canplay", resume);
+      document.removeEventListener("visibilitychange", resume);
+    };
+  }, []);
+
+  return (
+    <div className="pointer-events-none overflow-hidden rounded-xl bg-white">
+      <video
+        ref={ref}
+        src={src}
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="auto"
+        disablePictureInPicture
+        aria-label="Karachi Mart Online 11.11 sale coming soon"
+        className="aspect-[8/3] w-full object-cover"
+      />
+    </div>
+  );
+}
 
 function HomeBanner({ banners }: { banners: BannerRow[] | undefined }) {
   const slides = banners ?? [];
