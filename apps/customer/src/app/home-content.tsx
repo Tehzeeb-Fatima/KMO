@@ -98,7 +98,7 @@ export function HomeContent() {
       {/* 11.11 campaign video takes the place of the hero boxes; set
           HERO_VIDEO.en to "" to bring the boxes back. */}
       {HERO_VIDEO.en ? (
-      <section className="px-4 pt-7 sm:px-10">
+      <section>
         <h1 className="sr-only">{t.home.heroLiveTitle}</h1>
         <HeroVideo key={locale} src={locale === "ur" ? HERO_VIDEO.ur : HERO_VIDEO.en} />
       </section>
@@ -441,7 +441,7 @@ function HeroVideo({ src }: { src: string }) {
   }, []);
 
   return (
-    <div className="pointer-events-none overflow-hidden rounded-xl bg-white">
+    <div className="pointer-events-none bg-white">
       <video
         ref={ref}
         src={src}
@@ -452,7 +452,7 @@ function HeroVideo({ src }: { src: string }) {
         preload="auto"
         disablePictureInPicture
         aria-label="Karachi Mart Online 11.11 sale coming soon"
-        className="aspect-[8/3] w-full object-cover"
+        className="block aspect-[8/3] w-full object-cover"
       />
     </div>
   );
@@ -486,8 +486,8 @@ function HomeBanner({ banners }: { banners: BannerRow[] | undefined }) {
   );
 
   return (
-    <section className="px-4 pt-7 sm:px-10">
-      <div className="relative aspect-[16/9] overflow-hidden rounded-lg bg-primary transition-shadow duration-200 hover:shadow-[0_10px_26px_-10px_rgba(74,34,102,0.5)] sm:aspect-[8/3]">
+    <section>
+      <div className="relative aspect-[16/9] overflow-hidden bg-primary sm:aspect-[8/3]">
         {current.link_url ? (
           current.link_url.startsWith("/") ? (
             <Link href={current.link_url} className="block h-full w-full">
