@@ -149,7 +149,7 @@ export function SiteHeader() {
       {/* row 2 — terracotta category strip */}
       {categories && categories.length > 0 ? (
         <div className="category-shimmer relative overflow-hidden bg-accent">
-          <div className="flex justify-between gap-0.5 overflow-x-auto px-4 sm:px-10">
+          <div className="flex justify-between gap-0.5 overflow-x-auto px-4 [scrollbar-width:none] sm:px-10 [&::-webkit-scrollbar]:hidden">
             {mainCategories(categories).map((c) => (
               <Link
                 key={c.id}
