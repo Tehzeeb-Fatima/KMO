@@ -71,7 +71,7 @@ function OrderConfirmationContent() {
       ) : null}
       <p className="mt-3 max-w-[440px] text-[15.5px] leading-[1.6] text-muted">
         {orders.length === 1
-          ? `Order #${primary.order_number} has been placed. You'll pay Rs. ${total.toLocaleString()} on delivery. Expect it within 1–2 working days.`
+          ? `Order #${primary.order_number} has been placed. You'll pay Rs. ${total.toLocaleString()} on delivery. Expect it within 3–7 working days.`
           : `Orders ${orders.map((o) => `#${o.order_number}`).join(", ")} have been placed across ${orders.length} vendors. You'll pay Rs. ${total.toLocaleString()} total on delivery.`}
       </p>
 
@@ -88,7 +88,7 @@ function OrderConfirmationContent() {
         </div>
         <div className="flex flex-col gap-1">
           <span className="text-[12.5px] text-muted-table">Estimated delivery</span>
-          <span className="text-[15.5px] font-bold text-ink-dark">1–2 working days</span>
+          <span className="text-[15.5px] font-bold text-ink-dark">3–7 working days</span>
         </div>
       </div>
 

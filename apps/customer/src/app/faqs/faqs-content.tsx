@@ -16,7 +16,7 @@ const EN = {
     },
     {
       q: "How long does delivery take?",
-      a: "Most orders within Karachi arrive within 1–2 working days, though this can vary by vendor and area. Each vendor sets their own delivery estimate and shipping policy on their store page.",
+      a: "Most orders within Karachi arrive within 3–7 working days, though this can vary by vendor and area. Each vendor sets their own delivery estimate and shipping policy on their store page.",
     },
     {
       q: "Can I return a product?",
@@ -51,7 +51,7 @@ const UR = {
     },
     {
       q: "ڈیلیوری میں کتنا وقت لگتا ہے؟",
-      a: "کراچی کے اندر زیادہ تر آرڈرز 1–2 کاروباری دنوں میں پہنچ جاتے ہیں، اگرچہ یہ وینڈر اور علاقے کے لحاظ سے مختلف ہو سکتا ہے۔ ہر وینڈر اپنی اسٹور پیج پر اپنا ڈیلیوری تخمینہ اور شپنگ پالیسی طے کرتا ہے۔",
+      a: "کراچی کے اندر زیادہ تر آرڈرز 3–7 کاروباری دنوں میں پہنچ جاتے ہیں، اگرچہ یہ وینڈر اور علاقے کے لحاظ سے مختلف ہو سکتا ہے۔ ہر وینڈر اپنی اسٹور پیج پر اپنا ڈیلیوری تخمینہ اور شپنگ پالیسی طے کرتا ہے۔",
     },
     {
       q: "کیا میں پراڈکٹ واپس کر سکتا ہوں؟",

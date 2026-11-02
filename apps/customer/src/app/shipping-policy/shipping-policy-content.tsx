@@ -16,7 +16,7 @@ const EN = {
     },
     {
       title: "Delivery time",
-      body: "Typical delivery within Karachi takes 1–2 working days from when your order is confirmed. Some vendors use their own courier and delivery windows — check the individual store page for specifics.",
+      body: "Typical delivery within Karachi takes 3–7 working days from when your order is confirmed. Some vendors use their own courier and delivery windows — check the individual store page for specifics.",
     },
     {
       title: "Who delivers your order",
@@ -43,7 +43,7 @@ const UR = {
     },
     {
       title: "ڈیلیوری کا وقت",
-      body: "کراچی کے اندر عام طور پر آرڈر کنفرم ہونے کے 1–2 کاروباری دنوں میں ڈیلیوری ہو جاتی ہے۔ کچھ وینڈرز اپنا خود کا کوریئر اور ڈیلیوری وقت استعمال کرتے ہیں — تفصیلات کے لیے انفرادی اسٹور پیج دیکھیں۔",
+      body: "کراچی کے اندر عام طور پر آرڈر کنفرم ہونے کے 3–7 کاروباری دنوں میں ڈیلیوری ہو جاتی ہے۔ کچھ وینڈرز اپنا خود کا کوریئر اور ڈیلیوری وقت استعمال کرتے ہیں — تفصیلات کے لیے انفرادی اسٹور پیج دیکھیں۔",
     },
     {
       title: "آپ کا آرڈر کون ڈیلیور کرتا ہے",
