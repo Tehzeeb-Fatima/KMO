@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import Link from "next/link";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
@@ -96,11 +96,11 @@ export function HomeContent() {
       <HomeBanner banners={banners} />
 
       {/* 11.11 campaign video takes the place of the hero boxes; set
-          HERO_VIDEO.en to "" to bring the boxes back. */}
-      {HERO_VIDEO.en ? (
+          HERO_VIDEO.en.src to "" to bring the boxes back. */}
+      {HERO_VIDEO.en.src ? (
       <section>
         <h1 className="sr-only">{t.home.heroLiveTitle}</h1>
-        <HeroVideo key={locale} src={locale === "ur" ? HERO_VIDEO.ur : HERO_VIDEO.en} />
+        <HeroVideo key={locale} {...(locale === "ur" ? HERO_VIDEO.ur : HERO_VIDEO.en)} />
       </section>
       ) : platformSettings?.show_hero_boxes !== false ? (
       <section className="grid gap-4 px-4 pt-7 sm:px-10 lg:grid-cols-[2.2fr_1fr_1fr]">
@@ -412,14 +412,15 @@ export function HomeContent() {
 }
 
 const HERO_VIDEO = {
-  en: "/banners/kmo-11-11-coming-soon.mp4",
-  ur: "/banners/kmo-11-11-coming-soon-ur.mp4",
+  // button: where the video's "wishlist" button sits, in % of the video.
+  en: { src: "/banners/kmo-11-11-coming-soon.mp4", button: { left: "6%", top: "75%", width: "21%", height: "17%" } },
+  ur: { src: "/banners/kmo-11-11-coming-soon-ur.mp4", button: { left: "29%", top: "77%", width: "17%", height: "16%" } },
 };
 
 /** Plays by itself on a loop with nothing to click. React leaves `muted` out of
  *  server-rendered HTML, which makes browsers block autoplay, so it is set here
  *  and playback resumes whenever the browser pauses it. */
-function HeroVideo({ src }: { src: string }) {
+function HeroVideo({ src, button }: { src: string; button: CSSProperties }) {
   const ref = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -441,19 +442,23 @@ function HeroVideo({ src }: { src: string }) {
   }, []);
 
   return (
-    <div className="pointer-events-none" style={{ backgroundColor: "#3a1d5a" }}>
-      <video
-        ref={ref}
-        src={src}
-        autoPlay
-        loop
-        muted
-        playsInline
-        preload="auto"
-        disablePictureInPicture
-        aria-label="Karachi Mart Online 11.11 sale coming soon"
-        className="block aspect-[8/3] max-h-[calc(100svh-220px)] w-full object-contain"
-      />
+    <div style={{ backgroundColor: "#3a1d5a" }}>
+      {/* sized to the video so the link stays on top of the button at any width */}
+      <div className="relative mx-auto aspect-[8/3] w-full max-w-[calc((100svh-220px)*8/3)]">
+        <video
+          ref={ref}
+          src={src}
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="auto"
+          disablePictureInPicture
+          aria-label="Karachi Mart Online 11.11 sale coming soon"
+          className="pointer-events-none block h-full w-full"
+        />
+        <Link href="/account/wishlist" aria-label="Start your wishlist" className="absolute rounded-full" style={button} />
+      </div>
     </div>
   );
 }
