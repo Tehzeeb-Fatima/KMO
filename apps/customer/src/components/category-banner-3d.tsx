@@ -214,7 +214,7 @@ export function CategoryBanner3D({ categories }: { categories: Banner3DCategory[
   return (
     <div
       ref={wrapRef}
-      className="relative aspect-[16/5] w-full overflow-hidden"
+      className="relative aspect-[16/5] w-full overflow-hidden rounded-[22px] bg-[radial-gradient(ellipse_at_50%_40%,#6b3891,#2a1140)]"
     >
       <p className="pointer-events-none absolute bottom-[6%] left-0 z-10 w-full text-center text-[20px] font-bold text-[#f2a541]">
         {label}
