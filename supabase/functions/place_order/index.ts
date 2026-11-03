@@ -618,13 +618,15 @@ async function notifyAdminsOfOrder(
           );
         } catch (err) {
           const statusCode = (err as { statusCode?: number }).statusCode;
+          console.error("push failed", statusCode, (err as { body?: string }).body ?? String(err));
           if (statusCode === 404 || statusCode === 410) {
             await admin.from("push_subscriptions").delete().eq("id", sub.id as string);
           }
         }
       }),
     );
-  } catch {
+  } catch (err) {
+    console.error("notifyAdminsOfOrder failed", String(err));
     // Best-effort — order placement already succeeded.
   }
 }
