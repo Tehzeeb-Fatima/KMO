@@ -585,6 +585,7 @@ export interface Database {
           video_url: string | null;
           price: number;
           compare_at_price: number | null;
+          paused_sale_price: number | null;
           sku: string | null;
           stock_quantity: number | null;
           status: ProductStatus;
@@ -1091,6 +1092,7 @@ export interface Database {
           free_delivery_threshold: number | null;
           whatsapp_number: string | null;
           dc_reminder_enabled: boolean;
+          product_discounts_enabled: boolean;
           dc_info_popup_enabled: boolean;
           updated_at: string;
         };
@@ -1717,7 +1719,12 @@ export interface Database {
       admin_set_user_role: {
         Args: { target_id: string; new_role: UserRole; modules?: string[] | null };
         Returns: undefined;
-      };      top_categories: {
+      };
+      admin_set_product_discounts: {
+        Args: { p_enabled: boolean };
+        Returns: number;
+      };
+      top_categories: {
         Args: { limit_count?: number };
         Returns: {
           id: string;

@@ -10,6 +10,7 @@ import {
   logAdminAction,
   regeneratePreviewToken,
   setDefaultDeliveryRate,
+  setProductDiscounts,
   updatePlatformSettings,
   uploadPromotionImage,
 } from "@kmo/shared/api";
@@ -400,6 +401,8 @@ export function SettingsPage() {
         </div>
       </div>
 
+      <ProductDiscountsCard enabled={settings?.product_discounts_enabled ?? true} />
+
       <div className="flex flex-col gap-3.5 rounded-xl border border-border bg-surface p-[22px_24px]">
         <p className="text-[15px] font-bold text-ink">Vendor-set delivery charges</p>
         <p className="text-xs text-muted">
@@ -788,6 +791,67 @@ function DefaultDeliveryRatesCard() {
         loading={deleteMutation.isPending}
         onConfirm={() => deleteMutation.mutate(pendingDelete!.id)}
         onCancel={() => setPendingDelete(null)}
+      />
+    </div>
+  );
+}
+
+function ProductDiscountsCard({ enabled }: { enabled: boolean }) {
+  const queryClient = useQueryClient();
+  const [confirming, setConfirming] = useState(false);
+  const [result, setResult] = useState<string | null>(null);
+
+  const toggle = useMutation({
+    mutationFn: (next: boolean) => setProductDiscounts(supabase, next),
+    onSuccess: async (count, next) => {
+      setConfirming(false);
+      setResult(next ? `Discounts are back on ${count} products.` : `Discounts hidden on ${count} products.`);
+      await queryClient.invalidateQueries({ queryKey: ["platform-settings"] });
+    },
+  });
+
+  return (
+    <div className="flex flex-col gap-3.5 rounded-xl border border-border bg-surface p-[22px_24px]">
+      <p className="text-[15px] font-bold text-ink">Product discounts</p>
+      <p className="text-xs text-muted">
+        Off: every product shows and charges its actual price, with no discounted price anywhere. Each product&rsquo;s
+        sale price is kept safely, and any discount a vendor saves meanwhile is kept too. On: all those discounted
+        prices come back at once, for example when the 11.11 sale starts.
+      </p>
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          role="switch"
+          aria-checked={enabled}
+          disabled={toggle.isPending}
+          onClick={() => {
+            setResult(null);
+            setConfirming(true);
+          }}
+          className="flex h-[23px] w-[42px] shrink-0 items-center rounded-full p-[2px] transition-colors disabled:opacity-60"
+          style={{
+            background: enabled ? "var(--color-accent)" : "var(--color-border)",
+            justifyContent: enabled ? "flex-end" : "flex-start",
+          }}
+        >
+          <span className="h-[19px] w-[19px] rounded-full bg-white" />
+        </button>
+        <span className="text-[13px] font-semibold text-ink-dark">{enabled ? "On" : "Off"}</span>
+      </div>
+      {result ? <p className="text-[12.5px] text-ink-dark">{result}</p> : null}
+      {toggle.isError ? <p className="text-[12.5px] text-danger">{(toggle.error as Error).message}</p> : null}
+      <ConfirmDialog
+        open={confirming}
+        title={enabled ? "Hide all discounts?" : "Bring discounts back?"}
+        message={
+          enabled
+            ? "Every discounted product will show and charge its actual price until you turn this back on."
+            : "Every product's saved discounted price goes live again right away."
+        }
+        confirmLabel={enabled ? "Hide discounts" : "Turn on"}
+        loading={toggle.isPending}
+        onConfirm={() => toggle.mutate(!enabled)}
+        onCancel={() => setConfirming(false)}
       />
     </div>
   );

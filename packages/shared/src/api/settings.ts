@@ -60,3 +60,10 @@ export async function updatePlatformSettings(
   if (error) throw error;
   return data;
 }
+
+/** Hides (false) or brings back (true) every product discount. Returns how many products changed. */
+export async function setProductDiscounts(supabase: Client, enabled: boolean): Promise<number> {
+  const { data, error } = await supabase.rpc("admin_set_product_discounts", { p_enabled: enabled });
+  if (error) throw error;
+  return data;
+}
