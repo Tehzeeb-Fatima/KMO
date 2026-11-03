@@ -29,6 +29,13 @@ export function variantLabel(v: VariantLike): string {
 }
 
 export const isColourOption = (name: string) => ["color", "colour"].includes(name.trim().toLowerCase());
+export const isDesignOption = (name: string) => ["design", "print", "style"].includes(name.trim().toLowerCase());
+
+/** The option photos belong to: a Design (each design photo holds several
+ *  colours) when there is one, else the Colour. */
+export function photoOptionName(groups: [string, string[]][]): string | null {
+  return groups.find(([n]) => isDesignOption(n))?.[0] ?? groups.find(([n]) => isColourOption(n))?.[0] ?? null;
+}
 
 /** Option names with their values, in first-seen order: [["Colour", ["Ivory","Mint"]], ["Size", ["M","L"]]] */
 export function optionGroups(variants: VariantLike[]): [string, string[]][] {
@@ -67,6 +74,7 @@ const SWATCH: Record<string, string> = {
   "jet black": "#111111", navy: "#1f2a52", burgundy: "#6d1a2b", "scarlet red": "#d4141e", "dark brown": "#4a2c20",
   emerald: "#0f6b55", "pine green": "#0f5f5c", "ash grey": "#5c5f63", "denim grey": "#6f7f8e", "rose pink": "#d9a0a4",
   "coral pink": "#e57a6e", "blush pink": "#c85a86", "pale gold": "#d8b97a", "butter cream": "#efdcb2",
+  sage: "#9caf88", "sage green": "#9caf88", camel: "#c19a6b", charcoal: "#36454f", rose: "#e8a0a8", brick: "#a5422f",
 };
 /** CSS background for a colour swatch. */
 export function swatchColour(name: string): string {
@@ -101,9 +109,10 @@ export function colourImageUrl(
   images: { url: string; sort_order: number; variant_id?: string | null }[] | null | undefined,
   colour: string,
 ): string | undefined {
+  const option = photoOptionName(optionGroups(variants));
   const ids = new Set(
     variants
-      .filter((v) => Object.entries(variantOptions(v)).some(([n, val]) => isColourOption(n) && val === colour))
+      .filter((v) => option !== null && variantOptions(v)[option] === colour)
       .map((v) => v.id),
   );
   const own = (images ?? []).filter((i) => i.variant_id && ids.has(i.variant_id));
@@ -141,8 +150,9 @@ export function colourCards(
   variants: (VariantLike & { id: string })[],
   images: { url: string; sort_order: number; variant_id?: string | null }[] | null | undefined,
 ): { colour: string; imageUrl: string }[] {
-  const colours: string[] = [];
-  for (const [name, values] of optionGroups(variants)) if (isColourOption(name)) colours.push(...values);
+  const groups = optionGroups(variants);
+  const option = photoOptionName(groups);
+  const colours = groups.find(([n]) => n === option)?.[1] ?? [];
   const cards = colours.flatMap((colour) => {
     const imageUrl = colourImageUrl(variants, images, colour);
     return imageUrl ? [{ colour, imageUrl }] : [];

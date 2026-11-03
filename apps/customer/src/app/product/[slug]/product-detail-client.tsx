@@ -25,6 +25,7 @@ import {
   cdnImage,
   findVariant,
   isColourOption,
+  photoOptionName,
   mainImageUrl,
   optionGroups,
   uniqueByName,
@@ -79,14 +80,15 @@ export default function ProductDetailClient({
   const colourParam = searchParams.get("colour");
   useEffect(() => {
     if (!colourParam) return;
-    const group = variantGroups.find(([name]) => isColourOption(name));
+    const group = variantGroups.find(([name]) => name === photoOptionName(variantGroups));
     const value = group?.[1].find((v) => v.toLowerCase() === colourParam.toLowerCase());
     if (group && value) setSelectedOptions((prev) => (prev[group[0]] ? prev : { ...prev, [group[0]]: value }));
   }, [colourParam, variantGroups]);
 
   /** The variant row for the colour the shopper picked, if any — media can be
    *  tied to it so the product imagery changes with the colour. */
-  const colourOption = variantGroups.find(([name]) => isColourOption(name))?.[0] ?? null;
+  // the option photos follow: Design when there is one, else Colour
+  const colourOption = photoOptionName(variantGroups);
   const selectedColour = colourOption ? (selectedOptions[colourOption] ?? null) : null;
   /** Every variant row of the picked colour: a photo tied to any of them
    *  belongs to that colour (combination rows share their colour's photos). */
@@ -430,7 +432,20 @@ export default function ProductDetailClient({
                 : `${t.product.inStock} (${stock} ${t.product.available})`}
           </p>
 
-          {variantGroups.map(([optionName, values]) => (
+          {variantGroups.map(([optionName, allValues]) => {
+            // After a design is picked, only its own colours show.
+            const designPicked = colourOption !== null && optionName !== colourOption && !!selectedOptions[colourOption];
+            const values = designPicked
+              ? allValues.filter((value) =>
+                  product.product_variants.some((v) => {
+                    const o = variantOptions(v);
+                    return o[optionName] === value && o[colourOption] === selectedOptions[colourOption];
+                  }),
+                )
+              : allValues;
+            const waitForDesign =
+              colourOption !== null && optionName !== colourOption && !selectedOptions[colourOption] && variantGroups.some(([n]) => n === colourOption && !isColourOption(n));
+            return (
             <div key={optionName} className="flex flex-col gap-2">
               <span className="text-[15px] text-muted">
                 {optionName}:{" "}
@@ -438,6 +453,7 @@ export default function ProductDetailClient({
                   {selectedOptions[optionName] ?? t.product.select}
                 </strong>
               </span>
+              {waitForDesign ? null : (
               <div className="flex flex-wrap gap-2">
                 {values.map((value) => {
                   const selected = selectedOptions[optionName] === value;
@@ -513,8 +529,10 @@ export default function ProductDetailClient({
                   );
                 })}
               </div>
+              )}
             </div>
-          ))}
+          );
+          })}
 
           <div className="flex items-center gap-3">
             <div className="flex items-center overflow-hidden rounded-full border border-border">
