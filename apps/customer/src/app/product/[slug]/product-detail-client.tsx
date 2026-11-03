@@ -32,7 +32,7 @@ import {
   variantOptions,
 } from "@kmo/shared/lib";
 import { usePhotoSwatches } from "@/lib/use-photo-swatches";
-import { Breadcrumbs, Button, ProductCard } from "@kmo/shared/ui";
+import { Breadcrumbs, Button, ProductCard, SaleTagBadge } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "@/lib/supabase";
 import { ensureCustomerId } from "@/lib/ensure-customer-id";
@@ -415,9 +415,12 @@ export default function ProductDetailClient({
                 {promoMatch.promotion.badge_text}
               </span>
             ) : discountPct ? (
-              <span className="rounded-full bg-accent px-2.5 py-1 text-[15px] font-bold text-white">
-                -{discountPct}%
-              </span>
+              <>
+                <span className="rounded-full bg-accent px-2.5 py-1 text-[15px] font-bold text-white">
+                  -{discountPct}%
+                </span>
+                <SaleTagBadge className="rounded-full bg-primary px-2.5 py-1 text-[13px] font-bold text-white" />
+              </>
             ) : null}
             <span className="rounded-full bg-primary-tint px-2.5 py-1 font-mono text-[11.5px] tracking-[0.1em] text-primary">
               {t.product.codAvailableBadge}

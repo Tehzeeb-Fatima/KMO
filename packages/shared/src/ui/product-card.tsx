@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { cn } from "../lib/utils";
 import { cdnImage } from "../lib/product-image";
+import { SaleTagBadge } from "./sale-tag";
 
 export interface ProductCardProps {
   href: string;
@@ -98,8 +99,9 @@ export function ProductCard({
             {promoLabel}
           </span>
         ) : discountPct ? (
-          <span className="absolute left-2.5 top-2.5 rounded bg-accent px-[7px] py-1 text-[12px] font-bold text-white">
-            -{discountPct}%
+          <span className="absolute left-2.5 top-2.5 flex flex-col items-start gap-1">
+            <span className="rounded bg-accent px-[7px] py-1 text-[12px] font-bold text-white">-{discountPct}%</span>
+            <SaleTagBadge className="rounded bg-primary px-[7px] py-1 text-[11px] font-bold text-white" />
           </span>
         ) : null}
         {topRight ? <div className="absolute right-2.5 top-2.5">{topRight}</div> : null}

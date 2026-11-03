@@ -37,6 +37,7 @@ export async function updatePlatformSettings(
       | "free_delivery_threshold"
       | "whatsapp_number"
       | "dc_reminder_enabled"
+      | "sale_tag_text"
       | "dc_info_popup_enabled"
       | "loyalty_enabled"
       | "loyalty_point_value"

@@ -1093,6 +1093,7 @@ export interface Database {
           whatsapp_number: string | null;
           dc_reminder_enabled: boolean;
           product_discounts_enabled: boolean;
+          sale_tag_text: string | null;
           dc_info_popup_enabled: boolean;
           updated_at: string;
         };
@@ -1126,6 +1127,7 @@ export interface Database {
           free_delivery_threshold?: number | null;
           whatsapp_number?: string | null;
           dc_reminder_enabled?: boolean;
+          sale_tag_text?: string | null;
           dc_info_popup_enabled?: boolean;
           updated_at?: string;
         };
@@ -1159,6 +1161,7 @@ export interface Database {
           free_delivery_threshold?: number | null;
           whatsapp_number?: string | null;
           dc_reminder_enabled?: boolean;
+          sale_tag_text?: string | null;
           dc_info_popup_enabled?: boolean;
           updated_at?: string;
         };

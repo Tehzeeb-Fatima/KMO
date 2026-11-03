@@ -401,7 +401,10 @@ export function SettingsPage() {
         </div>
       </div>
 
-      <ProductDiscountsCard enabled={settings?.product_discounts_enabled ?? true} />
+      <ProductDiscountsCard
+        enabled={settings?.product_discounts_enabled ?? true}
+        saleTag={settings?.sale_tag_text ?? null}
+      />
 
       <div className="flex flex-col gap-3.5 rounded-xl border border-border bg-surface p-[22px_24px]">
         <p className="text-[15px] font-bold text-ink">Vendor-set delivery charges</p>
@@ -796,10 +799,25 @@ function DefaultDeliveryRatesCard() {
   );
 }
 
-function ProductDiscountsCard({ enabled }: { enabled: boolean }) {
+function ProductDiscountsCard({ enabled, saleTag }: { enabled: boolean; saleTag: string | null }) {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [confirming, setConfirming] = useState(false);
   const [result, setResult] = useState<string | null>(null);
+  const [tagText, setTagText] = useState(saleTag ?? "");
+  useEffect(() => setTagText(saleTag ?? ""), [saleTag]);
+
+  const saveTag = useMutation({
+    mutationFn: () => updatePlatformSettings(supabase, { sale_tag_text: tagText.trim() || null }),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(["platform-settings"], updated);
+      if (user) {
+        void logAdminAction(supabase, user.id, "settings.sale_tag", "platform_settings", undefined, {
+          sale_tag_text: updated.sale_tag_text,
+        });
+      }
+    },
+  });
 
   const toggle = useMutation({
     mutationFn: (next: boolean) => setProductDiscounts(supabase, next),
@@ -839,6 +857,34 @@ function ProductDiscountsCard({ enabled }: { enabled: boolean }) {
         <span className="text-[13px] font-semibold text-ink-dark">{enabled ? "On" : "Off"}</span>
       </div>
       {result ? <p className="text-[12.5px] text-ink-dark">{result}</p> : null}
+      <div className="flex flex-col gap-1.5 border-t border-border pt-3.5">
+        <p className="text-[13px] font-bold text-ink-dark">Sale tag</p>
+        <p className="text-xs text-muted">
+          Shown next to the &ldquo;-X%&rdquo; badge on every discounted product while discounts are on, e.g. 11.11 SALE.
+          Leave blank to show only the percentage.
+        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            value={tagText}
+            maxLength={24}
+            placeholder="11.11 SALE"
+            onChange={(e) => setTagText(e.target.value)}
+            className="w-[220px] rounded-md border border-border bg-surface px-3 py-2 text-[13px] text-ink-dark outline-none focus:border-primary-light"
+          />
+          <button
+            type="button"
+            disabled={saveTag.isPending || tagText.trim() === (saleTag ?? "")}
+            onClick={() => saveTag.mutate()}
+            className="rounded-md bg-accent px-4 py-2 text-[13px] font-semibold text-white disabled:opacity-50"
+          >
+            {saveTag.isPending ? "Saving…" : "Save"}
+          </button>
+          {tagText.trim() ? (
+            <span className="rounded bg-primary px-[7px] py-1 text-[11px] font-bold text-white">{tagText.trim()}</span>
+          ) : null}
+        </div>
+        {saveTag.isError ? <p className="text-[12.5px] text-danger">{(saveTag.error as Error).message}</p> : null}
+      </div>
       {toggle.isError ? <p className="text-[12.5px] text-danger">{(toggle.error as Error).message}</p> : null}
       <ConfirmDialog
         open={confirming}
