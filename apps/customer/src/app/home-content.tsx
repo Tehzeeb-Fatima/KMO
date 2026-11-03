@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import Link from "next/link";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
@@ -24,7 +24,6 @@ import { CATEGORY_ICONS, cardPricing, cdnImage, mainCategories, type CategoryIco
 import { Countdown, ProductCard } from "@kmo/shared/ui";
 import { supabase } from "@/lib/supabase";
 import { HorizontalSlider } from "@/components/horizontal-slider";
-import { CategoryBanner3D } from "@/components/category-banner-3d";
 import { AddToCartButton, WishlistHeart } from "@/components/product-card-actions";
 import { useLanguage } from "@/lib/i18n/language-context";
 import { DEFAULT_VENDOR_BANNER } from "@/lib/vendor-banner";
@@ -37,7 +36,6 @@ export function HomeContent() {
     queryKey: ["shop-categories"],
     queryFn: () => listShopCategories(supabase),
   });
-  const browseCategories = useMemo(() => (categories ? mainCategories(categories) : []), [categories]);
   const { data: products } = useQuery({
     queryKey: ["featured-products"],
     // fetch extra: the same item from two vendors shows once, then trim to 8
@@ -204,10 +202,6 @@ export function HomeContent() {
               {t.home.allCategories}
             </Link>
           </div>
-          <div className="hidden md:block">
-            <CategoryBanner3D categories={browseCategories} />
-          </div>
-          <div className="md:hidden">
           <HorizontalSlider spread itemClassName="w-[76px] sm:w-[88px] lg:w-auto lg:min-w-[88px] lg:max-w-[176px] lg:flex-1">
             {mainCategories(categories).map((c) => (
               <Link key={c.id} href={`/category/${c.slug}`} className="group flex flex-col items-center gap-2 text-center">
@@ -246,7 +240,6 @@ export function HomeContent() {
               </Link>
             ))}
           </HorizontalSlider>
-          </div>
         </section>
       ) : null}
 
