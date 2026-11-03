@@ -70,7 +70,7 @@ begin
   perform pg_advisory_xact_lock(hashtext('product_discount_switch'));
   perform set_config('kmo.discount_switch', 'on', true);
 
-  update public.platform_settings set product_discounts_enabled = p_enabled;
+  update public.platform_settings set product_discounts_enabled = p_enabled where id = true;
 
   if p_enabled then
     update public.products
