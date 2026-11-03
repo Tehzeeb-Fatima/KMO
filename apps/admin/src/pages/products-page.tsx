@@ -344,9 +344,9 @@ export function ProductsModerationPage() {
                   type="button"
                   onClick={() => setSoldEditing(p)}
                   className="rounded-md border border-border bg-white px-2.5 py-1.5 text-[11px] font-bold text-ink-dark"
-                  title="Show an 'N sold' tag on this product"
+                  title="Sold tag and rating shown on this product"
                 >
-                  {p.sold_badge ? `${p.sold_badge.toLocaleString()} sold` : "Sold tag"}
+                  Sold &amp; rating
                 </button>
                 <button
                   type="button"
@@ -436,52 +436,78 @@ function CategoryCheck({
   );
 }
 
-/** Admin sets (or clears) the "N sold" tag shown on a product's card and page. */
+/** Admin sets (or clears) the "N sold" tag and a starting rating for a
+ *  product. Real customer reviews are blended into that rating on the store. */
 function SoldTagDialog({ product, onClose }: { product: ProductWithMedia; onClose: () => void }) {
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const [value, setValue] = useState(product.sold_badge ? String(product.sold_badge) : "");
-  const num = value.trim() === "" ? null : Number(value);
-  const valid = num === null || (Number.isInteger(num) && num > 0);
+  const [sold, setSold] = useState(product.sold_badge ? String(product.sold_badge) : "");
+  const [rating, setRating] = useState(product.admin_rating ? String(product.admin_rating) : "");
+  const [ratingCount, setRatingCount] = useState(product.admin_rating_count ? String(product.admin_rating_count) : "");
+
+  const soldNum = sold.trim() === "" ? null : Number(sold);
+  const ratingNum = rating.trim() === "" ? null : Math.round(Number(rating) * 10) / 10;
+  const countNum = ratingCount.trim() === "" ? null : Number(ratingCount);
+  const soldValid = soldNum === null || (Number.isInteger(soldNum) && soldNum > 0);
+  const ratingValid =
+    (ratingNum === null && countNum === null) ||
+    (ratingNum !== null && ratingNum >= 1 && ratingNum <= 5 && countNum !== null && Number.isInteger(countNum) && countNum > 0);
+  const valid = soldValid && ratingValid;
 
   const save = useMutation({
-    mutationFn: async (next: number | null) => {
-      const { error } = await supabase.from("products").update({ sold_badge: next }).eq("id", product.id);
+    mutationFn: async () => {
+      const patch = { sold_badge: soldNum, admin_rating: ratingNum, admin_rating_count: countNum };
+      const { error } = await supabase.from("products").update(patch).eq("id", product.id);
       if (error) throw error;
+      return patch;
     },
-    onSuccess: (_v, next) => {
+    onSuccess: (patch) => {
       queryClient.invalidateQueries({ queryKey: ["admin-products"] });
-      if (user) void logAdminAction(supabase, user.id, "product.sold_badge", "product", product.id, { sold_badge: next });
+      if (user) void logAdminAction(supabase, user.id, "product.sold_rating", "product", product.id, patch);
       onClose();
     },
   });
 
+  const inputClass =
+    "w-full rounded-md border border-border bg-surface px-3 py-2 text-[13px] text-ink-dark outline-none focus:border-primary-light";
+  const realCount = product.review_count ?? 0;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true">
       <form
-        className="w-full max-w-[400px] rounded-xl bg-surface p-6"
+        className="w-full max-w-[420px] rounded-xl bg-surface p-6"
         onSubmit={(e) => {
           e.preventDefault();
-          if (valid) save.mutate(num);
+          if (valid) save.mutate();
         }}
       >
-        <p className="text-[17px] font-bold text-ink-dark">Sold tag</p>
+        <p className="text-[17px] font-bold text-ink-dark">Sold &amp; rating</p>
         <p className="mt-1 truncate text-xs text-muted">{product.name}</p>
+
         <label className="mt-4 flex flex-col gap-1 text-xs font-bold text-ink-dark">
-          How many sold to show
-          <input
-            type="number"
-            min={1}
-            step={1}
-            autoFocus
-            value={value}
-            placeholder="e.g. 250"
-            onChange={(e) => setValue(e.target.value)}
-            className="w-full rounded-md border border-border bg-surface px-3 py-2 text-[13px] text-ink-dark outline-none focus:border-primary-light"
-          />
+          Sold to show
+          <input type="number" min={1} step={1} autoFocus value={sold} placeholder="e.g. 24" onChange={(e) => setSold(e.target.value)} className={inputClass} />
         </label>
-        <p className="mt-2 text-xs text-muted">Shoppers see &ldquo;🔥 {num && valid ? num.toLocaleString() : "N"} sold&rdquo;. Leave blank to remove the tag.</p>
-        {!valid ? <p className="mt-2 text-[12.5px] text-danger">Enter a whole number above 0.</p> : null}
+        {!soldValid ? <p className="mt-1 text-[12.5px] text-danger">Enter a whole number above 0.</p> : null}
+
+        <div className="mt-3 grid grid-cols-2 gap-3">
+          <label className="flex flex-col gap-1 text-xs font-bold text-ink-dark">
+            Rating (1 to 5)
+            <input type="number" min={1} max={5} step={0.1} value={rating} placeholder="e.g. 4.9" onChange={(e) => setRating(e.target.value)} className={inputClass} />
+          </label>
+          <label className="flex flex-col gap-1 text-xs font-bold text-ink-dark">
+            Number of ratings
+            <input type="number" min={1} step={1} value={ratingCount} placeholder="e.g. 7" onChange={(e) => setRatingCount(e.target.value)} className={inputClass} />
+          </label>
+        </div>
+        {!ratingValid ? (
+          <p className="mt-1 text-[12.5px] text-danger">Fill both: a rating from 1 to 5 and a whole number of ratings. Or leave both blank.</p>
+        ) : null}
+        <p className="mt-2 text-xs text-muted">
+          Customer reviews are added on top of this. This product has {realCount} customer review{realCount === 1 ? "" : "s"}.
+          Leave a field blank to remove it.
+        </p>
+
         {save.isError ? <p className="mt-2 text-[12.5px] text-danger">{(save.error as Error).message}</p> : null}
         <div className="mt-6 flex justify-end gap-2">
           <button type="button" onClick={onClose} className="rounded-md border border-border px-4 py-2 text-[13px] font-semibold text-ink-dark">

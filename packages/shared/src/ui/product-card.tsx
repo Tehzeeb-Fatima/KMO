@@ -11,7 +11,7 @@ export interface ProductCardProps {
   price: number;
   compareAtPrice?: number | null;
   rating?: number;
-  soldCount?: number;
+  ratingCount?: number;
   cod?: boolean;
   /** Promotion label (admin-set); replaces the "-X%" badge when present. */
   promoLabel?: string | null;
@@ -49,7 +49,7 @@ export function ProductCard({
   price,
   compareAtPrice,
   rating,
-  soldCount,
+  ratingCount,
   cod = true,
   promoLabel,
   soldBadge,
@@ -102,17 +102,9 @@ export function ProductCard({
             {promoLabel}
           </span>
         ) : discountPct ? (
-          <span className="absolute left-2.5 top-2.5 flex flex-col items-start gap-1">
-            <span className="rounded bg-accent px-[7px] py-1 text-[12px] font-bold text-white">-{discountPct}%</span>
-            <SaleTagBadge className="rounded bg-primary px-[7px] py-1 text-[11px] font-bold text-white" />
-          </span>
+          <SaleTagBadge className="absolute left-2.5 top-2.5 rounded bg-primary px-[7px] py-1 text-[11px] font-bold text-white" />
         ) : null}
         {topRight ? <div className="absolute right-2.5 top-2.5">{topRight}</div> : null}
-        {soldBadge ? (
-          <span className="absolute bottom-2.5 left-2.5 rounded bg-black/70 px-[7px] py-1 text-[11.5px] font-bold text-white">
-            🔥 {soldBadge.toLocaleString()} sold
-          </span>
-        ) : null}
       </div>
 
       {/* every card the same height: the name always reserves two lines and
@@ -125,16 +117,19 @@ export function ProductCard({
           <span className="text-[16px] font-extrabold tracking-[-0.02em] text-primary sm:text-lg sm:tracking-[-0.025em]">
             Rs. {price.toLocaleString()}
           </span>
-          {compareAtPrice && compareAtPrice > price ? (
-            <span className="text-[12px] font-semibold text-ink-dark line-through decoration-danger decoration-2 sm:text-[14px]">
-              Rs. {compareAtPrice.toLocaleString()}
-            </span>
+          {discountPct ? (
+            <span className="text-[13px] font-semibold text-accent sm:text-[14px]">-{discountPct}%</span>
           ) : null}
         </div>
-        {typeof rating === "number" ? (
-          <p className="text-[13px] text-muted">
-            <span className="font-bold text-accent">★ {rating.toFixed(1)}</span>
-            {typeof soldCount === "number" ? ` (${soldCount.toLocaleString()} sold)` : null}
+        {typeof rating === "number" || soldBadge ? (
+          <p className="flex flex-wrap items-center gap-x-2 text-[13px] text-muted">
+            {typeof rating === "number" ? (
+              <span>
+                <span className="text-[#f5a623]">★</span> {rating.toFixed(1)}
+                {ratingCount ? ` (${ratingCount.toLocaleString()})` : null}
+              </span>
+            ) : null}
+            {soldBadge ? <span>{soldBadge.toLocaleString()} sold</span> : null}
           </p>
         ) : null}
         {footer ? <div className="mt-auto pt-1">{footer}</div> : null}

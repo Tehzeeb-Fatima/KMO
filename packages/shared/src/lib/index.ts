@@ -1,4 +1,5 @@
 export * from "./utils";
+export * from "./product-stats";
 export * from "./order-status";
 export * from "./promotion-pricing";
 export * from "./category-icons";

@@ -14,7 +14,7 @@ import {
   toPricingPromotions,
   unfollowVendor,
 } from "@kmo/shared/api";
-import { cardPricing, cdnImage, colourCards, mainImageUrl } from "@kmo/shared/lib";
+import { cardPricing, cardStats, cdnImage, colourCards, mainImageUrl } from "@kmo/shared/lib";
 import { Breadcrumbs, PillTabs, ProductCard } from "@kmo/shared/ui";
 import { WEEK_DAYS, type BusinessHours, type VendorPolicies } from "@kmo/shared/types";
 import { useAuth } from "@kmo/shared/auth";
@@ -372,7 +372,7 @@ function ProductsTab({ vendorId }: { vendorId: string }) {
                 name={colour ? `${p.name} – ${colour}` : p.name}
                 price={cp.price}
                 compareAtPrice={cp.compareAtPrice}
-                soldBadge={p.sold_badge}
+                {...cardStats(p)}
                 promoLabel={cp.badgeText}
               />
             );

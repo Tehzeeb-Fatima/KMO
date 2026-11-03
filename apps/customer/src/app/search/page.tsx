@@ -12,7 +12,7 @@ import {
   promotionProductFilter,
   toPricingPromotions,
 } from "@kmo/shared/api";
-import { cardPricing, colourImageUrl, colourInSearch, mainCategories, mainImageUrl } from "@kmo/shared/lib";
+import { cardPricing, cardStats, colourImageUrl, colourInSearch, mainCategories, mainImageUrl } from "@kmo/shared/lib";
 import { ProductCard } from "@kmo/shared/ui";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/i18n/language-context";
@@ -353,7 +353,7 @@ function SearchPageContent() {
                       name={p.name}
                       price={cp.price}
                       compareAtPrice={cp.compareAtPrice}
-                      soldBadge={p.sold_badge}
+                      {...cardStats(p)}
                       promoLabel={cp.badgeText}
                     />
                   );

@@ -587,6 +587,10 @@ export interface Database {
           compare_at_price: number | null;
           paused_sale_price: number | null;
           sold_badge: number | null;
+          admin_rating: number | null;
+          admin_rating_count: number | null;
+          review_count: number;
+          review_sum: number;
           sku: string | null;
           stock_quantity: number | null;
           status: ProductStatus;
@@ -636,6 +640,8 @@ export interface Database {
           price?: number;
           compare_at_price?: number | null;
           sold_badge?: number | null;
+          admin_rating?: number | null;
+          admin_rating_count?: number | null;
           sku?: string | null;
           stock_quantity?: number | null;
           status?: ProductStatus;

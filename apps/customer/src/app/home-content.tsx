@@ -20,7 +20,7 @@ import {
   toPricingPromotions,
   type TopCategory,
 } from "@kmo/shared/api";
-import { CATEGORY_ICONS, cardPricing, cdnImage, mainCategories, type CategoryIconKey, mainImageUrl, uniqueByName } from "@kmo/shared/lib";
+import { CATEGORY_ICONS, cardPricing, cardStats, cdnImage, mainCategories, type CategoryIconKey, mainImageUrl, uniqueByName } from "@kmo/shared/lib";
 import { Countdown, ProductCard } from "@kmo/shared/ui";
 import { supabase } from "@/lib/supabase";
 import { HorizontalSlider } from "@/components/horizontal-slider";
@@ -742,7 +742,7 @@ function PromoProductCard({
       name={p.name}
       price={cp.price}
       compareAtPrice={cp.compareAtPrice}
-      soldBadge={p.sold_badge}
+      {...cardStats(p)}
       promoLabel={cp.badgeText}
       topRight={<WishlistHeart productId={p.id} />}
       footer={<AddToCartButton productId={p.id} {...defaultCartVariant(p)} />}
@@ -869,7 +869,7 @@ function FeaturedProducts({
                 name={p.name}
                 price={cp.price}
                 compareAtPrice={cp.compareAtPrice}
-      soldBadge={p.sold_badge}
+      {...cardStats(p)}
                 promoLabel={cp.badgeText}
                 topRight={<WishlistHeart productId={p.id} />}
                 footer={<AddToCartButton productId={p.id} {...defaultCartVariant(p)} />}

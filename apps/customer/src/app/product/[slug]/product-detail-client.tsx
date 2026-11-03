@@ -21,7 +21,7 @@ import {
 } from "@kmo/shared/api";
 import {
   bestPromotionForProduct,
-  cardPricing,
+  cardPricing, cardStats,
   cdnImage,
   findVariant,
   isColourOption,
@@ -855,7 +855,7 @@ export default function ProductDetailClient({
                     name={p.name}
                     price={cp.price}
                     compareAtPrice={cp.compareAtPrice}
-                    soldBadge={p.sold_badge}
+                    {...cardStats(p)}
                     promoLabel={cp.badgeText}
                     cod={false}
                   />
@@ -888,7 +888,7 @@ export default function ProductDetailClient({
                     name={p.name}
                     price={cp.price}
                     compareAtPrice={cp.compareAtPrice}
-                    soldBadge={p.sold_badge}
+                    {...cardStats(p)}
                     promoLabel={cp.badgeText}
                   />
                 );
