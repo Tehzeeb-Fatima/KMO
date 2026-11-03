@@ -984,6 +984,10 @@ export interface Database {
           id: string;
           image_url: string;
           image_url_ur: string | null;
+          image_url_mobile: string | null;
+          image_url_mobile_ur: string | null;
+          link_area_mobile: Json | null;
+          link_area_mobile_ur: Json | null;
           link_area: Json | null;
           link_area_ur: Json | null;
           title: string | null;
@@ -997,6 +1001,10 @@ export interface Database {
           link_area?: Json | null;
           link_area_ur?: Json | null;
           image_url_ur?: string | null;
+          image_url_mobile?: string | null;
+          image_url_mobile_ur?: string | null;
+          link_area_mobile?: Json | null;
+          link_area_mobile_ur?: Json | null;
           image_url: string;
           title?: string | null;
           link_url?: string | null;
@@ -1009,6 +1017,10 @@ export interface Database {
           link_area?: Json | null;
           link_area_ur?: Json | null;
           image_url_ur?: string | null;
+          image_url_mobile?: string | null;
+          image_url_mobile_ur?: string | null;
+          link_area_mobile?: Json | null;
+          link_area_mobile_ur?: Json | null;
           image_url?: string;
           title?: string | null;
           link_url?: string | null;

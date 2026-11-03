@@ -79,6 +79,8 @@ export function BannersPage() {
 
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imageUrlUr, setImageUrlUr] = useState<string | null>(null);
+  const [mobileUrl, setMobileUrl] = useState<string | null>(null);
+  const [mobileUrlUr, setMobileUrlUr] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [title, setTitle] = useState("");
   const [linkUrl, setLinkUrl] = useState("");
@@ -91,6 +93,8 @@ export function BannersPage() {
       return createBanner(supabase, {
         image_url: imageUrl,
         image_url_ur: imageUrlUr,
+        image_url_mobile: mobileUrl,
+        image_url_mobile_ur: mobileUrlUr,
         title: title.trim() || null,
         link_url: linkUrl.trim() || null,
         sort_order: Number(sortOrder) || 0,
@@ -102,6 +106,8 @@ export function BannersPage() {
       if (user) void logAdminAction(supabase, user.id, "banner.create", "banner", created.id);
       setImageUrl(null);
       setImageUrlUr(null);
+      setMobileUrl(null);
+      setMobileUrlUr(null);
       setTitle("");
       setLinkUrl("");
       setSortOrder("0");
@@ -138,12 +144,14 @@ export function BannersPage() {
         <p className="text-xs text-muted">
           Banners appear as a slider at the top of the homepage, in the order below. Use an image
           or MP4 video of exactly 1600 × 600 px (8:3) so nothing gets cut off. Videos play muted
-          on a loop. The Urdu file is optional; without it the Urdu site shows the English one.
+          on a loop. The Urdu file is optional; without it the Urdu site shows the English one. Phone versions are optional: 1080 × 1350 px (4:5), shown on phones instead of the wide file.
         </p>
 
         <div className="flex flex-wrap items-start gap-4">
           <MediaUpload label="English" url={imageUrl} onChange={setImageUrl} onBusy={setUploading} onError={setError} />
           <MediaUpload label="Urdu (optional)" url={imageUrlUr} onChange={setImageUrlUr} onBusy={setUploading} onError={setError} />
+          <MediaUpload label="Phone, English (optional)" url={mobileUrl} onChange={setMobileUrl} onBusy={setUploading} onError={setError} />
+          <MediaUpload label="Phone, Urdu (optional)" url={mobileUrlUr} onChange={setMobileUrlUr} onBusy={setUploading} onError={setError} />
         </div>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -210,7 +218,8 @@ export function BannersPage() {
               </span>
               <span className="truncate text-[11.5px] text-muted-table">
                 {b.is_active ? "On" : "Off"} · {isVideo(b.image_url) ? "Video" : "Image"}
-                {b.image_url_ur ? " · Urdu version" : ""} · Order {b.sort_order}
+                {b.image_url_ur ? " · Urdu version" : ""}
+                {b.image_url_mobile || b.image_url_mobile_ur ? " · Phone version" : ""} · Order {b.sort_order}
                 {b.link_url ? ` · ${b.link_url}` : ""}
               </span>
             </div>

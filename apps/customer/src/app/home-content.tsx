@@ -450,6 +450,20 @@ function HeroVideo({ src, onEnded }: { src: string; onEnded?: () => void }) {
 const BANNER_BG = "#3a1d5a";
 const isVideo = (url: string) => /\.(mp4|webm)(\?|$)/i.test(url);
 
+/** Phone-width screens (below Tailwind's sm), kept in sync on resize. */
+function usePhone() {
+  const query = "(max-width: 639px)";
+  const [phone, setPhone] = useState(() => typeof window !== "undefined" && window.matchMedia(query).matches);
+  useEffect(() => {
+    const mq = window.matchMedia(query);
+    const update = () => setPhone(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+  return phone;
+}
+
 function HomeBanner({ banners }: { banners: BannerRow[] | undefined }) {
   const { locale } = useLanguage();
   const slides = banners ?? [];
@@ -457,7 +471,9 @@ function HomeBanner({ banners }: { banners: BannerRow[] | undefined }) {
   const [index, setIndex] = useState(0);
   const current = count ? slides[index % count] : undefined;
   const urdu = locale === "ur";
-  const media = current ? (urdu && current.image_url_ur) || current.image_url : "";
+  const phone = usePhone();
+  const phoneMedia = current && phone ? (urdu && current.image_url_mobile_ur) || current.image_url_mobile : null;
+  const media = phoneMedia || (current ? (urdu && current.image_url_ur) || current.image_url : "");
   const video = isVideo(media);
 
   useEffect(() => {
@@ -469,20 +485,26 @@ function HomeBanner({ banners }: { banners: BannerRow[] | undefined }) {
 
   // Holds the banner's space while it loads, so the page doesn't jump.
   if (!banners) {
-    return <div className="aspect-[20/9] max-h-[calc(100svh-220px)] w-full sm:aspect-[8/3]" style={{ backgroundColor: BANNER_BG }} />;
+    return <div className="aspect-[4/5] w-full sm:aspect-[8/3] sm:max-h-[calc(100svh-220px)]" style={{ backgroundColor: BANNER_BG }} />;
   }
   if (!current) return null;
 
-  const linkArea = ((urdu && current.link_area_ur) || current.link_area) as CSSProperties | null;
+  const linkArea = (
+    phoneMedia
+      ? (urdu && current.image_url_mobile_ur ? current.link_area_mobile_ur : current.link_area_mobile)
+      : (urdu && current.link_area_ur) || current.link_area
+  ) as CSSProperties | null;
   const linkClass = linkArea ? "absolute rounded-full" : "absolute inset-0 block";
   const label = current.title ?? "Banner";
 
   return (
     <section style={{ backgroundColor: BANNER_BG }}>
       {/* sized to the artwork so a link stays on top of its button at any width */}
-      <div className="relative mx-auto aspect-[20/9] w-full overflow-hidden sm:aspect-[8/3] sm:max-w-[calc((100svh-220px)*8/3)]">
-        {/* on phones a video is zoomed to fill the height, cropping its right-hand decoration */}
-        <div className={video ? "absolute inset-y-0 left-[-2.4%] w-[120%] sm:left-0 sm:w-full" : "absolute inset-0"}>
+      <div
+        className={`relative mx-auto w-full overflow-hidden sm:aspect-[8/3] sm:max-w-[calc((100svh-220px)*8/3)] ${phoneMedia ? "aspect-[4/5]" : "aspect-[20/9]"}`}
+      >
+        {/* without a phone version, a video on phones is zoomed to fill the height, cropping its right-hand decoration */}
+        <div className={video && !phoneMedia ? "absolute inset-y-0 left-[-2.4%] w-[120%] sm:left-0 sm:w-full" : "absolute inset-0"}>
         {video ? (
           <HeroVideo
             key={media}
