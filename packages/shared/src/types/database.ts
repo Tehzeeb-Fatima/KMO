@@ -586,6 +586,7 @@ export interface Database {
           price: number;
           compare_at_price: number | null;
           paused_sale_price: number | null;
+          sold_badge: number | null;
           sku: string | null;
           stock_quantity: number | null;
           status: ProductStatus;
@@ -634,6 +635,7 @@ export interface Database {
           video_url?: string | null;
           price?: number;
           compare_at_price?: number | null;
+          sold_badge?: number | null;
           sku?: string | null;
           stock_quantity?: number | null;
           status?: ProductStatus;

@@ -15,6 +15,8 @@ export interface ProductCardProps {
   cod?: boolean;
   /** Promotion label (admin-set); replaces the "-X%" badge when present. */
   promoLabel?: string | null;
+  /** Admin-set "N sold" tag, shown on the photo. */
+  soldBadge?: number | null;
   /** Top-right of the image, e.g. a wishlist heart. */
   topRight?: ReactNode;
   /** Below the price, e.g. an add-to-cart button. */
@@ -50,6 +52,7 @@ export function ProductCard({
   soldCount,
   cod = true,
   promoLabel,
+  soldBadge,
   topRight,
   footer,
   LinkComponent = DefaultLink,
@@ -105,6 +108,11 @@ export function ProductCard({
           </span>
         ) : null}
         {topRight ? <div className="absolute right-2.5 top-2.5">{topRight}</div> : null}
+        {soldBadge ? (
+          <span className="absolute bottom-2.5 left-2.5 rounded bg-black/70 px-[7px] py-1 text-[11.5px] font-bold text-white">
+            🔥 {soldBadge.toLocaleString()} sold
+          </span>
+        ) : null}
       </div>
 
       {/* every card the same height: the name always reserves two lines and

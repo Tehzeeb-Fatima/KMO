@@ -28,6 +28,7 @@ export function ProductsModerationPage() {
   const [editing, setEditing] = useState<ProductWithMedia | null | "new">(null);
   const [previewing, setPreviewing] = useState<ProductWithMedia | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [soldEditing, setSoldEditing] = useState<ProductWithMedia | null>(null);
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
@@ -341,6 +342,14 @@ export function ProductsModerationPage() {
                 </button>
                 <button
                   type="button"
+                  onClick={() => setSoldEditing(p)}
+                  className="rounded-md border border-border bg-white px-2.5 py-1.5 text-[11px] font-bold text-ink-dark"
+                  title="Show an 'N sold' tag on this product"
+                >
+                  {p.sold_badge ? `${p.sold_badge.toLocaleString()} sold` : "Sold tag"}
+                </button>
+                <button
+                  type="button"
                   onClick={() => setPendingRemove({ id: p.id, status: p.status })}
                   className="rounded-md border border-border bg-white px-2.5 py-1.5 text-[11px] font-bold text-danger"
                 >
@@ -386,6 +395,7 @@ export function ProductsModerationPage() {
       />
 
       {previewing ? <ProductPreviewModal product={previewing} onClose={() => setPreviewing(null)} /> : null}
+      {soldEditing ? <SoldTagDialog product={soldEditing} onClose={() => setSoldEditing(null)} /> : null}
     </div>
   );
 }
@@ -423,5 +433,65 @@ function CategoryCheck({
         </button>
       ) : null}
     </p>
+  );
+}
+
+/** Admin sets (or clears) the "N sold" tag shown on a product's card and page. */
+function SoldTagDialog({ product, onClose }: { product: ProductWithMedia; onClose: () => void }) {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const [value, setValue] = useState(product.sold_badge ? String(product.sold_badge) : "");
+  const num = value.trim() === "" ? null : Number(value);
+  const valid = num === null || (Number.isInteger(num) && num > 0);
+
+  const save = useMutation({
+    mutationFn: async (next: number | null) => {
+      const { error } = await supabase.from("products").update({ sold_badge: next }).eq("id", product.id);
+      if (error) throw error;
+    },
+    onSuccess: (_v, next) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+      if (user) void logAdminAction(supabase, user.id, "product.sold_badge", "product", product.id, { sold_badge: next });
+      onClose();
+    },
+  });
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true">
+      <form
+        className="w-full max-w-[400px] rounded-xl bg-surface p-6"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (valid) save.mutate(num);
+        }}
+      >
+        <p className="text-[17px] font-bold text-ink-dark">Sold tag</p>
+        <p className="mt-1 truncate text-xs text-muted">{product.name}</p>
+        <label className="mt-4 flex flex-col gap-1 text-xs font-bold text-ink-dark">
+          How many sold to show
+          <input
+            type="number"
+            min={1}
+            step={1}
+            autoFocus
+            value={value}
+            placeholder="e.g. 250"
+            onChange={(e) => setValue(e.target.value)}
+            className="w-full rounded-md border border-border bg-surface px-3 py-2 text-[13px] text-ink-dark outline-none focus:border-primary-light"
+          />
+        </label>
+        <p className="mt-2 text-xs text-muted">Shoppers see &ldquo;🔥 {num && valid ? num.toLocaleString() : "N"} sold&rdquo;. Leave blank to remove the tag.</p>
+        {!valid ? <p className="mt-2 text-[12.5px] text-danger">Enter a whole number above 0.</p> : null}
+        {save.isError ? <p className="mt-2 text-[12.5px] text-danger">{(save.error as Error).message}</p> : null}
+        <div className="mt-6 flex justify-end gap-2">
+          <button type="button" onClick={onClose} className="rounded-md border border-border px-4 py-2 text-[13px] font-semibold text-ink-dark">
+            Cancel
+          </button>
+          <button type="submit" disabled={!valid || save.isPending} className="rounded-md bg-accent px-4 py-2 text-[13px] font-semibold text-white disabled:opacity-50">
+            {save.isPending ? "Saving…" : "Save"}
+          </button>
+        </div>
+      </form>
+    </div>
   );
 }

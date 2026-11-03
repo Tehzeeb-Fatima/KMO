@@ -372,6 +372,7 @@ function ProductsTab({ vendorId }: { vendorId: string }) {
                 name={colour ? `${p.name} – ${colour}` : p.name}
                 price={cp.price}
                 compareAtPrice={cp.compareAtPrice}
+                soldBadge={p.sold_badge}
                 promoLabel={cp.badgeText}
               />
             );

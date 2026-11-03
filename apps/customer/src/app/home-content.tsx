@@ -742,6 +742,7 @@ function PromoProductCard({
       name={p.name}
       price={cp.price}
       compareAtPrice={cp.compareAtPrice}
+      soldBadge={p.sold_badge}
       promoLabel={cp.badgeText}
       topRight={<WishlistHeart productId={p.id} />}
       footer={<AddToCartButton productId={p.id} {...defaultCartVariant(p)} />}
@@ -868,6 +869,7 @@ function FeaturedProducts({
                 name={p.name}
                 price={cp.price}
                 compareAtPrice={cp.compareAtPrice}
+      soldBadge={p.sold_badge}
                 promoLabel={cp.badgeText}
                 topRight={<WishlistHeart productId={p.id} />}
                 footer={<AddToCartButton productId={p.id} {...defaultCartVariant(p)} />}

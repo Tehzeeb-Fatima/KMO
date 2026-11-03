@@ -353,6 +353,7 @@ function SearchPageContent() {
                       name={p.name}
                       price={cp.price}
                       compareAtPrice={cp.compareAtPrice}
+                      soldBadge={p.sold_badge}
                       promoLabel={cp.badgeText}
                     />
                   );

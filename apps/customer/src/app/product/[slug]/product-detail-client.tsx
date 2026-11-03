@@ -422,6 +422,11 @@ export default function ProductDetailClient({
                 <SaleTagBadge className="rounded-full bg-primary px-2.5 py-1 text-[13px] font-bold text-white" />
               </>
             ) : null}
+            {product.sold_badge ? (
+              <span className="rounded-full bg-ink-dark px-2.5 py-1 text-[13px] font-bold text-white">
+                🔥 {product.sold_badge.toLocaleString()} sold
+              </span>
+            ) : null}
             <span className="rounded-full bg-primary-tint px-2.5 py-1 font-mono text-[11.5px] tracking-[0.1em] text-primary">
               {t.product.codAvailableBadge}
             </span>
@@ -850,6 +855,7 @@ export default function ProductDetailClient({
                     name={p.name}
                     price={cp.price}
                     compareAtPrice={cp.compareAtPrice}
+                    soldBadge={p.sold_badge}
                     promoLabel={cp.badgeText}
                     cod={false}
                   />
@@ -882,6 +888,7 @@ export default function ProductDetailClient({
                     name={p.name}
                     price={cp.price}
                     compareAtPrice={cp.compareAtPrice}
+                    soldBadge={p.sold_badge}
                     promoLabel={cp.badgeText}
                   />
                 );
