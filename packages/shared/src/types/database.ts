@@ -804,6 +804,7 @@ export interface Database {
       };
       orders: {
         Row: {
+          deleted_at: string | null;
           id: string;
           checkout_group: string;
           order_number: string;
@@ -849,6 +850,7 @@ export interface Database {
           created_at: string;
         };
         Insert: {
+          deleted_at?: string | null;
           id?: string;
           checkout_group?: string;
           order_number: string;
@@ -894,6 +896,7 @@ export interface Database {
           created_at?: string;
         };
         Update: {
+          deleted_at?: string | null;
           id?: string;
           checkout_group?: string;
           order_number?: string;

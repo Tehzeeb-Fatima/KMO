@@ -129,3 +129,31 @@ export async function updateOrderStatus(
   if (error) throw error;
   return data;
 }
+
+export interface DeletedOrderRow {
+  id: string;
+  order_number: string;
+  total: number;
+  ship_name: string | null;
+  store_name: string | null;
+  created_at: string;
+  deleted_at: string;
+}
+
+/** Admin only: cancels the order (refunding wallet and points), returns its stock and hides it everywhere. */
+export async function softDeleteOrder(supabase: Client, id: string): Promise<void> {
+  const { error } = await supabase.rpc("admin_soft_delete_order" as never, { p_order: id } as never);
+  if (error) throw error;
+}
+
+/** Brings a deleted order back, as cancelled. */
+export async function restoreOrder(supabase: Client, id: string): Promise<void> {
+  const { error } = await supabase.rpc("admin_restore_order" as never, { p_order: id } as never);
+  if (error) throw error;
+}
+
+export async function listDeletedOrders(supabase: Client): Promise<DeletedOrderRow[]> {
+  const { data, error } = await supabase.rpc("admin_deleted_orders" as never);
+  if (error) throw error;
+  return data as unknown as DeletedOrderRow[];
+}

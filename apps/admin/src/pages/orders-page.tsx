@@ -3,13 +3,16 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getProductsByIds,
   listAllOrders,
+  listDeletedOrders,
   logAdminAction,
   notifyUser,
+  restoreOrder,
+  softDeleteOrder,
   updateOrderStatus,
   type AdminOrderRow,
 } from "@kmo/shared/api";
 import type { OrderStatus } from "@kmo/shared/types";
-import { StatusBadge } from "@kmo/shared/ui";
+import { ConfirmDialog, StatusBadge } from "@kmo/shared/ui";
 import { ORDER_STATUS_META, ORDER_STATUS_FLOW } from "@kmo/shared/lib";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "../lib/supabase";
@@ -28,7 +31,65 @@ export function OrdersPage() {
     if (order) return <OrderDetail order={order} onBack={() => setSelectedId(null)} />;
   }
 
-  return <OrdersList orders={orders} isLoading={isLoading} onOpen={setSelectedId} />;
+  return (
+    <div className="flex flex-col gap-5">
+      <OrdersList orders={orders} isLoading={isLoading} onOpen={setSelectedId} />
+      <DeletedOrders />
+    </div>
+  );
+}
+
+function DeletedOrders() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const [open, setOpen] = useState(false);
+  const { data: deleted } = useQuery({
+    queryKey: ["admin-deleted-orders"],
+    queryFn: () => listDeletedOrders(supabase),
+    enabled: open,
+  });
+  const restore = useMutation({
+    mutationFn: (id: string) => restoreOrder(supabase, id),
+    onSuccess: (_v, id) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-deleted-orders"] });
+      if (user) void logAdminAction(supabase, user.id, "order.restore", "order", id);
+    },
+  });
+
+  return (
+    <div className="flex flex-col gap-3">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="w-fit text-[13px] font-bold text-primary"
+      >
+        {open ? "Hide deleted orders" : "Show deleted orders"}
+      </button>
+      {open && deleted?.length === 0 ? <p className="text-sm text-muted">No deleted orders.</p> : null}
+      {open
+        ? deleted?.map((o) => (
+            <div
+              key={o.id}
+              className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-surface p-4"
+            >
+              <span className="text-[13.5px] text-ink-dark">
+                <b>#{o.order_number}</b> · {o.ship_name ?? "Customer"} · {o.store_name ?? "Vendor"} · Rs.{" "}
+                {Number(o.total).toLocaleString()}
+              </span>
+              <button
+                type="button"
+                onClick={() => restore.mutate(o.id)}
+                disabled={restore.isPending}
+                className="rounded-md border border-border bg-white px-2.5 py-1.5 text-[11px] font-bold text-primary disabled:opacity-60"
+              >
+                Restore as cancelled
+              </button>
+            </div>
+          ))
+        : null}
+    </div>
+  );
 }
 
 function OrdersList({
@@ -145,6 +206,22 @@ function OrderDetail({
     enabled: productIds.length > 0,
   });
   const slugByProductId = new Map((products ?? []).map((p) => [p.id, p.slug]));
+
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const deleteMutation = useMutation({
+    mutationFn: () => softDeleteOrder(supabase, order.id),
+    onSuccess: () => {
+      if (user) void logAdminAction(supabase, user.id, "order.delete", "order", order.id);
+      queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-deleted-orders"] });
+      onBack();
+    },
+    onError: (err: Error) => {
+      setDeleteError(err.message);
+      setConfirmDelete(false);
+    },
+  });
 
   const mutation = useMutation({
     mutationFn: async (status: OrderStatus) => {
@@ -292,8 +369,27 @@ function OrderDetail({
               Mark as {ORDER_STATUS_META[nextStatus].label.toLowerCase()}
             </button>
           ) : null}
+
+          <button
+            type="button"
+            onClick={() => setConfirmDelete(true)}
+            className="rounded-[9px] border border-border bg-white px-3 py-3 text-[13.5px] font-bold text-danger"
+          >
+            Delete order
+          </button>
+          {deleteError ? <p className="text-[12.5px] font-semibold text-danger">{deleteError}</p> : null}
         </div>
       </div>
+
+      <ConfirmDialog
+        open={confirmDelete}
+        title={`Delete order #${order.order_number}?`}
+        message="For test orders. It will be cancelled, any wallet or points refunded, stock returned, and it will disappear from customer, vendor and admin lists and reports. You can restore it from Show deleted orders, but it comes back as cancelled."
+        confirmLabel="Delete"
+        loading={deleteMutation.isPending}
+        onConfirm={() => deleteMutation.mutate()}
+        onCancel={() => setConfirmDelete(false)}
+      />
     </div>
   );
 }
