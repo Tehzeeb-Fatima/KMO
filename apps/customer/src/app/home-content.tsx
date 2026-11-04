@@ -270,7 +270,7 @@ export function HomeContent() {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            {vendors.slice(0, 6).map((v) => (
+            {vendors.slice(0, 9).map((v) => (
               <Link
                 key={v.id}
                 href={`/store/${v.slug}`}
