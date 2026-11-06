@@ -12,7 +12,7 @@ const EN = {
     },
     {
       title: "Delivery charges",
-      body: "Most vendors offer free delivery on orders over Rs. 2,500, with a flat Rs. 120 delivery charge on smaller orders. Delivery charges are calculated per vendor at checkout, since a multi-vendor cart creates a separate order per vendor.",
+      body: "Delivery charges depend on your city and are set by KMO. Where KMO allows it, a vendor may set its own delivery charge or offer free delivery. The exact charge for each vendor is shown at checkout before you place your order, since a multi-vendor cart creates a separate order per vendor. If no charge is shown, delivery is free.",
     },
     {
       title: "Delivery time",
@@ -20,7 +20,7 @@ const EN = {
     },
     {
       title: "Who delivers your order",
-      body: "Vendors either manage their own delivery or use a courier partner such as TCS, Leopards Courier or M&P Express. Vendors can also opt into KMO-managed shipping where available.",
+      body: "Vendors either manage their own delivery or use a courier partner such as TCS, Leopards Courier or M&P Express. Where KMO books the courier, the courier's status is synced to your order.",
     },
     {
       title: "Order tracking",
@@ -39,7 +39,7 @@ const UR = {
     },
     {
       title: "ڈیلیوری چارجز",
-      body: "زیادہ تر وینڈرز Rs. 2,500 سے زیادہ کے آرڈرز پر مفت ڈیلیوری دیتے ہیں، چھوٹے آرڈرز پر فلیٹ Rs. 120 ڈیلیوری چارج لگتا ہے۔ ڈیلیوری چارجز چیک آؤٹ پر فی وینڈر شمار کیے جاتے ہیں، کیونکہ ملٹی وینڈر کارٹ ہر وینڈر کے لیے الگ آرڈر بناتا ہے۔",
+      body: "ڈیلیوری چارجز آپ کے شہر کے حساب سے ہوتے ہیں اور KMO طے کرتا ہے۔ جہاں KMO اجازت دے، وینڈر اپنا ڈیلیوری چارج رکھ سکتا ہے یا مفت ڈیلیوری دے سکتا ہے۔ ہر وینڈر کا اصل چارج آرڈر دینے سے پہلے چیک آؤٹ پر دکھایا جاتا ہے، کیونکہ ملٹی وینڈر کارٹ ہر وینڈر کے لیے الگ آرڈر بناتا ہے۔ اگر کوئی چارج نہ دکھے تو ڈیلیوری مفت ہے۔",
     },
     {
       title: "ڈیلیوری کا وقت",
@@ -47,7 +47,7 @@ const UR = {
     },
     {
       title: "آپ کا آرڈر کون ڈیلیور کرتا ہے",
-      body: "وینڈرز یا تو اپنی ڈیلیوری خود سنبھالتے ہیں یا TCS، Leopards Courier یا M&P Express جیسے کوریئر پارٹنر استعمال کرتے ہیں۔ وینڈرز جہاں دستیاب ہو وہاں KMO کی منظم شپنگ بھی چن سکتے ہیں۔",
+      body: "وینڈرز یا تو اپنی ڈیلیوری خود سنبھالتے ہیں یا TCS، Leopards Courier یا M&P Express جیسے کوریئر پارٹنر استعمال کرتے ہیں۔ جہاں KMO کوریئر بک کرتا ہے، کوریئر کا اسٹیٹس آپ کے آرڈر میں اپ ڈیٹ ہوتا رہتا ہے۔",
     },
     {
       title: "آرڈر ٹریکنگ",

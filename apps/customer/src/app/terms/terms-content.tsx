@@ -5,7 +5,7 @@ import { useLanguage } from "@/lib/i18n/language-context";
 const EN = {
   badge: "Legal",
   title: "Terms & conditions",
-  lastUpdated: "Last updated 18 October 2026",
+  lastUpdated: "Last updated 7 November 2026",
   returnPolicy: "Return Policy",
   contactUs: "Contact us",
   sections: [
@@ -30,26 +30,30 @@ const EN = {
     },
     {
       title: "4. Orders and payment",
-      body: "KMO currently supports Cash on Delivery (COD) only. By placing an order, you agree to pay the listed total, including any delivery charge, to the delivery rider upon receipt of your order.",
+      body: "KMO currently supports Cash on Delivery (COD) only. By placing an order, you agree to pay the listed total, including any delivery charge, to the delivery rider upon receipt of your order. If you have a KMO wallet balance, you may choose to use it at checkout, and only the remaining amount is paid on delivery.",
     },
     {
       title: "5. Cancellations, returns and refunds",
       body: "returnPolicySection",
     },
     {
-      title: "6. Commission and vendor payouts",
-      body: "KMO charges vendors a commission on completed sales, which may vary by vendor or category. Vendor payouts are processed manually by KMO on a schedule communicated to each vendor.",
+      title: "6. Vendor fees and payouts",
+      body: "Vendors pay KMO a monthly membership fee. Vendor payouts are processed by KMO on a schedule communicated to each vendor.",
     },
     {
-      title: "7. Prohibited use",
+      title: "7. Reward points and KMO wallet",
+      body: "When KMO runs a reward programme, points are added after an order is delivered and may expire. Points can be converted to KMO wallet cash only after KMO approves the request. Wallet cash can be used at checkout and cannot be withdrawn. KMO may reverse points or wallet cash for cancelled or returned orders, and may change or end the programme at any time.",
+    },
+    {
+      title: "8. Prohibited use",
       body: "You may not use KMO to list or purchase counterfeit, stolen, illegal or unsafe goods, or to misrepresent your identity or a business you do not own or represent.",
     },
     {
-      title: "8. Changes to these terms",
+      title: "9. Changes to these terms",
       body: "We may update these terms from time to time. Continued use of KMO after changes take effect constitutes acceptance of the revised terms.",
     },
     {
-      title: "9. Contact",
+      title: "10. Contact",
       body: "contactSection",
     },
   ],
@@ -58,7 +62,7 @@ const EN = {
 const UR = {
   badge: "قانونی",
   title: "شرائط و ضوابط",
-  lastUpdated: "آخری بار اپ ڈیٹ کیا گیا 18 اکتوبر 2026",
+  lastUpdated: "آخری بار اپ ڈیٹ کیا گیا 7 نومبر 2026",
   returnPolicy: "واپسی کی پالیسی",
   contactUs: "ہم سے رابطہ کریں",
   sections: [
@@ -83,26 +87,30 @@ const UR = {
     },
     {
       title: "4. آرڈرز اور ادائیگی",
-      body: "KMO فی الحال صرف کیش آن ڈیلیوری (COD) سپورٹ کرتا ہے۔ آرڈر دے کر آپ اتفاق کرتے ہیں کہ آرڈر ملنے پر رائیڈر کو درج کل رقم، بشمول کوئی ڈیلیوری چارج، ادا کریں گے۔",
+      body: "KMO فی الحال صرف کیش آن ڈیلیوری (COD) سپورٹ کرتا ہے۔ آرڈر دے کر آپ اتفاق کرتے ہیں کہ آرڈر ملنے پر رائیڈر کو درج کل رقم، بشمول کوئی ڈیلیوری چارج، ادا کریں گے۔ اگر آپ کے KMO والیٹ میں رقم ہے تو آپ اسے چیک آؤٹ پر استعمال کر سکتے ہیں، اور باقی رقم ڈیلیوری پر ادا ہوگی۔",
     },
     {
       title: "5. منسوخی، واپسی اور رقم کی واپسی",
       body: "returnPolicySection",
     },
     {
-      title: "6. کمیشن اور وینڈر ادائیگیاں",
-      body: "KMO مکمل ہونے والی فروخت پر وینڈرز سے کمیشن لیتا ہے، جو وینڈر یا کیٹیگری کے لحاظ سے مختلف ہو سکتا ہے۔ وینڈر ادائیگیاں KMO ہر وینڈر کو بتائے گئے شیڈول کے مطابق دستی طور پر پروسیس کرتا ہے۔",
+      title: "6. وینڈر فیس اور ادائیگیاں",
+      body: "وینڈرز KMO کو ماہانہ ممبرشپ فیس دیتے ہیں۔ وینڈر ادائیگیاں KMO ہر وینڈر کو بتائے گئے شیڈول کے مطابق پروسیس کرتا ہے۔",
     },
     {
-      title: "7. ممنوعہ استعمال",
+      title: "7. ریوارڈ پوائنٹس اور KMO والیٹ",
+      body: "جب KMO ریوارڈ پروگرام چلائے، پوائنٹس آرڈر ڈیلیور ہونے کے بعد ملتے ہیں اور ختم بھی ہو سکتے ہیں۔ پوائنٹس KMO کی منظوری کے بعد ہی والیٹ کی رقم میں بدلتے ہیں۔ والیٹ کی رقم چیک آؤٹ پر استعمال ہو سکتی ہے، نکالی نہیں جا سکتی۔ منسوخ یا واپس ہونے والے آرڈرز پر KMO پوائنٹس یا والیٹ کی رقم واپس لے سکتا ہے، اور پروگرام کسی بھی وقت بدل یا بند کر سکتا ہے۔",
+    },
+    {
+      title: "8. ممنوعہ استعمال",
       body: "آپ KMO کو جعلی، چوری شدہ، غیر قانونی یا غیر محفوظ اشیاء درج یا خریدنے کے لیے، یا اپنی شناخت یا کسی ایسے کاروبار کو غلط ظاہر کرنے کے لیے استعمال نہیں کر سکتے جس کے آپ مالک یا نمائندہ نہیں ہیں۔",
     },
     {
-      title: "8. ان شرائط میں تبدیلیاں",
+      title: "9. ان شرائط میں تبدیلیاں",
       body: "ہم وقتاً فوقتاً ان شرائط کو اپ ڈیٹ کر سکتے ہیں۔ تبدیلیاں لاگو ہونے کے بعد KMO کا استعمال جاری رکھنا نظرثانی شدہ شرائط کی قبولیت شمار ہوگا۔",
     },
     {
-      title: "9. رابطہ",
+      title: "10. رابطہ",
       body: "contactSection",
     },
   ],
