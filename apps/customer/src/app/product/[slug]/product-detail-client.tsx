@@ -291,15 +291,29 @@ export default function ProductDetailClient({
             "@type": "Product",
             name: product.name,
             description: product.description ?? undefined,
-            brand: product.brand ?? undefined,
+            sku: product.sku ?? undefined,
+            brand: { "@type": "Brand", name: product.brand || product.vendors?.store_name || "Karachi Mart Online" },
             image: images.map((img) => img.url),
+            // Real customer reviews only: Google's rules forbid ratings that
+            // shoppers didn't give, so the admin's starting rating stays out.
+            aggregateRating:
+              product.review_count > 0
+                ? {
+                    "@type": "AggregateRating",
+                    ratingValue: Math.round((product.review_sum / product.review_count) * 10) / 10,
+                    reviewCount: product.review_count,
+                  }
+                : undefined,
             offers: {
               "@type": "Offer",
               price,
               priceCurrency: "PKR",
+              itemCondition: "https://schema.org/NewCondition",
               availability:
                 !outOfStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
               url: `https://karachimartonline.com/product/${product.slug}`,
+              seller: { "@type": "Organization", name: product.vendors?.store_name ?? "Karachi Mart Online" },
+              areaServed: "Karachi",
             },
           }),
         }}

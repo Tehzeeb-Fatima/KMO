@@ -30,7 +30,7 @@ const SITE_DESCRIPTION =
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Karachi Mart Online – Online Shopping in Karachi | Cash on Delivery",
+    default: "Karachi Mart Online (KMO) – Online Shopping Mart in Karachi | Cash on Delivery",
     template: "%s",
   },
   description: SITE_DESCRIPTION,
@@ -62,6 +62,8 @@ const SITE_JSON_LD = [
     "@context": "https://schema.org",
     "@type": "Organization",
     name: "Karachi Mart Online",
+    // what shoppers actually type: "karachi mart", "kmo"
+    alternateName: ["Karachi Mart", "KMO", "Karachi Mart Online Pakistan"],
     url: SITE_URL,
     logo: `${SITE_URL}/android-chrome-512x512.png`,
     email: "contact@karachimartonline.com",
@@ -77,6 +79,7 @@ const SITE_JSON_LD = [
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: "Karachi Mart Online",
+    alternateName: ["Karachi Mart", "KMO"],
     url: SITE_URL,
     potentialAction: {
       "@type": "SearchAction",

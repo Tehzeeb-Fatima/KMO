@@ -117,7 +117,7 @@ export const LANDING_PAGES: LandingPage[] = [
       "Every piece is sold by a verified Karachi seller and delivered to your door with cash on delivery.",
     ],
     nameTerms: ["terracotta", "clay"],
-    vendorSlugs: ["mitti-mart-41c25deb"],
+    vendorSlugs: ["mitti-mart-41c25deb", "hamari-mitti-pakistan-28fdff8b"],
     faqs: [
       {
         q: "Is cooking in clay pots healthy?",
@@ -207,5 +207,218 @@ export const LANDING_PAGES: LandingPage[] = [
     ],
     categorySlugs: ["jewellery-watches"],
     faqs: [{ q: "How do I choose the bangle size?", a: "The bangle size (for example 2.4 or 2.6) is shown on the product. Pick the size you normally wear." }],
+  },
+  {
+    slug: "online-shopping-karachi",
+    title: "Online Shopping in Karachi – Karachi Mart Online | Cash on Delivery",
+    description:
+      "Karachi Mart Online is an online shopping mart for Karachi: clothes, shoes, bags, kitchenware, clay cookware, beauty and more from verified Karachi stores. Cash on delivery.",
+    h1: "Online Shopping in Karachi",
+    intro: [
+      "Karachi Mart Online (KMO) brings verified Karachi stores together in one online mart: ladies suits, kids clothes, shoes, handbags, kitchenware, mitti ke bartan, storage, beauty and more.",
+      "Order from home, pay cash when the parcel arrives, and get delivery anywhere in Karachi.",
+    ],
+    categorySlugs: [
+      "womens-fashion-nightwear-loungewear",
+      "kids-fashion-girls-clothing",
+      "home-living-kitchenware-cookware",
+      "home-living-storage-organisers",
+      "womens-fashion-handbags-clutches",
+    ],
+    faqs: [
+      { q: "What is Karachi Mart Online?", a: "Karachi Mart Online (KMO) is an online marketplace where verified Karachi stores sell their products, delivered across Karachi." },
+      { q: "Can I pay cash on delivery?", a: "Yes. Every order on Karachi Mart Online can be paid in cash when it arrives." },
+      { q: "How long does delivery take?", a: "Most orders arrive in 3 to 7 working days." },
+    ],
+  },
+  {
+    slug: "ladies-suits-karachi",
+    title: "Ladies Suits Online in Karachi – Lawn, Stitched, Formal & Night Suits",
+    description:
+      "Buy ladies suits online in Karachi: stitched and unstitched lawn suits, formal and bridal wear, co-ord sets and night suits. Cash on delivery.",
+    h1: "Ladies Suits in Karachi",
+    intro: [
+      "Ready-to-wear and unstitched ladies suits, formal and bridal outfits, co-ord sets and night suits from Karachi sellers.",
+      "Choose your size and colour on the product page and pay cash on delivery.",
+    ],
+    categorySlugs: [
+      "womens-fashion-stitched-ready-to-wear",
+      "womens-fashion-unstitched-lawn-khaddar-chiffon",
+      "womens-fashion-formal-bridal-wear",
+      "womens-fashion-western-wear",
+    ],
+    nameTerms: ["suit", "co-ord", "lawn"],
+    faqs: [
+      { q: "Are the suits stitched or unstitched?", a: "Both are available. Each product says whether it is ready-to-wear or unstitched fabric." },
+      { q: "Can I pay cash on delivery?", a: "Yes. All orders are cash on delivery across Karachi." },
+    ],
+  },
+  {
+    slug: "ladies-bags-karachi",
+    title: "Ladies Bags Online in Karachi – Handbags, Shoulder Bags & Clutches",
+    description:
+      "Shop ladies bags online in Karachi: handbags, shoulder bags, tote bags, purses and clutches from Karachi sellers. Cash on delivery.",
+    h1: "Ladies Bags in Karachi",
+    intro: [
+      "Handbags, shoulder bags, totes, purses and clutches for daily use, office and weddings.",
+      "Delivered across Karachi with cash on delivery.",
+    ],
+    categorySlugs: ["womens-fashion-handbags-clutches"],
+    nameTerms: ["handbag", "purse", "tote", "shoulder bag"],
+    faqs: [{ q: "Can I see the bag size before ordering?", a: "Sizes and details are written on each product page. Message us on WhatsApp if you need more photos." }],
+  },
+  {
+    slug: "ladies-shoes-slippers-karachi",
+    title: "Ladies Shoes & Slippers Online in Karachi – Heels, Sandals & Chappals",
+    description:
+      "Buy ladies shoes and slippers online in Karachi: heels, sandals, chappals, flats and casual shoes. Cash on delivery across Karachi.",
+    h1: "Ladies Shoes & Slippers in Karachi",
+    intro: [
+      "Heels, sandals, slippers, chappals, flats and casual shoes for everyday wear, Eid and weddings.",
+      "Pick your size on the product page and pay cash when the parcel arrives.",
+    ],
+    categorySlugs: ["womens-fashion-women-s-footwear"],
+    nameTerms: ["slipper", "heel", "sandal", "chappal"],
+    faqs: [{ q: "How do I choose my shoe size?", a: "Each product lists its sizes. Pick the size you normally wear in Pakistani or EU sizing as shown." }],
+  },
+  {
+    slug: "shirts-trousers-karachi",
+    title: "Shirts, T-Shirts & Trousers Online in Karachi – Men & Boys",
+    description:
+      "Shop shirts, t-shirts, hoodies and trousers online in Karachi for men and boys. Cash on delivery across Karachi.",
+    h1: "Shirts, T-Shirts & Trousers in Karachi",
+    intro: [
+      "Shirts, t-shirts, hoodies, sweatshirts, trousers and joggers for men and boys.",
+      "Sizes are shown on each product. Pay cash on delivery anywhere in Karachi.",
+    ],
+    categorySlugs: ["kids-fashion-boys-clothing", "mens-fashion-activewear-tracksuits"],
+    nameTerms: ["shirt", "trouser", "hoodie", "jogger", "sweatshirt"],
+    faqs: [{ q: "Do you have boys' sizes?", a: "Yes. Boys' items show their age size on the product page." }],
+  },
+  {
+    slug: "boys-clothes-karachi",
+    title: "Boys Clothes Online in Karachi – Shirts, Hoodies, Trousers & Sets",
+    description:
+      "Buy boys clothes online in Karachi: shirts, hoodies, sweatshirts, trousers and sets for ages 1 to 14. Cash on delivery.",
+    h1: "Boys Clothes in Karachi",
+    intro: [
+      "Shirts, hoodies, sweatshirts, trousers and matching sets for boys, with the age size on every product.",
+      "Delivered across Karachi with cash on delivery.",
+    ],
+    categorySlugs: ["kids-fashion-boys-clothing"],
+    nameTerms: ["boys"],
+    faqs: [{ q: "Which ages are available?", a: "Most boys' items come in sizes from 1 year up to 14 years." }],
+  },
+  {
+    slug: "girls-clothes-karachi",
+    title: "Girls Clothes Online in Karachi – Frocks, Dresses, Hoodies & Sets",
+    description:
+      "Shop girls clothes online in Karachi: frocks, party dresses, hoodies, sweatshirts and everyday sets for babies to 14 years. Cash on delivery.",
+    h1: "Girls Clothes in Karachi",
+    intro: [
+      "Frocks, party dresses, hoodies, sweatshirts and everyday sets for girls, from babies up to 14 years.",
+      "Every product shows its age size. Pay cash on delivery across Karachi.",
+    ],
+    categorySlugs: ["kids-fashion-girls-clothing", "kids-fashion-baby-clothing-0-2-years"],
+    nameTerms: ["girls", "frock"],
+    faqs: [{ q: "Can I pay cash on delivery?", a: "Yes. All orders are cash on delivery." }],
+  },
+  {
+    slug: "hijab-abaya-karachi",
+    title: "Hijab, Abaya & Dupatta Online in Karachi",
+    description:
+      "Buy hijabs, abayas, scarves and dupattas online in Karachi in chiffon, jersey and georgette. Cash on delivery.",
+    h1: "Hijab, Abaya & Dupatta in Karachi",
+    intro: [
+      "Hijabs, scarves, abayas and dupattas in chiffon, jersey, georgette and more colours.",
+      "Sold by verified Karachi sellers with cash on delivery.",
+    ],
+    categorySlugs: ["womens-fashion-abaya-hijab-dupatta"],
+    nameTerms: ["hijab", "abaya", "dupatta", "scarf"],
+    faqs: [{ q: "Do you deliver across Karachi?", a: "Yes, with cash on delivery." }],
+  },
+  {
+    slug: "eid-shopping-karachi",
+    title: "Eid Shopping Online in Karachi – Suits, Kids Clothes, Jewellery & Mehndi",
+    description:
+      "Do your Eid shopping online in Karachi: ladies suits, kids clothes, bangles and jewellery, mehndi, shoes and gifts. Cash on delivery.",
+    h1: "Eid Shopping in Karachi",
+    intro: [
+      "Everything for Eid in one place: ladies suits and formal wear, kids clothes, bangles and jewellery, mehndi, shoes, bags and gifts.",
+      "Order early, pay cash on delivery, and get it delivered anywhere in Karachi.",
+    ],
+    categorySlugs: [
+      "womens-fashion-formal-bridal-wear",
+      "womens-fashion-stitched-ready-to-wear",
+      "kids-fashion-girls-clothing",
+      "jewellery-watches-bangles-bracelets",
+      "beauty-personal-care-mehndi-nail-care",
+      "handmade-crafts-handmade-gifts-hampers",
+    ],
+    faqs: [
+      { q: "When should I order for Eid?", a: "Delivery usually takes 3 to 7 working days, so order at least a week before Eid." },
+      { q: "Can I pay cash on delivery?", a: "Yes. All orders are cash on delivery." },
+    ],
+  },
+  {
+    slug: "kitchenware-karachi",
+    title: "Kitchenware & Cookware Online in Karachi – Pots, Pans, Tools & Crockery",
+    description:
+      "Shop kitchenware online in Karachi: cookware, non-stick pans, kitchen tools, dinner sets and crockery. Cash on delivery.",
+    h1: "Kitchenware & Cookware in Karachi",
+    intro: [
+      "Pots, pans, non-stick cookware, kitchen tools, dinner sets and crockery for every Karachi kitchen.",
+      "Delivered to your door with cash on delivery.",
+    ],
+    categorySlugs: ["home-living-kitchenware-cookware", "home-living-dinner-sets-crockery"],
+    faqs: [{ q: "Can I pay cash on delivery?", a: "Yes. All orders are cash on delivery." }],
+  },
+  {
+    slug: "storage-organisers-karachi",
+    title: "Storage Boxes & Organisers Online in Karachi – Kitchen, Wardrobe & Bathroom",
+    description:
+      "Buy storage boxes and organisers online in Karachi: kitchen racks, wardrobe and shoe organisers, baskets and bathroom storage. Cash on delivery.",
+    h1: "Storage & Organisers in Karachi",
+    intro: [
+      "Kitchen racks, spice and fridge organisers, wardrobe and shoe organisers, baskets and bathroom storage.",
+      "Cash on delivery across Karachi.",
+    ],
+    categorySlugs: ["home-living-storage-organisers"],
+    nameTerms: ["organizer", "organiser", "storage", "rack"],
+    faqs: [{ q: "Do you deliver across Karachi?", a: "Yes, with cash on delivery." }],
+  },
+  {
+    slug: "dry-fruits-karachi",
+    title: "Dry Fruits Online in Karachi – Almonds, Pistachios, Cashews & Gift Boxes",
+    description:
+      "Buy dry fruits online in Karachi: almonds, pistachios, cashews, walnuts, raisins and gift boxes. Fresh stock, cash on delivery.",
+    h1: "Dry Fruits in Karachi",
+    intro: [
+      "Almonds, pistachios, cashews, walnuts, raisins and mixed dry fruit gift boxes from a Karachi seller.",
+      "Delivered across Karachi with cash on delivery.",
+    ],
+    categorySlugs: ["food-dry-fruits-dry-fruits-nuts"],
+    vendorSlugs: ["karachi-dry-fruit-60f7a0fc"],
+    faqs: [{ q: "Are dry fruits available in gift boxes?", a: "Yes. Gift boxes are listed alongside loose dry fruits." }],
+  },
+  {
+    slug: "beauty-products-karachi",
+    title: "Beauty Products Online in Karachi – Skincare, Makeup, Haircare & Mehndi",
+    description:
+      "Shop beauty products online in Karachi: skincare, makeup, haircare, bath and body, beauty tools and mehndi. Cash on delivery.",
+    h1: "Beauty Products in Karachi",
+    intro: [
+      "Skincare, makeup, haircare, bath and body products, beauty tools and mehndi from verified Karachi sellers.",
+      "Pay cash on delivery anywhere in Karachi.",
+    ],
+    categorySlugs: [
+      "beauty-personal-care-skincare",
+      "beauty-personal-care-makeup",
+      "beauty-personal-care-haircare",
+      "beauty-personal-care-bath-body",
+      "beauty-personal-care-beauty-tools-devices",
+      "beauty-personal-care-mehndi-nail-care",
+    ],
+    faqs: [{ q: "Can I pay cash on delivery?", a: "Yes. All orders are cash on delivery." }],
   },
 ];
