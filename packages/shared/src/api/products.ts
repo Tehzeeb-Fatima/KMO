@@ -278,6 +278,8 @@ export async function listPublishedProducts(
     /** Substring match on the product name — for pickers where partial words must match. */
     nameContains?: string;
     productIds?: string[];
+    /** Only products with their own discount ("was" price above the price). */
+    onSale?: boolean;
     limit?: number;
   },
 ): Promise<ProductWithMedia[]> {
@@ -318,9 +320,13 @@ export async function listPublishedProducts(
 
   if (filter?.limit) query = query.limit(filter.limit);
 
+  if (filter?.onSale) query = query.not("compare_at_price", "is", null);
+
   const { data, error } = await query;
   if (error) throw error;
-  return data as unknown as ProductWithMedia[];
+  const rows = data as unknown as ProductWithMedia[];
+  // a "was" price only counts as a discount when it is above the price
+  return filter?.onSale ? rows.filter((p) => p.compare_at_price !== null && p.compare_at_price > p.price) : rows;
 }
 
 export async function getPublishedProductBySlug(

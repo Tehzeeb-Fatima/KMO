@@ -13,7 +13,7 @@ import {
   toPricingPromotions,
 } from "@kmo/shared/api";
 import { cardPricing, cardStats, colourImageUrl, colourInSearch, mainCategories, mainImageUrl } from "@kmo/shared/lib";
-import { ProductCard } from "@kmo/shared/ui";
+import { ProductCard, useSaleTag } from "@kmo/shared/ui";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/i18n/language-context";
 import type { TranslationTree } from "@/lib/i18n/translations";
@@ -49,6 +49,8 @@ function SearchPageContent() {
   const minPrice = searchParams.get("min") ?? "";
   const maxPrice = searchParams.get("max") ?? "";
   const sort = (searchParams.get("sort") as Sort) ?? "newest";
+  const onSale = searchParams.get("sale") === "1";
+  const saleTag = useSaleTag();
 
   const [filtersOpen, setFiltersOpen] = useState(false);
   // Sub-category lists the shopper opened or closed by hand; otherwise the
@@ -104,9 +106,10 @@ function SearchPageContent() {
   const promoFilter = activePromo ? promotionProductFilter(activePromo) : {};
 
   const { data: products, isLoading } = useQuery({
-    queryKey: ["search", q, category, promo, minPrice, maxPrice, sort],
+    queryKey: ["search", q, category, promo, minPrice, maxPrice, sort, onSale],
     queryFn: () =>
       listPublishedProducts(supabase, {
+        onSale,
         search: q || undefined,
         ...(activePromo ? promoFilter : { categoryId: category || undefined }),
         minPrice: minPrice ? Number(minPrice) : undefined,
@@ -266,6 +269,18 @@ function SearchPageContent() {
         <aside className="hidden lg:block">{filterPanel}</aside>
 
         <div className="min-w-0">
+          {onSale && !activePromo ? (
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              <h2 className="text-xl font-bold tracking-[-0.025em] text-ink sm:text-[21px]">{saleTag ?? "Sale"}</h2>
+              <button
+                type="button"
+                onClick={() => updateParams({ sale: null })}
+                className="rounded-full border border-border px-2.5 py-1 text-[12.5px] font-semibold text-muted"
+              >
+                ✕
+              </button>
+            </div>
+          ) : null}
           {activePromo ? (
             <div className="mb-4">
               <h2 className="text-xl font-bold tracking-[-0.025em] text-ink sm:text-[21px]">
