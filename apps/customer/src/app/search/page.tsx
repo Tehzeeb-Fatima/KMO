@@ -40,7 +40,7 @@ export default function SearchPage() {
 function SearchPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const SORT_OPTIONS = sortOptions(t);
 
   const q = searchParams.get("q") ?? "";
@@ -250,14 +250,24 @@ function SearchPageContent() {
 
         <div className="min-w-0">
           {onSale && !activePromo ? (
-            <div className="mb-4 flex flex-wrap items-center gap-2">
-              <h2 className="text-xl font-bold tracking-[-0.025em] text-ink sm:text-[21px]">{saleTag ?? "Sale"}</h2>
+            <div
+              className="mb-5 flex items-center justify-between gap-3 rounded-2xl px-5 py-4 text-white sm:px-7 sm:py-5"
+              style={{ background: "linear-gradient(100deg, #3a1d5a 0%, #6b2a8a 60%, #c2552d 100%)" }}
+            >
+              <div className="min-w-0">
+                <h1 className="text-[26px] font-extrabold leading-tight tracking-normal sm:text-[32px]">
+                  <bdi>{saleTag ?? "Sale"}</bdi>
+                </h1>
+                <p className="mt-0.5 text-[14px] text-white/85 sm:text-[15px]">
+                  {locale === "ur" ? "منتخب پراڈکٹس پر خاص قیمتیں" : "Special prices on selected products"}
+                </p>
+              </div>
               <button
                 type="button"
                 onClick={() => updateParams({ sale: null })}
-                className="rounded-full border border-border px-2.5 py-1 text-[12.5px] font-semibold text-muted"
+                className="shrink-0 rounded-full bg-white/15 px-3.5 py-1.5 text-[13.5px] font-semibold text-white hover:bg-white/25"
               >
-                ✕
+                {locale === "ur" ? "سب پراڈکٹس" : "All products"}
               </button>
             </div>
           ) : null}
