@@ -485,7 +485,7 @@ function HomeBanner({ banners }: { banners: BannerRow[] | undefined }) {
 
   // Holds the banner's space while it loads, so the page doesn't jump.
   if (!banners) {
-    return <div className="aspect-[4/5] w-full sm:aspect-[8/3] sm:max-h-[calc(100svh-220px)]" style={{ backgroundColor: BANNER_BG }} />;
+    return <div className="aspect-[4/5] w-full sm:aspect-[8/3]" style={{ backgroundColor: BANNER_BG }} />;
   }
   if (!current) return null;
 
@@ -501,7 +501,7 @@ function HomeBanner({ banners }: { banners: BannerRow[] | undefined }) {
     <section style={{ backgroundColor: BANNER_BG }}>
       {/* sized to the artwork so a link stays on top of its button at any width */}
       <div
-        className={`relative mx-auto w-full overflow-hidden sm:aspect-[8/3] sm:max-w-[calc((100svh-220px)*8/3)] ${phoneMedia ? "aspect-[4/5]" : "aspect-[20/9]"}`}
+        className={`relative mx-auto w-full overflow-hidden sm:aspect-[8/3] ${phoneMedia ? "aspect-[4/5]" : "aspect-[20/9]"}`}
       >
         {/* without a phone version, a video on phones is zoomed to fill the height, cropping its right-hand decoration */}
         <div className={video && !phoneMedia ? "absolute inset-y-0 left-[-2.4%] w-[120%] sm:left-0 sm:w-full" : "absolute inset-0"}>

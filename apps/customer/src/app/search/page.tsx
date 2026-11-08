@@ -229,26 +229,6 @@ function SearchPageContent() {
         </div>
       </div>
 
-      <div>
-        <p className="mb-3 text-[15px] font-bold text-ink">{t.search.priceRange}</p>
-        <div className="flex items-center gap-2">
-          <input
-            type="number"
-            placeholder={t.search.min}
-            defaultValue={minPrice}
-            onBlur={(e) => updateParams({ min: e.target.value || null })}
-            className="w-full rounded-lg border border-border px-3 py-2 text-[15px] outline-none focus:border-primary-light"
-          />
-          <span className="text-muted">–</span>
-          <input
-            type="number"
-            placeholder={t.search.max}
-            defaultValue={maxPrice}
-            onBlur={(e) => updateParams({ max: e.target.value || null })}
-            className="w-full rounded-lg border border-border px-3 py-2 text-[15px] outline-none focus:border-primary-light"
-          />
-        </div>
-      </div>
     </div>
   );
 
@@ -326,7 +306,29 @@ function SearchPageContent() {
               )}
               {q ? ` ${t.search.resultsFor} "${q}"` : ""}
             </p>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-1.5" aria-label={t.search.priceRange}>
+                <span className="text-[14px] font-bold text-ink">{t.search.priceRange}</span>
+                <input
+                  key={`min-${minPrice}`}
+                  type="number"
+                  placeholder={t.search.min}
+                  defaultValue={minPrice}
+                  onBlur={(e) => updateParams({ min: e.target.value || null })}
+                  onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
+                  className="w-[84px] rounded-full border border-border bg-white px-3 py-1.5 text-[14px] outline-none focus:border-primary-light"
+                />
+                <span className="text-muted">–</span>
+                <input
+                  key={`max-${maxPrice}`}
+                  type="number"
+                  placeholder={t.search.max}
+                  defaultValue={maxPrice}
+                  onBlur={(e) => updateParams({ max: e.target.value || null })}
+                  onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
+                  className="w-[84px] rounded-full border border-border bg-white px-3 py-1.5 text-[14px] outline-none focus:border-primary-light"
+                />
+              </div>
               {SORT_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
