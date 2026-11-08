@@ -6,7 +6,7 @@ const EN = {
   badge: "Legal",
   title: "Terms & conditions",
   lastUpdated: "Last updated 7 November 2026",
-  returnPolicy: "Return Policy",
+  returnPolicy: "Exchange Policy",
   contactUs: "Contact us",
   sections: [
     {
@@ -33,7 +33,7 @@ const EN = {
       body: "KMO currently supports Cash on Delivery (COD) only. By placing an order, you agree to pay the listed total, including any delivery charge, to the delivery rider upon receipt of your order. If you have a KMO wallet balance, you may choose to use it at checkout, and only the remaining amount is paid on delivery.",
     },
     {
-      title: "5. Cancellations, returns and refunds",
+      title: "5. Cancellations, exchanges and refunds",
       body: "returnPolicySection",
     },
     {
@@ -63,7 +63,7 @@ const UR = {
   badge: "قانونی",
   title: "شرائط و ضوابط",
   lastUpdated: "آخری بار اپ ڈیٹ کیا گیا 7 نومبر 2026",
-  returnPolicy: "واپسی کی پالیسی",
+  returnPolicy: "ایکسچینج پالیسی",
   contactUs: "ہم سے رابطہ کریں",
   sections: [
     {
@@ -133,23 +133,21 @@ export function TermsContent() {
               {s.body === "returnPolicySection" ? (
                 locale === "ur" ? (
                   <>
-                    واپسی انفرادی وینڈرز کی بجائے براہ راست KMO منظم کرتا ہے — تفصیلات کے لیے
-                    ہماری{" "}
-                    <a href="/return-policy" className="font-semibold text-primary">
+                    KMO پر واپسی نہیں ہوتی۔ صرف ڈیلیوری میں ٹوٹی یا خراب ہوئی چیز KMO بدل دیتا
+                    ہے، اور نقد رقم واپس نہیں ہوتی۔ تفصیلات کے لیے ہماری{" "}
+                    <a href="/exchange-policy" className="font-semibold text-primary">
                       {c.returnPolicy}
                     </a>{" "}
-                    دیکھیں۔ KMO معیاری رقم کی واپسی پیش نہیں کرتا؛ منظور شدہ واپسیاں تبدیلی یا
-                    اسٹور کریڈٹ کے ذریعے حل کی جاتی ہیں۔
+                    دیکھیں۔
                   </>
                 ) : (
                   <>
-                    Returns are managed directly by KMO rather than by individual vendors — see
-                    our{" "}
-                    <a href="/return-policy" className="font-semibold text-primary">
+                    KMO does not accept returns. An item that arrives broken or damaged because
+                    of delivery is exchanged by KMO, and no cash refunds are given. See our{" "}
+                    <a href="/exchange-policy" className="font-semibold text-primary">
                       {c.returnPolicy}
                     </a>{" "}
-                    for details. KMO does not offer standard monetary refunds; approved returns
-                    are resolved through replacement or store credit.
+                    for details.
                   </>
                 )
               ) : s.body === "contactSection" ? (

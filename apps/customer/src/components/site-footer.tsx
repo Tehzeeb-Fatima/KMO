@@ -31,6 +31,7 @@ export function SiteFooter() {
         { href: "/#contact-us", label: t.footer.contactUs },
         { href: "/track-order", label: t.footer.trackOrder },
         { href: "/shipping-policy", label: t.footer.shippingReturns },
+        { href: "/exchange-policy", label: t.footer.exchangePolicy },
       ],
     },
     {

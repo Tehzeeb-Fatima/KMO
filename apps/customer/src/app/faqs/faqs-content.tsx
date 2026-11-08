@@ -20,11 +20,11 @@ const EN = {
     },
     {
       q: "Can I return a product?",
-      a: "Returns are handled directly by KMO, not by individual vendors. If something arrives damaged, wrong, or not as described, open the order in Your Orders and submit a return request with a reason. Our team reviews every request individually.",
+      a: "KMO does not accept returns. If an item arrives broken or damaged because of delivery, open the order in Your Orders and submit a request with the reason, and the KMO team will exchange it. See our Exchange Policy for details.",
     },
     {
       q: "Do you offer refunds?",
-      a: "KMO does not currently offer standard monetary refunds. Approved returns are resolved through replacement or store credit, handled case by case by our support team.",
+      a: "No. KMO does not give cash refunds. An item broken or damaged in delivery is exchanged instead.",
     },
     {
       q: "How do I become a vendor on KMO?",
@@ -55,11 +55,11 @@ const UR = {
     },
     {
       q: "کیا میں پراڈکٹ واپس کر سکتا ہوں؟",
-      a: "واپسی براہ راست KMO سنبھالتا ہے، انفرادی وینڈرز نہیں۔ اگر کوئی چیز خراب، غلط، یا بیان کردہ سے مختلف پہنچے، تو Your Orders میں آرڈر کھولیں اور وجہ کے ساتھ واپسی کی درخواست جمع کریں۔ ہماری ٹیم ہر درخواست کا انفرادی جائزہ لیتی ہے۔",
+      a: "KMO پر واپسی نہیں ہوتی۔ اگر کوئی چیز ڈیلیوری کی وجہ سے ٹوٹی یا خراب پہنچے، تو Your Orders میں آرڈر کھولیں اور وجہ کے ساتھ درخواست جمع کریں، KMO ٹیم اسے بدل دے گی۔ تفصیل کے لیے ہماری ایکسچینج پالیسی دیکھیں۔",
     },
     {
       q: "کیا آپ رقم واپس کرتے ہیں؟",
-      a: "KMO فی الحال معیاری رقم کی واپسی پیش نہیں کرتا۔ منظور شدہ واپسیاں ہماری سپورٹ ٹیم کے ذریعے کیس بہ کیس، تبدیلی یا اسٹور کریڈٹ کے ذریعے حل کی جاتی ہیں۔",
+      a: "نہیں۔ KMO نقد رقم واپس نہیں کرتا۔ ڈیلیوری میں ٹوٹی یا خراب ہوئی چیز بدل دی جاتی ہے۔",
     },
     {
       q: "میں KMO پر وینڈر کیسے بنوں؟",

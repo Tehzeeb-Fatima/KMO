@@ -13,7 +13,7 @@ const STATIC_PAGES = [
   "/terms",
   "/privacy",
   "/shipping-policy",
-  "/return-policy",
+  "/exchange-policy",
 ];
 
 // Built per request: the hourly ISR copy stayed frozen at deploy time, so

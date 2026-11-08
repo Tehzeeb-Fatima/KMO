@@ -626,7 +626,6 @@ export default function ProductDetailClient({
                 { label: t.product.karachiDays, sub: undefined },
                 { label: t.product.codLabel, sub: t.product.codLabelSub },
                 { label: t.product.returns7day, sub: t.product.returns7daySub },
-                { label: t.product.sizeExchange, sub: t.product.sizeExchangeSub },
               ].map((row) => (
                 <div key={row.label} className="flex gap-2.5">
                   <span className="mt-[6px] h-[7px] w-[7px] shrink-0 rounded-full bg-accent" />

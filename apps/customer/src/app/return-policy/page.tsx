@@ -1,7 +1,6 @@
-import { ReturnPolicyContent } from "./return-policy-content";
+import { permanentRedirect } from "next/navigation";
 
-export const metadata = { title: "Return Policy — Karachi Mart Online", alternates: { canonical: "/return-policy" } };
-
+// KMO has no return policy any more; the exchange policy replaced it.
 export default function ReturnPolicyPage() {
-  return <ReturnPolicyContent />;
+  permanentRedirect("/exchange-policy");
 }
