@@ -39,6 +39,9 @@ import { ensureCustomerId } from "@/lib/ensure-customer-id";
 import { useLanguage } from "@/lib/i18n/language-context";
 import { ProductPageSkeleton } from "@/components/page-loader";
 
+// Product Q&A is switched off for now; set to true to bring it back.
+const SHOW_QUESTIONS = false;
+
 export default function ProductDetailClient({
   initialProduct,
 }: {
@@ -667,12 +670,14 @@ export default function ProductDetailClient({
                 >
                   {t.product.visitStore}
                 </Link>
+                {SHOW_QUESTIONS ? (
                 <a
                   href="#ask-a-question"
                   className="flex-1 rounded-lg border border-border px-4 py-[11px] text-center text-[15.5px] font-bold text-primary"
                 >
                   {t.product.askQuestion}
                 </a>
+                ) : null}
               </div>
             </div>
           ) : null}
@@ -796,7 +801,8 @@ export default function ProductDetailClient({
         </div>
       </div>
 
-      {/* questions */}
+      {/* questions: hidden for now (SHOW_QUESTIONS), kept for future use */}
+      {SHOW_QUESTIONS ? (
       <div id="ask-a-question" className="mt-8 rounded-[10px] border border-border bg-surface p-6">
         <div className="rounded-[10px] border border-[#EFCBBB] bg-accent-tint p-5">
           <p className="text-[16.5px] font-bold text-ink">{t.product.askQuestion}</p>
@@ -845,6 +851,7 @@ export default function ProductDetailClient({
           </div>
         </div>
       </div>
+      ) : null}
 
       {/* more from this vendor */}
       {moreFromVendor && moreFromVendor.length > 0 ? (
