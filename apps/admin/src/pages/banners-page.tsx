@@ -85,6 +85,7 @@ export function BannersPage() {
   const [title, setTitle] = useState("");
   const [linkUrl, setLinkUrl] = useState("");
   const [sortOrder, setSortOrder] = useState("0");
+  const [placement, setPlacement] = useState<"hero" | "middle">("hero");
   const [error, setError] = useState<string | null>(null);
 
   const createMutation = useMutation({
@@ -99,6 +100,7 @@ export function BannersPage() {
         link_url: linkUrl.trim() || null,
         sort_order: Number(sortOrder) || 0,
         is_active: true,
+        placement,
       });
     },
     onSuccess: (created) => {
@@ -111,6 +113,7 @@ export function BannersPage() {
       setTitle("");
       setLinkUrl("");
       setSortOrder("0");
+      setPlacement("hero");
       setError(null);
     },
     onError: (err: Error) => setError(err.message),
@@ -146,6 +149,29 @@ export function BannersPage() {
           or MP4 video of exactly 1600 × 600 px (8:3) so nothing gets cut off. Videos play muted
           on a loop. The Urdu file is optional; without it the Urdu site shows the English one. Phone versions are optional: 1080 × 1350 px (4:5), shown on phones instead of the wide file.
         </p>
+        <p className="text-xs text-muted">
+          <b>Middle of page</b> banners (sale or attraction) show between the categories and the rest of the
+          homepage, at full width and at the file's own shape, so nothing is cut. Suggested size 1600 × 400 px,
+          and 1080 × 600 px for the phone version.
+        </p>
+
+        <div className="flex flex-wrap gap-2">
+          {([
+            ["hero", "Top slider"],
+            ["middle", "Middle of page"],
+          ] as const).map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setPlacement(value)}
+              className={`rounded-full px-3.5 py-1.5 text-[12.5px] font-bold ${
+                placement === value ? "bg-primary text-white" : "border border-border bg-white text-ink-dark"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
 
         <div className="flex flex-wrap items-start gap-4">
           <MediaUpload label="English" url={imageUrl} onChange={setImageUrl} onBusy={setUploading} onError={setError} />
@@ -217,7 +243,7 @@ export function BannersPage() {
                 {b.title || "Untitled banner"}
               </span>
               <span className="truncate text-[11.5px] text-muted-table">
-                {b.is_active ? "On" : "Off"} · {isVideo(b.image_url) ? "Video" : "Image"}
+                {b.placement === "middle" ? "Middle of page" : "Top slider"} · {b.is_active ? "On" : "Off"} · {isVideo(b.image_url) ? "Video" : "Image"}
                 {b.image_url_ur ? " · Urdu version" : ""}
                 {b.image_url_mobile || b.image_url_mobile_ur ? " · Phone version" : ""} · Order {b.sort_order}
                 {b.link_url ? ` · ${b.link_url}` : ""}

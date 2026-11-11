@@ -93,7 +93,7 @@ export function HomeContent() {
   return (
     <main className="flex flex-1 flex-col bg-white">
       <VerifyEmailBanner />
-      <HomeBanner banners={banners} />
+      <HomeBanner banners={banners?.filter((b) => (b.placement ?? "hero") !== "middle")} />
 
       {platformSettings?.show_hero_boxes !== false ? (
       <section className="grid gap-4 px-4 pt-7 sm:px-10 lg:grid-cols-[2.2fr_1fr_1fr]">
@@ -247,6 +247,8 @@ export function HomeContent() {
       <PromotionsSection promotions={promotions} pricingPromotions={pricingPromotions} />
 
       {/* the three busiest categories, ranked by units sold */}
+      <MiddleBanners banners={banners?.filter((b) => b.placement === "middle")} />
+
       {sectionCategories.map((category) => (
         <TopCategorySection key={category.id} category={category} pricingPromotions={pricingPromotions} />
       ))}
@@ -410,6 +412,53 @@ export function HomeContent() {
 /** Plays by itself with nothing to click: on a loop, or once if `onEnded` moves the slider on. React leaves `muted` out of
  *  server-rendered HTML, which makes browsers block autoplay, so it is set here
  *  and playback resumes whenever the browser pauses it. */
+/** Sale / attraction banners in the middle of the homepage, full width, shown at the file's own shape. */
+function MiddleBanners({ banners }: { banners: BannerRow[] | undefined }) {
+  const { locale } = useLanguage();
+  const phone = usePhone();
+  if (!banners || banners.length === 0) return null;
+  const urdu = locale === "ur";
+  return (
+    <div className="flex flex-col gap-4 pt-8">
+      {banners.map((b) => {
+        const media =
+          (phone ? (urdu && b.image_url_mobile_ur) || b.image_url_mobile : null) ||
+          (urdu && b.image_url_ur) ||
+          b.image_url;
+        const label = b.title ?? "Banner";
+        const body = isVideo(media) ? (
+          <video
+            key={media}
+            src={cdnImage(media)}
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="pointer-events-none block h-auto w-full"
+          />
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={cdnImage(media, 1600)} alt={label} loading="lazy" className="block h-auto w-full" />
+        );
+        if (!b.link_url) return <section key={b.id}>{body}</section>;
+        return (
+          <section key={b.id}>
+            {b.link_url.startsWith("/") ? (
+              <Link href={b.link_url} aria-label={label} className="block">
+                {body}
+              </Link>
+            ) : (
+              <a href={b.link_url} aria-label={label} className="block">
+                {body}
+              </a>
+            )}
+          </section>
+        );
+      })}
+    </div>
+  );
+}
+
 function HeroVideo({ src, onEnded }: { src: string; onEnded?: () => void }) {
   const ref = useRef<HTMLVideoElement>(null);
 

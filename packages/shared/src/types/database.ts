@@ -995,6 +995,7 @@ export interface Database {
           image_url_ur: string | null;
           image_url_mobile: string | null;
           image_url_mobile_ur: string | null;
+          placement: string;
           link_area_mobile: Json | null;
           link_area_mobile_ur: Json | null;
           link_area: Json | null;
@@ -1012,6 +1013,7 @@ export interface Database {
           image_url_ur?: string | null;
           image_url_mobile?: string | null;
           image_url_mobile_ur?: string | null;
+          placement?: string;
           link_area_mobile?: Json | null;
           link_area_mobile_ur?: Json | null;
           image_url: string;
@@ -1028,6 +1030,7 @@ export interface Database {
           image_url_ur?: string | null;
           image_url_mobile?: string | null;
           image_url_mobile_ur?: string | null;
+          placement?: string;
           link_area_mobile?: Json | null;
           link_area_mobile_ur?: Json | null;
           image_url?: string;
