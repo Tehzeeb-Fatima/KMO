@@ -193,9 +193,21 @@ function CartContent() {
             <span className="text-[13.5px] text-primary">{t.cart.codAvailable}</span>
           </div>
           <Link href="/checkout">
-            <Button className="w-full">{t.cart.proceedToCheckout}</Button>
+            <Button className="h-[52px] w-full text-[16.5px] font-extrabold">{t.cart.proceedToCheckout}</Button>
           </Link>
         </div>
+      </div>
+
+      {/* phones: checkout always in reach, without scrolling past every item */}
+      <div className="h-24 lg:hidden" aria-hidden />
+      <div className="fixed inset-x-0 bottom-0 z-40 flex items-center gap-3 border-t border-border bg-white px-4 py-3 shadow-[0_-6px_18px_-8px_rgba(0,0,0,0.18)] lg:hidden print:hidden">
+        <div className="flex min-w-0 flex-col">
+          <span className="text-[12.5px] text-muted">{t.cart.total}</span>
+          <span className="text-[18px] font-extrabold tracking-[-0.02em] text-accent">Rs. {subtotal.toLocaleString()}</span>
+        </div>
+        <Link href="/checkout" className="flex-1">
+          <Button className="h-[50px] w-full text-[16px] font-extrabold">{t.cart.proceedToCheckout}</Button>
+        </Link>
       </div>
 
       <ConfirmDialog

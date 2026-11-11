@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { usePathname } from "next/navigation";
 import { getPlatformSettings } from "@kmo/shared/api";
 import { supabase } from "@/lib/supabase";
 
@@ -12,6 +13,8 @@ export function WhatsAppButton() {
     queryFn: () => getPlatformSettings(supabase),
   });
 
+  // the cart has a checkout bar along the bottom on phones; sit above it
+  const onCart = usePathname() === "/cart";
   const number = settings?.whatsapp_number?.replace(/[^\d]/g, "");
   if (!number) return null;
 
@@ -21,7 +24,7 @@ export function WhatsAppButton() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Chat with us on WhatsApp"
-      className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full shadow-[0_8px_20px_-4px_rgba(37,211,102,0.5)] transition-transform hover:scale-105 print:hidden"
+      className={`fixed ${onCart ? "bottom-[88px] lg:bottom-5" : "bottom-5"} right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full shadow-[0_8px_20px_-4px_rgba(37,211,102,0.5)] transition-transform hover:scale-105 print:hidden`}
       style={{ background: "#25D366" }}
     >
       <svg viewBox="0 0 32 32" width="30" height="30" fill="#ffffff" aria-hidden="true">
