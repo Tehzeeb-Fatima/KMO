@@ -76,7 +76,7 @@ export function AddToCartButton({
   });
 
   const base =
-    "flex w-full items-center justify-center gap-2 rounded-[7px] px-3 py-2.5 text-[14px] font-bold disabled:opacity-60";
+    "flex w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-[7px] px-2 py-2.5 text-[12.5px] font-bold sm:gap-2 sm:px-3 sm:text-[14px] disabled:opacity-60";
 
   if (outOfStock) {
     return (
@@ -97,7 +97,7 @@ export function AddToCartButton({
       }}
       className={`${base} bg-[#1F6B4F] text-white`}
     >
-      <ShoppingCart className="h-3.5 w-3.5" />
+      <ShoppingCart className="h-3.5 w-3.5 shrink-0" />
       {add.isSuccess ? "Added" : add.isPending ? "Adding…" : "Add to cart"}
     </button>
   );
