@@ -361,11 +361,11 @@ export function HomeContent() {
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2.5">
                       <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-[13.5px] font-bold text-white">
-                        {(r.profiles?.full_name ?? "K").charAt(0)}
+                        {(r.reviewer_name ?? r.profiles?.full_name ?? "C").charAt(0).toUpperCase()}
                       </span>
                       <div>
                         <p className="text-[15px] font-bold text-ink-dark">
-                          {r.profiles?.full_name ?? "Customer"}
+                          {r.reviewer_name ?? r.profiles?.full_name ?? "Customer"}
                         </p>
                         <p className="text-[12.5px] text-muted-table">{r.products?.name}</p>
                       </div>

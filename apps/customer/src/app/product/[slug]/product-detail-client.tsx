@@ -784,7 +784,7 @@ export default function ProductDetailClient({
                 <div key={r.id} className="border-t border-[#F1EAE6] pt-4 first:border-t-0 first:pt-0">
                   <div className="flex items-center gap-2">
                     <span className="text-[15.5px] font-bold text-ink-dark">
-                      {r.profiles?.full_name ?? "Customer"}
+                      {r.reviewer_name ?? r.profiles?.full_name ?? "Customer"}
                     </span>
                     <span className="text-[13.5px] text-accent">{"★".repeat(r.rating)}</span>
                   </div>

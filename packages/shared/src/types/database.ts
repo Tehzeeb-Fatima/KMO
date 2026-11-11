@@ -1334,6 +1334,7 @@ export interface Database {
           vendor_reply_at: string | null;
           is_flagged: boolean;
           flag_reason: string | null;
+          reviewer_name: string | null;
           created_at: string;
         };
         Insert: {
@@ -1347,6 +1348,7 @@ export interface Database {
           vendor_reply_at?: string | null;
           is_flagged?: boolean;
           flag_reason?: string | null;
+          reviewer_name?: string | null;
           created_at?: string;
         };
         Update: {
@@ -1360,6 +1362,7 @@ export interface Database {
           vendor_reply_at?: string | null;
           is_flagged?: boolean;
           flag_reason?: string | null;
+          reviewer_name?: string | null;
           created_at?: string;
         };
         Relationships: [];
