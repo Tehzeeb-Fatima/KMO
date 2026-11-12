@@ -774,6 +774,9 @@ export default function ProductDetailClient({
                 >
                   {reviewMutation.isPending ? t.product.submitting : t.product.writeReview}
                 </Button>
+                {reviewMutation.isSuccess ? (
+                  <p className="text-[14px] font-semibold text-success">{t.product.reviewPending}</p>
+                ) : null}
               </div>
             ) : null}
           </div>

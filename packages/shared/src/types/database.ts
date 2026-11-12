@@ -1335,6 +1335,8 @@ export interface Database {
           is_flagged: boolean;
           flag_reason: string | null;
           reviewer_name: string | null;
+          status: "pending" | "approved" | "rejected";
+          reviewed_at: string | null;
           created_at: string;
         };
         Insert: {
@@ -1349,6 +1351,8 @@ export interface Database {
           is_flagged?: boolean;
           flag_reason?: string | null;
           reviewer_name?: string | null;
+          status?: "pending" | "approved" | "rejected";
+          reviewed_at?: string | null;
           created_at?: string;
         };
         Update: {
@@ -1363,6 +1367,8 @@ export interface Database {
           is_flagged?: boolean;
           flag_reason?: string | null;
           reviewer_name?: string | null;
+          status?: "pending" | "approved" | "rejected";
+          reviewed_at?: string | null;
           created_at?: string;
         };
         Relationships: [];

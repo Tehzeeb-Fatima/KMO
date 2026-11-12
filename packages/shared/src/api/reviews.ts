@@ -17,6 +17,8 @@ export async function listProductReviews(
     .from("reviews")
     .select("*, profiles(full_name)")
     .eq("product_id", productId)
+    .eq("status", "approved")
+    .eq("is_flagged", false)
     .order("created_at", { ascending: false });
   if (error) throw error;
   return data as unknown as ReviewWithCustomer[];
@@ -106,7 +108,7 @@ export interface SiteRatingSummary {
 /** Aggregate rating summary across every (non-flagged) review on the platform,
  * for the homepage "Ratings & reviews" section. */
 export async function getSiteRatingSummary(supabase: Client): Promise<SiteRatingSummary> {
-  const { data, error } = await supabase.from("reviews").select("rating").eq("is_flagged", false);
+  const { data, error } = await supabase.from("reviews").select("rating").eq("is_flagged", false).eq("status", "approved");
   if (error) throw error;
 
   const count = data.length;
@@ -134,8 +136,39 @@ export async function listRecentReviews(
     .from("reviews")
     .select("*, profiles(full_name), products(name)")
     .eq("is_flagged", false)
+    .eq("status", "approved")
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error) throw error;
   return data as unknown as RecentReviewRow[];
+}
+
+export type ReviewStatus = "pending" | "approved" | "rejected";
+
+export interface ModerationReviewRow extends ReviewRow {
+  products: { name: string; slug: string; vendor_id: string; vendors: { store_name: string } | null } | null;
+}
+
+/** Admin review inbox: every review with the given status, newest first. */
+export async function listReviewsForModeration(
+  supabase: Client,
+  status: ReviewStatus,
+): Promise<ModerationReviewRow[]> {
+  const { data, error } = await supabase
+    .from("reviews")
+    .select("*, products(name, slug, vendor_id, vendors(store_name))")
+    .eq("status", status)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data as unknown as ModerationReviewRow[];
+}
+
+/** Admin approves or rejects a review, and may set the name shown on it. */
+export async function moderateReview(
+  supabase: Client,
+  reviewId: string,
+  patch: { status: ReviewStatus; reviewer_name?: string | null },
+): Promise<void> {
+  const { error } = await supabase.from("reviews").update(patch).eq("id", reviewId);
+  if (error) throw error;
 }
