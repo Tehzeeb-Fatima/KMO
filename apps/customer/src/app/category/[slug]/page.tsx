@@ -23,9 +23,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const data = await load(slug);
   if (!data) return { title: "Category not found — Karachi Mart Online" };
+  // An empty category is a thin page ("soft 404" to Google): keep it out of
+  // the index until it has products, but let crawlers follow its links.
+  const empty = (await categoryProducts(data.category.id)).length === 0;
   return {
     title: data.copy.title,
     description: data.copy.description,
+    robots: empty ? { index: false, follow: true } : undefined,
     alternates: { canonical: `/category/${slug}` },
     openGraph: { title: data.copy.title, description: data.copy.description, url: `${SITE_URL}/category/${slug}` },
   };

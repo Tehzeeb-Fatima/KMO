@@ -2,6 +2,7 @@ import Link from "next/link";
 
 export const metadata = {
   title: "We'll be back soon — Karachi Mart Online",
+  robots: { index: false, follow: false },
 };
 
 export default function MaintenancePage() {

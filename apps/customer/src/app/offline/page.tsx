@@ -1,5 +1,6 @@
 export const metadata = {
   title: "You're offline — Karachi Mart Online",
+  robots: { index: false, follow: false },
 };
 
 export default function OfflinePage() {

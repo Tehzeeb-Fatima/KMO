@@ -56,10 +56,11 @@ async function toGridProducts(products: ProductWithMedia[]): Promise<GridProduct
   });
 }
 
-export async function categoryProducts(categoryId: string): Promise<GridProduct[]> {
+/** Cached per request: the page and its metadata (noindex when empty) both read it. */
+export const categoryProducts = cache(async (categoryId: string): Promise<GridProduct[]> => {
   const products = await listPublishedProducts(serverSupabase(), { categoryId, limit: 60 }).catch(() => []);
   return toGridProducts(products);
-}
+});
 
 export async function landingProducts(page: LandingPage): Promise<GridProduct[]> {
   const supabase = serverSupabase();

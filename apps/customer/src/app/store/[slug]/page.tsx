@@ -31,7 +31,7 @@ async function fetchSeoData(slug: string) {
     if (name) counts.set(name, (counts.get(name) ?? 0) + 1);
   }
   const topCategories = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 2).map(([n]) => n);
-  return { ...data, topCategories };
+  return { ...data, topCategories, productCount: rows?.length ?? 0 };
 }
 
 /** Cuts at a word boundary so search results never show half a word. */
@@ -64,6 +64,8 @@ export async function generateMetadata({
   return {
     title,
     description,
+    // a store with nothing live yet is a thin page: keep it out of the index
+    robots: vendor.productCount === 0 ? { index: false, follow: true } : undefined,
     alternates: { canonical: `/store/${slug}` },
     openGraph: {
       title,
