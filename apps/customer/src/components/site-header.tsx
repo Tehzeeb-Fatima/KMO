@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { ShoppingCart, User } from "lucide-react";
 import { listCartItems, listShopCategories } from "@kmo/shared/api";
@@ -20,6 +20,8 @@ export function SiteHeader() {
   const { user, profile } = useAuth();
   const { t } = useLanguage();
   const [query, setQuery] = useState("");
+  // Vendor store pages hide the category strip on mobile / PWA.
+  const onStorePage = usePathname()?.startsWith("/store/") ?? false;
 
   const { data: cartItems } = useQuery({
     queryKey: ["cart"],
@@ -148,7 +150,7 @@ export function SiteHeader() {
 
       {/* row 2 — terracotta category strip */}
       {categories && categories.length > 0 ? (
-        <div className="category-shimmer relative overflow-hidden bg-accent">
+        <div className={`category-shimmer relative overflow-hidden bg-accent${onStorePage ? " hidden sm:block" : ""}`}>
           <div className="flex justify-between gap-0.5 overflow-x-auto px-4 [scrollbar-width:none] sm:px-10 [&::-webkit-scrollbar]:hidden">
             {mainCategories(categories).map((c) => (
               <Link
