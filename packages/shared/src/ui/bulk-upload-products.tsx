@@ -34,7 +34,7 @@ export function BulkUploadProducts({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
-  const [result, setResult] = useState<{ created: number; errors: { row: number; message: string }[] } | null>(null);
+  const [result, setResult] = useState<{ created: number; updated: number; errors: { row: number; message: string }[] } | null>(null);
 
   function handleDownloadTemplate() {
     downloadTextFile("kmo-products-template.csv", buildProductTemplateCsv(categories));
@@ -47,9 +47,9 @@ export function BulkUploadProducts({
       const text = await file.text();
       const outcome = await bulkCreateProductsFromCsv(supabase, vendorId, text);
       setResult(outcome);
-      if (outcome.created > 0) onUploaded?.();
+      if (outcome.created > 0 || outcome.updated > 0) onUploaded?.();
     } catch (err) {
-      setResult({ created: 0, errors: [{ row: 0, message: err instanceof Error ? err.message : "Upload failed." }] });
+      setResult({ created: 0, updated: 0, errors: [{ row: 0, message: err instanceof Error ? err.message : "Upload failed." }] });
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -66,6 +66,11 @@ export function BulkUploadProducts({
             The category column must be one of the categories already assigned to this store — the reference file
             only lists those. New products are created as pending review unless they have no photos, in which case
             they&rsquo;re saved as a draft until you add some.
+          </p>
+          <p className="mt-1 text-[12px] text-muted">
+            <b>Updating prices:</b> a row with the same name (or the same SKU) as a product this store already has
+            updates that product&rsquo;s price, discount price and stock instead of adding it again. Its photos, name,
+            category and description stay as they are.
           </p>
         </div>
         <div className="flex shrink-0 gap-2">
@@ -101,6 +106,7 @@ export function BulkUploadProducts({
         <div className="rounded-lg bg-surface-alt p-3 text-[12.5px]">
           <p className="font-semibold text-ink-dark">
             {result.created} product{result.created === 1 ? "" : "s"} created
+            {result.updated > 0 ? `, ${result.updated} price${result.updated === 1 ? "" : "s"} updated` : ""}
             {result.errors.length > 0 ? `, ${result.errors.length} row${result.errors.length === 1 ? "" : "s"} skipped` : ""}.
           </p>
           {result.errors.length > 0 ? (

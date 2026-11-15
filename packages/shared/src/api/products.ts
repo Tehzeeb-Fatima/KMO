@@ -548,7 +548,15 @@ export function parseProductCsv(text: string): { rows: ParsedProductRow[]; error
 
 export interface BulkUploadResult {
   created: number;
+  /** Rows that matched a product this store already has (same name, or same
+   *  SKU) and refreshed its price instead of creating a duplicate. */
+  updated: number;
   errors: { row: number; message: string }[];
+}
+
+/** Same product name regardless of case or spacing. */
+function nameKey(name: string) {
+  return name.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
 /** Creates one product per valid row (status "pending" if it has at least one
@@ -562,7 +570,44 @@ export async function bulkCreateProductsFromCsv(
 ): Promise<BulkUploadResult> {
   const { rows, errors } = parseProductCsv(csvText);
   const allErrors = [...errors];
-  if (rows.length === 0) return { created: 0, errors: allErrors };
+  if (rows.length === 0) return { created: 0, updated: 0, errors: allErrors };
+
+  // This store's existing products, so a re-upload (e.g. a grocery price list)
+  // updates prices instead of adding duplicates. SKU wins over name when given.
+  const { data: existing, error: existingError } = await supabase
+    .from("products")
+    .select("id, name, sku")
+    .eq("vendor_id", vendorId)
+    .neq("status", "archived");
+  if (existingError) throw existingError;
+  const byName = new Map<string, string[]>();
+  const bySku = new Map<string, string[]>();
+  const remember = (id: string, name: string, sku: string | null) => {
+    byName.set(nameKey(name), [...(byName.get(nameKey(name)) ?? []), id]);
+    if (sku?.trim()) bySku.set(sku.trim().toLowerCase(), [...(bySku.get(sku.trim().toLowerCase()) ?? []), id]);
+  };
+  for (const p of existing ?? []) remember(p.id, p.name, p.sku);
+
+  let updated = 0;
+  const newRows: ParsedProductRow[] = [];
+  for (const row of rows) {
+    const matches = (row.sku && bySku.get(row.sku.toLowerCase())) || byName.get(nameKey(row.name));
+    if (!matches?.length) {
+      newRows.push(row);
+      continue;
+    }
+    // Only the money and stock columns change; name, photos, category and
+    // status stay as they are. A blank stock cell leaves stock untouched.
+    const patch: ProductUpdate = { price: row.price, compare_at_price: row.compare_at_price };
+    if (row.stock_quantity !== null) patch.stock_quantity = row.stock_quantity;
+    const { error } = await supabase.from("products").update(patch).in("id", matches);
+    if (error) {
+      allErrors.push({ row: row.rowNumber, message: `Couldn't update the price of "${row.name}": ${error.message}` });
+      continue;
+    }
+    updated++;
+  }
+  if (newRows.length === 0) return { created: 0, updated, errors: allErrors };
 
   const categories = await listCategories(supabase);
   const categoryByName = new Map(categories.map((c) => [c.name.trim().toLowerCase(), c.id]));
@@ -572,7 +617,19 @@ export async function bulkCreateProductsFromCsv(
   const hasChildren = new Set(categories.filter((c) => c.parent_id).map((c) => c.parent_id as string));
 
   let created = 0;
-  for (const row of rows) {
+  for (const row of newRows) {
+    // the same name twice in one file: the second row updates the first
+    const sameFile = byName.get(nameKey(row.name));
+    if (sameFile?.length) {
+      const { error } = await supabase
+        .from("products")
+        .update({ price: row.price, compare_at_price: row.compare_at_price })
+        .in("id", sameFile);
+      if (error) allErrors.push({ row: row.rowNumber, message: error.message });
+      else updated++;
+      continue;
+    }
+
     let categoryId: string | null = null;
     if (row.categoryName) {
       categoryId = categoryByName.get(row.categoryName.toLowerCase()) ?? null;
@@ -627,10 +684,11 @@ export async function bulkCreateProductsFromCsv(
       }
     }
 
+    remember(product.id, row.name, row.sku);
     created++;
   }
 
-  return { created, errors: allErrors };
+  return { created, updated, errors: allErrors };
 }
 
 // ---------------------------------------------------------------- vendor price (super admin only)
