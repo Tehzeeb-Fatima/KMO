@@ -24,6 +24,23 @@ export const listAllCategories = cache(async (): Promise<CategoryRecord[]> => {
   return (data ?? []) as CategoryRecord[];
 });
 
+/** Live product count per category id, only for categories that have some (a
+ *  main category also counts its sub-categories) — the same rule the header
+ *  and search use to hide empty categories. */
+export const liveCategoryIds = cache(async (): Promise<Map<string, number>> => {
+  const [categories, { data }] = await Promise.all([
+    listAllCategories(),
+    serverSupabase().from("category_product_counts").select("category_id, product_count"),
+  ]);
+  const live = new Map<string, number>();
+  for (const r of data ?? []) if (r.product_count > 0) live.set(r.category_id as string, r.product_count as number);
+  for (const c of categories) {
+    const n = live.get(c.id);
+    if (n && c.parent_id) live.set(c.parent_id, (live.get(c.parent_id) ?? 0) + n);
+  }
+  return live;
+});
+
 export interface GridProduct {
   id: string;
   slug: string;

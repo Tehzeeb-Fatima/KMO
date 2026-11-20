@@ -102,7 +102,25 @@ export interface LandingPage {
   nameTerms?: string[];
   /** … and/or every live product of these stores. */
   vendorSlugs?: string[];
+  /** Category pages that should link here, beyond the ones its categorySlugs already imply. */
+  linkFrom?: string[];
   faqs: { q: string; a: string }[];
+}
+
+/** Keyword pages to suggest on a category page: those built from this
+ *  category, its parent or its sub-categories. Pages that span many
+ *  categories (e.g. Eid shopping) are left out so the chips stay specific. */
+export function relatedLandingPages(categorySlug: string, parentSlug?: string, limit = 8): LandingPage[] {
+  const related = (slug: string) =>
+    slug === categorySlug ||
+    slug.startsWith(`${categorySlug}-`) ||
+    (parentSlug !== undefined && slug === parentSlug);
+  return LANDING_PAGES.filter((p) => {
+    if (p.linkFrom?.some(related)) return true;
+    const slugs = p.categorySlugs ?? [];
+    const mains = new Set(slugs.map((s) => s.split("-").slice(0, 2).join("-")));
+    return mains.size <= 2 && slugs.some(related);
+  }).slice(0, limit);
 }
 
 export const LANDING_PAGES: LandingPage[] = [
@@ -118,6 +136,7 @@ export const LANDING_PAGES: LandingPage[] = [
     ],
     nameTerms: ["terracotta", "clay"],
     vendorSlugs: ["mitti-mart-41c25deb", "hamari-mitti-pakistan-28fdff8b"],
+    linkFrom: ["home-living-kitchenware-cookware"],
     faqs: [
       {
         q: "Is cooking in clay pots healthy?",
@@ -399,6 +418,7 @@ export const LANDING_PAGES: LandingPage[] = [
     ],
     categorySlugs: ["food-dry-fruits-dry-fruits-nuts"],
     vendorSlugs: ["karachi-dry-fruit-60f7a0fc"],
+    linkFrom: ["food-items"],
     faqs: [{ q: "Are dry fruits available in gift boxes?", a: "Yes. Gift boxes are listed alongside loose dry fruits." }],
   },
   {
