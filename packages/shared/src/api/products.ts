@@ -4,6 +4,7 @@ import { nonEmptyCategories } from "../lib/category-tree";
 import { parseCsv, toCsv } from "../lib/csv";
 import { cleanProductText, formatProductTitle } from "../lib/product-title";
 import { suggestCategories } from "../lib/category-suggest";
+import { fileExt, removeMedia, uploadMedia } from "./media";
 
 type Client = SupabaseClient<Database>;
 type ProductRow = Database["public"]["Tables"]["products"]["Row"];
@@ -185,12 +186,7 @@ export async function uploadProductImage(
   productId: string,
   file: File,
 ): Promise<string> {
-  const ext = file.name.split(".").pop() ?? "jpg";
-  const path = `${productId}/${crypto.randomUUID()}.${ext}`;
-  const { error } = await supabase.storage.from("product-media").upload(path, file);
-  if (error) throw error;
-  const { data } = supabase.storage.from("product-media").getPublicUrl(path);
-  return data.publicUrl;
+  return uploadMedia(supabase, "product-media", `${productId}/${crypto.randomUUID()}.${fileExt(file)}`, file);
 }
 
 /** A product's extra categories, beyond its primary category_id — lets it
@@ -717,19 +713,14 @@ export const MAX_VIDEO_MB = 50;
 /** Uploads an MP4/WebM and stores it on the product. */
 export async function uploadProductVideo(supabase: Client, productId: string, file: File): Promise<string> {
   if (file.size > MAX_VIDEO_MB * 1024 * 1024) throw new Error(`Video must be under ${MAX_VIDEO_MB} MB.`);
-  const ext = (file.name.split(".").pop() ?? "mp4").toLowerCase();
-  const path = `${productId}/video-${crypto.randomUUID()}.${ext}`;
-  const { error } = await supabase.storage.from("product-media").upload(path, file, { contentType: file.type || "video/mp4" });
-  if (error) throw error;
-  const url = supabase.storage.from("product-media").getPublicUrl(path).data.publicUrl;
+  const url = await uploadMedia(supabase, "product-media", `${productId}/video-${crypto.randomUUID()}.${fileExt(file, "mp4")}`, file);
   const { error: ue } = await supabase.from("products").update({ video_url: url }).eq("id", productId);
   if (ue) throw ue;
   return url;
 }
 
 export async function removeProductVideo(supabase: Client, productId: string, url: string): Promise<void> {
-  const path = url.split("/product-media/")[1]?.split("?")[0];
-  if (path) await supabase.storage.from("product-media").remove([path]);
+  await removeMedia(supabase, url).catch(() => undefined);
   const { error } = await supabase.from("products").update({ video_url: null }).eq("id", productId);
   if (error) throw error;
 }

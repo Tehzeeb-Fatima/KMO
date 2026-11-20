@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../types";
+import { fileExt, uploadMedia } from "./media";
 
 type Client = SupabaseClient<Database>;
 type CategoryRow = Database["public"]["Tables"]["categories"]["Row"];
@@ -63,14 +64,7 @@ export async function uploadCategoryImage(
   categoryId: string,
   file: File,
 ): Promise<string> {
-  const ext = file.name.split(".").pop() ?? "jpg";
-  const path = `${categoryId}/image.${ext}`;
-
-  const { error } = await supabase.storage
-    .from("category-media")
-    .upload(path, file, { upsert: true });
-  if (error) throw error;
-
-  const { data } = supabase.storage.from("category-media").getPublicUrl(path);
-  return data.publicUrl;
+  const url = await uploadMedia(supabase, "category-media", `${categoryId}/image.${fileExt(file)}`, file);
+  // Same file name on every re-upload, so add a version or browsers keep the old image.
+  return `${url}?v=${Date.now()}`;
 }

@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../types";
+import { fileExt, uploadMedia } from "./media";
 
 type Client = SupabaseClient<Database>;
 type VendorRow = Database["public"]["Tables"]["vendors"]["Row"];
@@ -197,17 +198,9 @@ export async function uploadVendorMedia(
   kind: "logo" | "cover",
   file: File,
 ): Promise<string> {
-  const ext = file.name.split(".").pop() ?? "jpg";
-  const path = `${vendorId}/${kind}.${ext}`;
-
-  const { error } = await supabase.storage
-    .from("vendor-media")
-    .upload(path, file, { upsert: true });
-  if (error) throw error;
-
-  const { data } = supabase.storage.from("vendor-media").getPublicUrl(path);
+  const url = await uploadMedia(supabase, "vendor-media", `${vendorId}/${kind}.${fileExt(file)}`, file);
   // Same path on every re-upload, so add a version or browsers keep the old image.
-  return `${data.publicUrl}?v=${Date.now()}`;
+  return `${url}?v=${Date.now()}`;
 }
 
 export async function isFollowingVendor(

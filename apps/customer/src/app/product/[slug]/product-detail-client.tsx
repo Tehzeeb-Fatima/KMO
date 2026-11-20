@@ -23,6 +23,7 @@ import {
   bestPromotionForProduct,
   cardPricing, cardStats,
   cdnImage,
+  cdnMedia,
   findVariant,
   isColourOption,
   photoOptionName,
@@ -927,7 +928,7 @@ export default function ProductDetailClient({
 function ProductVideo({ url }: { url: string }) {
   const [open, setOpen] = useState(false);
   return open ? (
-    <video src={url} controls autoPlay playsInline className="mt-2.5 w-full rounded-[10px] bg-black" />
+    <video src={cdnMedia(url)} controls autoPlay playsInline className="mt-2.5 w-full rounded-[10px] bg-black" />
   ) : (
     <button
       type="button"

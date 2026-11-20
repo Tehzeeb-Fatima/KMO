@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../types";
 import type { PromotionForPricing } from "../lib/promotion-pricing";
+import { fileExt, uploadMedia } from "./media";
 
 type Client = SupabaseClient<Database>;
 type PromotionRow = Database["public"]["Tables"]["promotions"]["Row"];
@@ -134,12 +135,7 @@ export function promotionProductFilter(promo: PromotionWithLinks): {
 
 /** Uploads a promotion banner to the `promotion-media` bucket. */
 export async function uploadPromotionImage(supabase: Client, file: File): Promise<string> {
-  const ext = file.name.split(".").pop() ?? "jpg";
-  const path = `${crypto.randomUUID()}.${ext}`;
-  const { error } = await supabase.storage.from("promotion-media").upload(path, file);
-  if (error) throw error;
-  const { data } = supabase.storage.from("promotion-media").getPublicUrl(path);
-  return data.publicUrl;
+  return uploadMedia(supabase, "promotion-media", `${crypto.randomUUID()}.${fileExt(file)}`, file);
 }
 
 /* ── top categories ─────────────────────────────────────────────────────── */

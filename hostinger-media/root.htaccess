@@ -1,0 +1,21 @@
+# media.karachimartonline.com root: only upload.php may run; everything else
+# here is plain files. No directory listings.
+Options -Indexes -ExecCGI
+
+<FilesMatch "\.(?i:php\d?|phtml|phar|pht|shtml|cgi|pl|py|sh|inc)$">
+  Require all denied
+</FilesMatch>
+<Files "upload.php">
+  Require all granted
+</Files>
+<FilesMatch "^\.">
+  Require all denied
+</FilesMatch>
+
+<IfModule mod_headers.c>
+  <FilesMatch "\.(?i:jpe?g|png|webp|gif|avif|mp4|webm|mov)$">
+    Header set Cache-Control "public, max-age=31536000"
+    Header set Access-Control-Allow-Origin "*"
+    Header set X-Content-Type-Options "nosniff"
+  </FilesMatch>
+</IfModule>

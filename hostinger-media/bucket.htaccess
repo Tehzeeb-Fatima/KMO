@@ -1,0 +1,11 @@
+# Uploaded files only: nothing in this folder may ever run as a script.
+Options -Indexes -ExecCGI
+RemoveHandler .php .phtml .phar .pht .cgi .pl .py .sh
+RemoveType .php .phtml .phar .pht
+
+<FilesMatch "\.(?i:php\d?|phtml|phar|pht|shtml|cgi|pl|py|sh|inc|html?|svg|js)$">
+  Require all denied
+</FilesMatch>
+<FilesMatch "^\.">
+  Require all denied
+</FilesMatch>

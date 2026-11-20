@@ -29,3 +29,4 @@ export * from "./delivery-rates";
 export * from "./loyalty";
 export * from "./courier";
 export * from "./push";
+export * from "./media";
