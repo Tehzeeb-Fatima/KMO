@@ -15,7 +15,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 60 * 1000,
+            // Shop data changes slowly; refetching on every tab switch and
+            // every minute was a large share of Supabase egress.
+            staleTime: 5 * 60 * 1000,
+            refetchOnWindowFocus: false,
           },
         },
       }),

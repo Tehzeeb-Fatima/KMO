@@ -20,8 +20,23 @@ export interface ProductWithMedia extends ProductRow {
   vendors: { id: string; store_name: string; slug: string; owner_id: string } | null;
 }
 
+// Every product column except search_vector (a search index the app never
+// reads, about a third of each row) — named, so it isn't sent on every read.
+const PRODUCT_COLUMNS =
+  "id, vendor_id, category_id, name, slug, description, description_ur, price, compare_at_price, sku, " +
+  "stock_quantity, status, created_at, brand, tags, weight_grams, low_stock_threshold, seo_title, " +
+  "seo_description, has_360_view, video_url, category_reviewed_id, paused_sale_price, sold_badge, " +
+  "admin_rating, admin_rating_count, review_count, review_sum";
+
 const PRODUCT_WITH_MEDIA_SELECT =
-  "*, product_images(*), product_variants(*), vendors(id, store_name, slug, owner_id)";
+  `${PRODUCT_COLUMNS}, product_images(*), product_variants(*), vendors(id, store_name, slug, owner_id)`;
+
+// Storefront lists (cards, grids, sliders) need far less: no descriptions or
+// SEO text, which only the product's own page shows. Keeps database egress low.
+const PRODUCT_CARD_SELECT =
+  "id, vendor_id, category_id, name, slug, price, compare_at_price, sku, stock_quantity, status, created_at, " +
+  "brand, tags, has_360_view, sold_badge, admin_rating, admin_rating_count, review_count, review_sum, " +
+  "product_images(id, url, sort_order, variant_id), product_variants(*), vendors(id, store_name, slug, owner_id)";
 
 /** Vendor's own products (any status), for the Products list dashboard page.
  *
@@ -281,9 +296,11 @@ export async function listPublishedProducts(
 ): Promise<ProductWithMedia[]> {
   if (filter?.productIds && filter.productIds.length === 0) return [];
 
+  // Card fields only: callers render lists. The product page loads the full
+  // product separately (getProductBySlug).
   let query = supabase
     .from("products")
-    .select(PRODUCT_WITH_MEDIA_SELECT)
+    .select(PRODUCT_CARD_SELECT)
     .eq("status", "published");
 
   if (filter?.productIds) query = query.in("id", filter.productIds);
