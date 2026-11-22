@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
@@ -10,6 +10,7 @@ import { useAuth } from "@kmo/shared/auth";
 import { RequireAuth } from "@/components/require-auth";
 import { supabase } from "@/lib/supabase";
 import { PageLoader } from "@/components/page-loader";
+import { trackPurchaseOnce } from "@/lib/meta-pixel";
 
 export default function OrderConfirmationPage() {
   return (
@@ -34,6 +35,20 @@ function OrderConfirmationContent() {
     },
     enabled: orderIds.length > 0,
   });
+
+  // Meta Pixel: Purchase once per order (a refresh doesn't send it again).
+  useEffect(() => {
+    for (const o of orders ?? []) {
+      const items = o.order_items ?? [];
+      trackPurchaseOnce(o.id, {
+        content_ids: items.map((i) => i.product_id).filter(Boolean),
+        content_type: "product",
+        value: Number(o.total),
+        num_items: items.reduce((n, i) => n + i.quantity, 0),
+        currency: "PKR",
+      });
+    }
+  }, [orders]);
 
   if (isLoading) return <PageLoader />;
 

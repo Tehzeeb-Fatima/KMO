@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Heart, ShoppingCart } from "lucide-react";
 import { addToWishlist, listWishlist, removeFromWishlist, addToCart } from "@kmo/shared/api";
 import { useAuth } from "@kmo/shared/auth";
+import { trackEvent } from "@/lib/meta-pixel";
 import { supabase } from "@/lib/supabase";
 import { ensureCustomerId } from "@/lib/ensure-customer-id";
 
@@ -58,10 +59,15 @@ export function AddToCartButton({
   productId,
   variantId,
   outOfStock,
+  name,
+  price,
 }: {
   productId: string;
   variantId: string | null;
   outOfStock: boolean;
+  /** For the Meta Pixel AddToCart event. */
+  name?: string;
+  price?: number;
 }) {
   const router = useRouter();
   const { user } = useAuth();
@@ -72,7 +78,17 @@ export function AddToCartButton({
       const customerId = await ensureCustomerId(user);
       return addToCart(supabase, customerId, productId, variantId, 1);
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["cart"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cart"] });
+      trackEvent("AddToCart", {
+        content_ids: [productId],
+        content_name: name,
+        content_type: "product",
+        value: price,
+        num_items: 1,
+        currency: "PKR",
+      });
+    },
   });
 
   const base =

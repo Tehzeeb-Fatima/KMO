@@ -4,25 +4,40 @@ import { useQuery } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";
 import { getPlatformSettings } from "@kmo/shared/api";
 import { supabase } from "@/lib/supabase";
+import { trackEvent } from "@/lib/meta-pixel";
 
-/** Floating WhatsApp chat button, shown site-wide once an admin sets a number
- *  in Settings. Hidden entirely when no number is configured. */
+// Used until an admin sets a number in Settings.
+const DEFAULT_NUMBER = "923712104790";
+const GREETING = "Assalam o Alaikum, mujhe Karachi Mart Online se order karna hai";
+
+/** Floating WhatsApp chat button, shown site-wide (number from Settings). On a
+ *  product page the message names the product. A click is a Pixel Contact. */
 export function WhatsAppButton() {
   const { data: settings } = useQuery({
     queryKey: ["platform-settings"],
     queryFn: () => getPlatformSettings(supabase),
   });
 
+  const pathname = usePathname();
   // the cart has a checkout bar along the bottom on phones; sit above it
-  const onCart = usePathname() === "/cart";
-  const number = settings?.whatsapp_number?.replace(/[^\d]/g, "");
-  if (!number) return null;
+  const onCart = pathname === "/cart";
+  const number = settings?.whatsapp_number?.replace(/[^\d]/g, "") || DEFAULT_NUMBER;
+  const baseHref = `https://wa.me/${number}?text=${encodeURIComponent(GREETING)}`;
+
+  function handleClick(e: React.MouseEvent<HTMLAnchorElement>) {
+    trackEvent("Contact");
+    if (!pathname.startsWith("/product/")) return;
+    // the product's name is the page's main heading
+    const name = document.querySelector("main h1, h1")?.textContent?.trim();
+    if (name) e.currentTarget.href = `https://wa.me/${number}?text=${encodeURIComponent(`${GREETING}: ${name}`)}`;
+  }
 
   return (
     <a
-      href={`https://wa.me/${number}`}
+      href={baseHref}
       target="_blank"
       rel="noopener noreferrer"
+      onClick={handleClick}
       aria-label="Chat with us on WhatsApp"
       className={`fixed ${onCart ? "bottom-[88px] lg:bottom-5" : "bottom-5"} right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full shadow-[0_8px_20px_-4px_rgba(37,211,102,0.5)] transition-transform hover:scale-105 print:hidden`}
       style={{ background: "#25D366" }}

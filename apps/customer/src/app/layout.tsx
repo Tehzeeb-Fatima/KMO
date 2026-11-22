@@ -4,6 +4,8 @@ import "./globals.css";
 import { Providers } from "./providers";
 import { AppChrome } from "@/components/app-chrome";
 import { RegisterServiceWorker } from "@/components/register-service-worker";
+import { MetaPixel } from "@/components/meta-pixel";
+import { Suspense } from "react";
 import { cn } from "@/lib/utils";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -54,6 +56,8 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "Karachi Mart",
   },
+  // Meta Business domain verification (karachimartonline.com)
+  other: { "facebook-domain-verification": "s1rv2u7wqixhqk3xon9f14a67c4ioz" },
 };
 
 /** Tells Google who runs the site and how to search it (sitelinks search box). */
@@ -119,6 +123,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(SITE_JSON_LD) }}
         />
         <RegisterServiceWorker />
+        {/* Suspense: it reads the URL's search params (PageView on every route change) */}
+        <Suspense fallback={null}>
+          <MetaPixel />
+        </Suspense>
         <Providers>
           <AppChrome>{children}</AppChrome>
         </Providers>

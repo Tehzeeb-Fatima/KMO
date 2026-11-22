@@ -794,7 +794,7 @@ function PromoProductCard({
       {...cardStats(p)}
       promoLabel={cp.badgeText}
       topRight={<WishlistHeart productId={p.id} />}
-      footer={<AddToCartButton productId={p.id} {...defaultCartVariant(p)} />}
+      footer={<AddToCartButton productId={p.id} {...defaultCartVariant(p)} name={p.name} price={cp.price} />}
     />
   );
 }
@@ -921,7 +921,7 @@ function FeaturedProducts({
       {...cardStats(p)}
                 promoLabel={cp.badgeText}
                 topRight={<WishlistHeart productId={p.id} />}
-                footer={<AddToCartButton productId={p.id} {...defaultCartVariant(p)} />}
+                footer={<AddToCartButton productId={p.id} {...defaultCartVariant(p)} name={p.name} price={cp.price} />}
               />
             );
           })}

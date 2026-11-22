@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -25,6 +25,7 @@ import { useAuth } from "@kmo/shared/auth";
 import { RequireAuth } from "@/components/require-auth";
 import { supabase } from "@/lib/supabase";
 import { friendlyError } from "@/lib/friendly-error";
+import { trackEvent } from "@/lib/meta-pixel";
 import { useLanguage } from "@/lib/i18n/language-context";
 import type { TranslationTree } from "@/lib/i18n/translations";
 import { fill } from "@/lib/fill";
@@ -265,6 +266,20 @@ function CheckoutContent() {
     : 0;
 
   const total = Math.round((beforeWallet - walletToUse) * 100) / 100;
+
+  // Meta Pixel: InitiateCheckout once, when the cart has loaded
+  const checkoutTracked = useRef(false);
+  useEffect(() => {
+    if (checkoutTracked.current || !items || items.length === 0) return;
+    checkoutTracked.current = true;
+    trackEvent("InitiateCheckout", {
+      content_ids: items.map((i) => i.products.id),
+      content_type: "product",
+      value: subtotal,
+      num_items: items.reduce((n, i) => n + i.quantity, 0),
+      currency: "PKR",
+    });
+  }, [items, subtotal]);
 
   return (
     <div className="mx-auto w-full max-w-[1100px] px-4 py-6 sm:px-6 lg:px-10">

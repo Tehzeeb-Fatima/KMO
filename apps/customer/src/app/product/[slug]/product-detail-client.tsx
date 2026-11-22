@@ -37,6 +37,7 @@ import { Breadcrumbs, Button, ProductCard, SaleTagBadge } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { supabase } from "@/lib/supabase";
 import { ensureCustomerId } from "@/lib/ensure-customer-id";
+import { trackEvent } from "@/lib/meta-pixel";
 import { useLanguage } from "@/lib/i18n/language-context";
 import { ProductPageSkeleton } from "@/components/page-loader";
 
@@ -123,8 +124,32 @@ export default function ProductDetailClient({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cart"] });
+      if (product) {
+        const unitPrice = Number(selectedVariant?.price_override ?? product.price);
+        trackEvent("AddToCart", {
+          content_ids: [product.id],
+          content_name: product.name,
+          content_type: "product",
+          value: unitPrice * qty,
+          num_items: qty,
+          currency: "PKR",
+        });
+      }
     },
   });
+
+  // Meta Pixel: one ViewContent per product opened
+  useEffect(() => {
+    if (!product) return;
+    trackEvent("ViewContent", {
+      content_ids: [product.id],
+      content_name: product.name,
+      content_type: "product",
+      value: Number(product.price),
+      currency: "PKR",
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product?.id]);
 
   const { data: wishlisted } = useQuery({
     queryKey: ["wishlisted", product?.id, user?.id],

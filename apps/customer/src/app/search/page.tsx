@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
@@ -15,6 +15,7 @@ import {
 import { cardPricing, cardStats, colourImageUrl, colourInSearch, mainCategories, mainImageUrl } from "@kmo/shared/lib";
 import { ProductCard, useSaleTag } from "@kmo/shared/ui";
 import { supabase } from "@/lib/supabase";
+import { trackEvent } from "@/lib/meta-pixel";
 import { useLanguage } from "@/lib/i18n/language-context";
 import type { TranslationTree } from "@/lib/i18n/translations";
 import { PageLoader } from "@/components/page-loader";
@@ -51,6 +52,11 @@ function SearchPageContent() {
   const sort = (searchParams.get("sort") as Sort) ?? "newest";
   const onSale = searchParams.get("sale") === "1";
   const saleTag = useSaleTag();
+
+  // Meta Pixel: one Search event per search term
+  useEffect(() => {
+    if (q.trim()) trackEvent("Search", { search_string: q.trim() });
+  }, [q]);
 
   const [filtersOpen, setFiltersOpen] = useState(false);
   // Sub-category lists the shopper opened or closed by hand; otherwise the

@@ -4,6 +4,7 @@ import { AuthLayout, Button, Input, PasswordInput, Turnstile } from "@kmo/shared
 import { useAuth } from "@kmo/shared/auth";
 import { signUpWithCaptcha } from "@kmo/shared/api";
 import { supabase } from "../lib/supabase";
+import { trackEvent } from "../lib/meta-pixel";
 import kmoIcon from "../assets/kmo-icon.png";
 
 const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY ?? "";
@@ -57,6 +58,7 @@ export function SignupPage() {
     setSubmitting(false);
     setCaptchaResetKey((k) => k + 1);
     setSubmitted(true);
+    trackEvent("CompleteRegistration", { content_name: "Vendor signup", status: "pending" });
   }
 
   if (submitted) {
