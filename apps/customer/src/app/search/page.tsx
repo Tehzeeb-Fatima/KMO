@@ -255,6 +255,18 @@ function SearchPageContent() {
         <aside className="hidden lg:block">{filterPanel}</aside>
 
         <div className="min-w-0">
+          {!/nabat/i.test(q) ? (
+            <div className="relative mb-5">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/banners/nabat-offer.png" alt="NABAT Herbal Shampoo & Hair Oil - Discount Offer" className="block h-auto w-full rounded-2xl" />
+              <Link
+                href="/search?q=NABAT"
+                aria-label="Order NABAT now"
+                className="absolute rounded-full"
+                style={{ left: "4.5%", top: "86.2%", width: "22.2%", height: "11.3%" }}
+              />
+            </div>
+          ) : null}
           {onSale && !activePromo ? (
             <div
               className="mb-5 flex items-center justify-between gap-3 rounded-2xl px-5 py-4 text-white sm:px-7 sm:py-5"

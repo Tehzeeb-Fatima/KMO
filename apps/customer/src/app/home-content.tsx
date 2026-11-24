@@ -441,16 +441,17 @@ function MiddleBanners({ banners }: { banners: BannerRow[] | undefined }) {
           <img src={cdnImage(media, 1600)} alt={label} loading="lazy" className="block h-auto w-full" />
         );
         if (!b.link_url) return <section key={b.id}>{body}</section>;
+        // with a link area set, only that spot (the banner's button) is clickable, not the whole picture
+        const area = ((phone ? (urdu && b.image_url_mobile_ur ? b.link_area_mobile_ur : b.link_area_mobile) : (urdu && b.link_area_ur) || b.link_area) ??
+          null) as CSSProperties | null;
+        const linkClass = area ? "absolute rounded-full" : "absolute inset-0 block";
         return (
-          <section key={b.id}>
+          <section key={b.id} className="relative">
+            {body}
             {b.link_url.startsWith("/") ? (
-              <Link href={b.link_url} aria-label={label} className="block">
-                {body}
-              </Link>
+              <Link href={b.link_url} aria-label={label} className={linkClass} style={area ?? undefined} />
             ) : (
-              <a href={b.link_url} aria-label={label} className="block">
-                {body}
-              </a>
+              <a href={b.link_url} aria-label={label} className={linkClass} style={area ?? undefined} />
             )}
           </section>
         );
