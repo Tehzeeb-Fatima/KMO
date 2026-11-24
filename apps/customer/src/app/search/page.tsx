@@ -263,7 +263,7 @@ function SearchPageContent() {
                 href="/search?q=NABAT"
                 aria-label="Order NABAT now"
                 className="absolute rounded-full"
-                style={{ left: "4.5%", top: "86.2%", width: "22.2%", height: "11.3%" }}
+                style={{ left: "4.5%", bottom: "2.5%", width: "22.2%", height: "11.3%", minWidth: "96px", minHeight: "44px" }}
               />
             </div>
           ) : null}
