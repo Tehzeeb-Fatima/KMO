@@ -565,13 +565,7 @@ function HomeBanner({ banners }: { banners: BannerRow[] | undefined }) {
           <div
             className="absolute inset-0 bg-cover bg-center"
             style={{ backgroundImage: `url(${cdnImage(media, 1600)})` }}
-          >
-            {current.title ? (
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-5 sm:p-8">
-                <p className="text-[19.5px] font-extrabold text-white sm:text-[26px]">{current.title}</p>
-              </div>
-            ) : null}
-          </div>
+          />
         )}
         {current.link_url ? (
           current.link_url.startsWith("/") ? (
