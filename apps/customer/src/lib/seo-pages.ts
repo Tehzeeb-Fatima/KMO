@@ -247,7 +247,7 @@ export const LANDING_PAGES: LandingPage[] = [
     faqs: [
       { q: "What is Karachi Mart Online?", a: "Karachi Mart Online (KMO) is an online marketplace where verified Karachi stores sell their products, delivered across Karachi." },
       { q: "Can I pay cash on delivery?", a: "Yes. Every order on Karachi Mart Online can be paid in cash when it arrives." },
-      { q: "How long does delivery take?", a: "Most orders arrive in 3 to 7 working days." },
+      { q: "How long does delivery take?", a: "Most orders arrive in 1 to 5 working days." },
     ],
   },
   {
@@ -375,7 +375,7 @@ export const LANDING_PAGES: LandingPage[] = [
       "handmade-crafts-handmade-gifts-hampers",
     ],
     faqs: [
-      { q: "When should I order for Eid?", a: "Delivery usually takes 3 to 7 working days, so order at least a week before Eid." },
+      { q: "When should I order for Eid?", a: "Delivery usually takes 1 to 5 working days, so order at least a week before Eid." },
       { q: "Can I pay cash on delivery?", a: "Yes. All orders are cash on delivery." },
     ],
   },
