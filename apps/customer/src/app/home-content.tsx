@@ -519,12 +519,30 @@ function HomeBanner({ banners }: { banners: BannerRow[] | undefined }) {
   const slides = banners ?? [];
   const count = slides.length;
   const [index, setIndex] = useState(0);
-  const current = count ? slides[index % count] : undefined;
+  // The slide that was showing before this one, kept mounted while it fades out.
+  const [prev, setPrev] = useState(0);
   const urdu = locale === "ur";
   const phone = usePhone();
-  const phoneMedia = current && phone ? (urdu && current.image_url_mobile_ur) || current.image_url_mobile : null;
-  const media = phoneMedia || (current ? (urdu && current.image_url_ur) || current.image_url : "");
-  const video = isVideo(media);
+  const active = count ? index % count : 0;
+
+  // The file shown for a slide on this screen, plus the link spot that matches it.
+  const pick = (b: BannerRow) => {
+    const phoneMedia = phone ? (urdu && b.image_url_mobile_ur) || b.image_url_mobile : null;
+    const media = phoneMedia || (urdu && b.image_url_ur) || b.image_url;
+    const linkArea = (
+      phoneMedia
+        ? (urdu && b.image_url_mobile_ur ? b.link_area_mobile_ur : b.link_area_mobile)
+        : (urdu && b.link_area_ur) || b.link_area
+    ) as CSSProperties | null;
+    return { phoneMedia, media, linkArea, video: isVideo(media) };
+  };
+  const currentPick = count ? pick(slides[active]) : undefined;
+  const video = currentPick?.video ?? false;
+
+  useEffect(() => {
+    const id = setTimeout(() => setPrev(active), 900);
+    return () => clearTimeout(id);
+  }, [active]);
 
   useEffect(() => {
     // A video moves the slider on when it finishes.
@@ -537,44 +555,53 @@ function HomeBanner({ banners }: { banners: BannerRow[] | undefined }) {
   if (!banners) {
     return <div className="aspect-[4/5] w-full sm:aspect-[8/3]" style={{ backgroundColor: BANNER_BG }} />;
   }
-  if (!current) return null;
-
-  const linkArea = (
-    phoneMedia
-      ? (urdu && current.image_url_mobile_ur ? current.link_area_mobile_ur : current.link_area_mobile)
-      : (urdu && current.link_area_ur) || current.link_area
-  ) as CSSProperties | null;
-  const linkClass = linkArea ? "absolute rounded-full" : "absolute inset-0 block";
-  const label = current.title ?? "Banner";
+  if (!currentPick) return null;
 
   return (
     <section style={{ backgroundColor: BANNER_BG }}>
       {/* sized to the artwork so a link stays on top of its button at any width */}
       <div
-        className={`relative mx-auto w-full overflow-hidden sm:aspect-[8/3] ${phoneMedia ? "aspect-[4/5]" : "aspect-[20/9]"}`}
+        className={`relative mx-auto w-full overflow-hidden transition-[aspect-ratio] duration-700 ease-in-out sm:aspect-[8/3] ${currentPick.phoneMedia ? "aspect-[4/5]" : "aspect-[20/9]"}`}
       >
-        {/* without a phone version, a video on phones is zoomed to fill the height, cropping its right-hand decoration */}
-        <div className={video && !phoneMedia ? "absolute inset-y-0 left-[-2.4%] w-[120%] sm:left-0 sm:w-full" : "absolute inset-0"}>
-        {video ? (
-          <HeroVideo
-            key={media}
-            src={cdnImage(media)}
-            onEnded={count > 1 ? () => setIndex((i) => (i + 1) % count) : undefined}
-          />
-        ) : (
-          <div
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url(${cdnImage(media, 1600)})` }}
-          />
-        )}
-        {current.link_url ? (
-          current.link_url.startsWith("/") ? (
-            <Link href={current.link_url} aria-label={label} className={linkClass} style={linkArea ?? undefined} />
-          ) : (
-            <a href={current.link_url} aria-label={label} className={linkClass} style={linkArea ?? undefined} />
-          )
-        ) : null}
-        </div>
+        {slides.map((b, i) => {
+          const { phoneMedia, media, linkArea, video: isVid } = pick(b);
+          const isActive = i === active;
+          const leaving = i === prev % count && !isActive;
+          // Images stay mounted so the next one is ready; a video only plays while it is on screen or fading out.
+          if (isVid && !isActive && !leaving) return null;
+          const linkClass = linkArea ? "absolute rounded-full" : "absolute inset-0 block";
+          const label = b.title ?? "Banner";
+          return (
+            <div
+              key={b.id}
+              aria-hidden={!isActive}
+              className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${isActive ? "z-10 opacity-100" : "pointer-events-none opacity-0"}`}
+            >
+              {/* without a phone version, a video on phones is zoomed to fill the height, cropping its right-hand decoration */}
+              <div className={isVid && !phoneMedia ? "absolute inset-y-0 left-[-2.4%] w-[120%] sm:left-0 sm:w-full" : "absolute inset-0"}>
+                {isVid ? (
+                  <HeroVideo
+                    key={media}
+                    src={cdnImage(media)}
+                    onEnded={count > 1 && isActive ? () => setIndex((n) => (n + 1) % count) : undefined}
+                  />
+                ) : (
+                  <div
+                    className="absolute inset-0 bg-cover bg-center"
+                    style={{ backgroundImage: `url(${cdnImage(media, 1600)})` }}
+                  />
+                )}
+                {b.link_url && isActive ? (
+                  b.link_url.startsWith("/") ? (
+                    <Link href={b.link_url} aria-label={label} className={linkClass} style={linkArea ?? undefined} />
+                  ) : (
+                    <a href={b.link_url} aria-label={label} className={linkClass} style={linkArea ?? undefined} />
+                  )
+                ) : null}
+              </div>
+            </div>
+          );
+        })}
 
         {count > 1 ? (
           <>
@@ -582,7 +609,7 @@ function HomeBanner({ banners }: { banners: BannerRow[] | undefined }) {
               type="button"
               aria-label="Previous banner"
               onClick={() => setIndex((i) => (i - 1 + count) % count)}
-              className="absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-lg font-bold text-primary"
+              className="absolute left-3 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-lg font-bold text-primary"
             >
               ‹
             </button>
@@ -590,18 +617,18 @@ function HomeBanner({ banners }: { banners: BannerRow[] | undefined }) {
               type="button"
               aria-label="Next banner"
               onClick={() => setIndex((i) => (i + 1) % count)}
-              className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-lg font-bold text-primary"
+              className="absolute right-3 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-lg font-bold text-primary"
             >
               ›
             </button>
-            <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-2">
+            <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 gap-2">
               {slides.map((s, i) => (
                 <button
                   key={s.id}
                   type="button"
                   aria-label={`Banner ${i + 1}`}
                   onClick={() => setIndex(i)}
-                  className={`h-2 rounded-full transition-all ${i === index % count ? "w-6 bg-white" : "w-2 bg-white/50"}`}
+                  className={`h-2 rounded-full transition-all ${i === active ? "w-6 bg-white" : "w-2 bg-white/50"}`}
                 />
               ))}
             </div>
