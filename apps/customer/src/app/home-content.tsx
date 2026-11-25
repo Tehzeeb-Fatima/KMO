@@ -460,7 +460,7 @@ function MiddleBanners({ banners }: { banners: BannerRow[] | undefined }) {
   );
 }
 
-function HeroVideo({ src, onEnded }: { src: string; onEnded?: () => void }) {
+function HeroVideo({ src, onEnded }: { src: string; onEnded?: (e: React.SyntheticEvent<HTMLVideoElement>) => void }) {
   const ref = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -498,6 +498,10 @@ function HeroVideo({ src, onEnded }: { src: string; onEnded?: () => void }) {
 }
 
 const BANNER_BG = "#3a1d5a";
+/** How long an image slide stays up in the top slider. */
+const IMAGE_SLIDE_MS = 8000;
+/** A video slide shorter than this plays again before the slider moves on. */
+const MIN_VIDEO_SLIDE_MS = 10000;
 const isVideo = (url: string) => /\.(mp4|webm)(\?|$)/i.test(url);
 
 /** Phone-width screens (below Tailwind's sm), kept in sync on resize. */
@@ -544,12 +548,29 @@ function HomeBanner({ banners }: { banners: BannerRow[] | undefined }) {
     return () => clearTimeout(id);
   }, [active]);
 
+  // When this slide came on screen: a short video plays again until the slide
+  // has had its time, so shoppers can actually read it.
+  const slideStart = useRef(Date.now());
+  useEffect(() => {
+    slideStart.current = Date.now();
+  }, [active]);
+
   useEffect(() => {
     // A video moves the slider on when it finishes.
     if (count < 2 || video) return;
-    const id = setInterval(() => setIndex((i) => (i + 1) % count), 5000);
+    const id = setInterval(() => setIndex((i) => (i + 1) % count), IMAGE_SLIDE_MS);
     return () => clearInterval(id);
   }, [count, video]);
+
+  const nextAfterVideo = (e: React.SyntheticEvent<HTMLVideoElement>) => {
+    if (Date.now() - slideStart.current < MIN_VIDEO_SLIDE_MS) {
+      const v = e.currentTarget;
+      v.currentTime = 0;
+      void v.play().catch(() => {});
+      return;
+    }
+    setIndex((n) => (n + 1) % count);
+  };
 
   // Holds the banner's space while it loads, so the page doesn't jump.
   if (!banners) {
@@ -583,7 +604,7 @@ function HomeBanner({ banners }: { banners: BannerRow[] | undefined }) {
                   <HeroVideo
                     key={media}
                     src={cdnImage(media)}
-                    onEnded={count > 1 && isActive ? () => setIndex((n) => (n + 1) % count) : undefined}
+                    onEnded={count > 1 && isActive ? nextAfterVideo : undefined}
                   />
                 ) : (
                   <div
