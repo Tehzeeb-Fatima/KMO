@@ -111,16 +111,20 @@ function CheckoutContent() {
     queryKey: ["platform-settings"],
     queryFn: () => getPlatformSettings(supabase),
   });
-  const { data: vendorDeliveryRates } = useQuery({
-    queryKey: ["vendor-delivery-rates-checkout", vendorIds.join(","), selectedAddress?.city],
-    queryFn: () => getVendorDeliveryRatesForCity(supabase, vendorIds, selectedAddress!.city),
-    enabled: vendorIds.length > 0 && !!selectedAddress?.city,
+  // The city delivery is priced for: the chosen saved address, else the city
+  // picked in the new-address form (so the charge shows before saving it).
+  const deliveryCity = selectedAddress?.city || (addingAddress || !addresses?.length ? addressCity : "") || "";
+  const { data: vendorDeliveryRates, isFetching: vendorRatesLoading } = useQuery({
+    queryKey: ["vendor-delivery-rates-checkout", vendorIds.join(","), deliveryCity],
+    queryFn: () => getVendorDeliveryRatesForCity(supabase, vendorIds, deliveryCity),
+    enabled: vendorIds.length > 0 && !!deliveryCity,
   });
-  const { data: defaultDeliveryRate } = useQuery({
-    queryKey: ["default-delivery-rate-checkout", selectedAddress?.city],
-    queryFn: () => getDefaultDeliveryRateForCity(supabase, selectedAddress!.city),
-    enabled: !!selectedAddress?.city,
+  const { data: defaultDeliveryRate, isFetching: defaultRateLoading } = useQuery({
+    queryKey: ["default-delivery-rate-checkout", deliveryCity],
+    queryFn: () => getDefaultDeliveryRateForCity(supabase, deliveryCity),
+    enabled: !!deliveryCity,
   });
+  const deliveryLoading = vendorRatesLoading || defaultRateLoading;
 
   const addAddressMutation = useMutation({
     mutationFn: () =>
@@ -182,7 +186,7 @@ function CheckoutContent() {
   const freeThreshold = defaultDeliveryRate?.free_delivery_threshold ?? null;
   // KMO offer, same as place_order: whole cart at the minimum or above, to a
   // Karachi address, and every store's delivery is free.
-  const inKarachi = isKarachi(selectedAddress?.city);
+  const inKarachi = isKarachi(deliveryCity);
   const karachiFreeDelivery = inKarachi && subtotal >= KARACHI_FREE_DELIVERY_MIN;
   const deliveryFeesByVendor = vendorIds.map((vendorId) => {
     const vendorItems = (items ?? []).filter((i) => i.products.vendor_id === vendorId);
@@ -204,6 +208,9 @@ function CheckoutContent() {
     return { vendorId, storeName: vendorItems[0]?.products.vendors?.store_name ?? "Store", fee };
   });
   const deliveryFee = deliveryFeesByVendor.reduce((sum, v) => sum + v.fee, 0);
+  // No city yet means no price yet: never show a delivery as free before it is.
+  const deliveryLabel = (fee: number) =>
+    !deliveryCity ? "Select city" : deliveryLoading ? "…" : fee === 0 ? t.checkout.free : `Rs. ${fee.toLocaleString()}`;
 
   // Mirrors place_order's matching exactly, so this total is what gets charged
   // — not an estimate that then changes once the order is actually created.
@@ -487,22 +494,22 @@ function CheckoutContent() {
                 <div key={v.vendorId} className="flex justify-between text-[14px]">
                   <span className="text-muted">{v.storeName}</span>
                   <span className="font-semibold text-ink-dark">
-                    {v.fee === 0 ? t.checkout.free : `Rs. ${v.fee.toLocaleString()}`}
+                    {deliveryLabel(v.fee)}
                   </span>
                 </div>
               ))}
               <div className="flex justify-between text-[15.5px]">
                 <span className="font-semibold text-ink-dark">Total delivery</span>
-                <span className="font-semibold text-success">
-                  {deliveryFee === 0 ? t.checkout.free : `Rs. ${deliveryFee.toLocaleString()}`}
+                <span className={`font-semibold ${deliveryCity ? "text-success" : "text-muted"}`}>
+                  {deliveryLabel(deliveryFee)}
                 </span>
               </div>
             </div>
           ) : (
             <div className="flex justify-between text-[15.5px]">
               <span className="text-muted">{t.checkout.delivery}</span>
-              <span className="font-semibold text-success">
-                {deliveryFee === 0 ? t.checkout.free : `Rs. ${deliveryFee.toLocaleString()}`}
+              <span className={`font-semibold ${deliveryCity ? "text-success" : "text-muted"}`}>
+                {deliveryLabel(deliveryFee)}
               </span>
             </div>
           )}
