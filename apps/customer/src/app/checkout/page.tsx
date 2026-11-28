@@ -19,7 +19,7 @@ import {
   toPricingPromotions,
 } from "@kmo/shared/api";
 import type { PaymentMethod } from "@kmo/shared/types";
-import { bestPromotionForVendor, PAKISTAN_CITIES } from "@kmo/shared/lib";
+import { bestPromotionForVendor, isKarachi, KARACHI_FREE_DELIVERY_MIN, PAKISTAN_CITIES } from "@kmo/shared/lib";
 import { Button, SearchableSelect } from "@kmo/shared/ui";
 import { useAuth } from "@kmo/shared/auth";
 import { RequireAuth } from "@/components/require-auth";
@@ -180,6 +180,10 @@ function CheckoutContent() {
   // isn't just an estimate.
   const defaultFee = defaultDeliveryRate?.fee ?? 0;
   const freeThreshold = defaultDeliveryRate?.free_delivery_threshold ?? null;
+  // KMO offer, same as place_order: whole cart at the minimum or above, to a
+  // Karachi address, and every store's delivery is free.
+  const inKarachi = isKarachi(selectedAddress?.city);
+  const karachiFreeDelivery = inKarachi && subtotal >= KARACHI_FREE_DELIVERY_MIN;
   const deliveryFeesByVendor = vendorIds.map((vendorId) => {
     const vendorItems = (items ?? []).filter((i) => i.products.vendor_id === vendorId);
     const vendorSubtotal = vendorItems.reduce(
@@ -188,13 +192,15 @@ function CheckoutContent() {
     );
     // Same as place_order: saved vendor charges apply only while admin allows them.
     const customRate = platformSettings?.dc_reminder_enabled === true ? vendorDeliveryRates?.get(vendorId) : undefined;
-    const fee = customRate
-      ? customRate.free_delivery_threshold != null && vendorSubtotal >= customRate.free_delivery_threshold
-        ? 0
-        : customRate.fee
-      : freeThreshold != null && vendorSubtotal >= freeThreshold
-        ? 0
-        : defaultFee;
+    const fee = karachiFreeDelivery
+      ? 0
+      : customRate
+        ? customRate.free_delivery_threshold != null && vendorSubtotal >= customRate.free_delivery_threshold
+          ? 0
+          : customRate.fee
+        : freeThreshold != null && vendorSubtotal >= freeThreshold
+          ? 0
+          : defaultFee;
     return { vendorId, storeName: vendorItems[0]?.products.vendors?.store_name ?? "Store", fee };
   });
   const deliveryFee = deliveryFeesByVendor.reduce((sum, v) => sum + v.fee, 0);
@@ -463,6 +469,15 @@ function CheckoutContent() {
               </div>
             ))}
           </div>
+          {inKarachi && items && items.length > 0 ? (
+            <p
+              className={`rounded-lg px-3 py-2 text-[13.5px] font-semibold ${karachiFreeDelivery ? "bg-success-tint text-success" : "bg-accent-tint text-accent"}`}
+            >
+              {karachiFreeDelivery
+                ? `Free delivery in Karachi on orders over Rs. ${KARACHI_FREE_DELIVERY_MIN.toLocaleString()}.`
+                : `Add Rs. ${Math.ceil(KARACHI_FREE_DELIVERY_MIN - subtotal).toLocaleString()} more for free delivery in Karachi.`}
+            </p>
+          ) : null}
           {deliveryFeesByVendor.length > 1 ? (
             <div className="flex flex-col gap-1 border-t border-[#F1EAE6] pt-3">
               <span className="text-[13.5px] font-bold uppercase tracking-[0.04em] text-muted">

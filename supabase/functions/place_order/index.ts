@@ -28,6 +28,14 @@ function deliveryFeeFor(subtotal: number, defaultFee: number | null, freeThresho
   return defaultFee ?? 0;
 }
 
+// KMO offer: a customer whose whole cart (all stores together) is at least
+// this much gets free delivery on every order, for Karachi addresses only.
+// Keep in step with KARACHI_FREE_DELIVERY_MIN in packages/shared/src/lib/delivery.ts.
+const KARACHI_FREE_DELIVERY_MIN = 1200;
+function isKarachi(city: string | null | undefined): boolean {
+  return (city ?? "").trim().toLowerCase() === "karachi";
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: CORS_HEADERS });
@@ -241,6 +249,14 @@ Deno.serve(async (req: Request) => {
   };
   const groups: Group[] = [];
 
+  // The whole cart's product total, across every store, for the Karachi offer.
+  const cartSubtotal = cartItems.reduce((sum, item) => {
+    const product = item.products as unknown as { price: number };
+    const variant = item.product_variants as unknown as { price_override: number | null } | null;
+    return sum + (variant?.price_override ?? product.price) * item.quantity;
+  }, 0);
+  const karachiFreeDelivery = isKarachi(address.city) && cartSubtotal >= KARACHI_FREE_DELIVERY_MIN;
+
   for (const [vendorId, items] of byVendor) {
     const subtotal = items.reduce((sum, item) => {
       const product = item.products as unknown as { price: number };
@@ -252,9 +268,11 @@ Deno.serve(async (req: Request) => {
     }, 0);
     // Saved vendor charges apply only while admin allows vendor-set charges.
     const vendorRate = settings?.dc_reminder_enabled === true ? deliveryRateByVendor.get(vendorId) : undefined;
-    const deliveryFee = vendorRate
-      ? deliveryFeeFor(subtotal, vendorRate.fee, vendorRate.free_delivery_threshold)
-      : deliveryFeeFor(subtotal, platformDefault?.fee ?? null, platformDefault?.free_delivery_threshold ?? null);
+    const deliveryFee = karachiFreeDelivery
+      ? 0
+      : vendorRate
+        ? deliveryFeeFor(subtotal, vendorRate.fee, vendorRate.free_delivery_threshold)
+        : deliveryFeeFor(subtotal, platformDefault?.fee ?? null, platformDefault?.free_delivery_threshold ?? null);
 
     // Pick the best-matching promotion for this vendor's items, if any. A
     // promo can be scoped to a vendor and/or a category — both null means
