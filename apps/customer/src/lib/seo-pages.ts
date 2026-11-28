@@ -75,6 +75,13 @@ export const CATEGORY_COPY: Record<string, CategoryCopy> = {
       "Buy handmade crochet clothing, bags, baby sets, toys and gifts made by Karachi artisans. Cash on delivery.",
     intro: "Crochet clothing, bags, baby sets, toys, hand embroidery and gifts, handmade by Karachi artisans.",
   },
+  grocery: {
+    title: "Online Grocery Shopping in Karachi – Fresh Fruits, Vegetables, Milk & Daily Essentials",
+    description:
+      "Order grocery online in Karachi: fruits, vegetables, milk, meat, beverages, ice cream, household items and baby essentials. Home delivery with cash on delivery.",
+    intro:
+      "Fruits, vegetables, milk, meat, beverages, ice cream, household items and baby essentials from Karachi sellers, delivered to your door. Pay cash when your order arrives.",
+  },
   "food-items": {
     title: "Food Items Online in Karachi – Dry Fruits, Nuts, Dates & Gift Boxes",
     description: "Buy food items online in Karachi: dry fruits, nuts, dates and gift boxes from Karachi sellers. Cash on delivery.",
@@ -440,5 +447,72 @@ export const LANDING_PAGES: LandingPage[] = [
       "beauty-personal-care-mehndi-nail-care",
     ],
     faqs: [{ q: "Can I pay cash on delivery?", a: "Yes. All orders are cash on delivery." }],
+  },
+  {
+    slug: "winter-clothes-karachi",
+    title: "Winter Clothes Online in Karachi – Hoodies, Sweatshirts, Sweaters & Jackets",
+    description:
+      "Shop winter clothes online in Karachi: warm hoodies, sweatshirts, fleece, sweaters and jackets for kids, girls and boys. Cash on delivery.",
+    h1: "Winter Clothes in Karachi",
+    intro: [
+      "Warm hoodies, sweatshirts, fleece sets, sweaters and jackets to get through the cold months, with the exact size shown on every product.",
+      "Sold by verified Karachi sellers. Pay cash on delivery anywhere in Karachi.",
+    ],
+    nameTerms: ["hoodie", "sweatshirt", "sweater", "fleece", "jacket", "sherpa", "thermal", "cardigan"],
+    linkFrom: ["kids-fashion", "womens-fashion", "mens-fashion"],
+    faqs: [
+      { q: "Which winter clothes are available?", a: "Hoodies, sweatshirts, fleece sets, sweaters and jackets, mostly for kids, girls and boys." },
+      { q: "How do I choose the right size?", a: "Each product lists its age or size options. Pick the size on the product page, or message us on WhatsApp if you are unsure." },
+      { q: "Can I pay cash on delivery?", a: "Yes. All orders are cash on delivery." },
+      { q: "How long does delivery take?", a: "Most orders arrive in 1 to 5 working days." },
+    ],
+  },
+  {
+    slug: "kids-winter-clothes-karachi",
+    title: "Kids Winter Clothes in Karachi – Hoodies, Sweatshirts, Fleece & Baby Sweaters",
+    description:
+      "Buy kids winter clothes online in Karachi: hoodies, sweatshirts, fleece sets and baby sweaters for toddlers, girls and boys up to 14 years. Cash on delivery.",
+    h1: "Kids Winter Clothes in Karachi",
+    intro: [
+      "Warm hoodies, sweatshirts, fleece sets, jackets and baby sweaters for toddlers, girls and boys, with the age size written on every product.",
+      "Branded and character pieces from Karachi sellers, delivered with cash on delivery.",
+    ],
+    nameTerms: [
+      "kids hoodie",
+      "kids' hoodie",
+      "boys' hoodie",
+      "girls' hoodie",
+      "kids' sweatshirt",
+      "baby sweatshirt",
+      "sweatshirt for",
+      "toddler",
+      "fleece",
+      "varsity",
+      "baby sweater",
+    ],
+    linkFrom: ["kids-fashion", "kids-fashion-boys-clothing", "kids-fashion-girls-clothing"],
+    faqs: [
+      { q: "Which ages are covered?", a: "From 3 months up to 14 years. The age size is shown in each product name and size options." },
+      { q: "Are these suitable for Karachi winters?", a: "Yes. Fleece, sweatshirts and hoodies suit Karachi's cool weather, and heavier jackets are there for colder nights." },
+      { q: "Can I pay cash on delivery?", a: "Yes. All orders are cash on delivery." },
+    ],
+  },
+  {
+    slug: "tiny-treasures-karachi",
+    title: "Tiny Treasures – Branded Baby & Kids Clothes in Karachi | Karachi Mart Online",
+    description:
+      "Shop Tiny Treasures on Karachi Mart Online: branded baby and kids clothes including Zara, H&M, Mini Boden and C&A pieces, hoodies, dresses, sweatshirts and sets. Cash on delivery.",
+    h1: "Tiny Treasures – Baby & Kids Clothes in Karachi",
+    intro: [
+      "Tiny Treasures is a Karachi store selling branded baby, girls' and boys' clothing: hoodies, sweatshirts, party dresses, rompers, joggers and sets, each with its age size in the name.",
+      "Every piece is delivered across Karachi with cash on delivery.",
+    ],
+    vendorSlugs: ["tiny-treasures-6e9a2bf9"],
+    linkFrom: ["kids-fashion"],
+    faqs: [
+      { q: "What does Tiny Treasures sell?", a: "Baby, girls' and boys' clothing from newborn sizes up to 14 years, including hoodies, sweatshirts, dresses, tops, skirts and sets." },
+      { q: "Are the sizes written on the product?", a: "Yes. The age size is part of each product name, for example 3–4 Years or 6–9 Months." },
+      { q: "Can I pay cash on delivery?", a: "Yes. All orders are cash on delivery." },
+    ],
   },
 ];
